@@ -6,8 +6,10 @@ import {
   type FillSource,
 } from '../lib/agent/provider'
 import type { AgentFill } from '../lib/agent/schema'
-import type { CampaignBundle } from '../types'
-import { IconCalendar, IconChevron, IconNewsletter, IconSend, IconSpark, IconTable } from './Icons'
+import type { Campaign, CampaignBundle, MasterType } from '../types'
+import { MASTER_LABEL } from '../types'
+import { edited } from './CampaignSwitcher'
+import { IconCalendar, IconChevron, IconDuplicate, IconNewsletter, IconSend, IconSpark, IconTable } from './Icons'
 
 type ChatItem = {
   id: string
@@ -20,27 +22,65 @@ type ChatItem = {
   note?: string
 }
 
-const STARTER_CARDS = [
-  { icon: <IconCalendar />, kind: 'Event invite' },
-  { icon: <IconTable />, kind: 'Weekly snapshot' },
-  { icon: <IconNewsletter />, kind: 'Monthly update' },
+/** What a new email can start from. "custom" is the ME7 learning paths layout. */
+export type NewEmailChoice = Exclude<MasterType, 'newsletter'> | 'custom'
+
+const TEMPLATE_CHOICES: { key: NewEmailChoice; title: string; hint: string; icon: React.ReactNode }[] = [
+  {
+    key: 'event_invite',
+    title: 'Regional Template',
+    hint: 'Event invite with banner, event details, agenda, and signature',
+    icon: <IconCalendar />,
+  },
+  {
+    key: 'monthly_update',
+    title: 'Partner Skilling Update Template',
+    hint: 'Monthly newsletter with spotlight cards and skilling tables',
+    icon: <IconNewsletter />,
+  },
+  {
+    key: 'weekly_snapshot',
+    title: 'Weekly Project Snapshot',
+    hint: 'Status email with request, progress, and delivery tables',
+    icon: <IconTable />,
+  },
+  {
+    key: 'custom',
+    title: 'Custom',
+    hint: 'Free-form newsletter like ME7 + Copilot learning paths: hero image, cards, rich text',
+    icon: <IconCustom />,
+  },
 ]
 
-const STARTERS = [
-  'Asia event invite for Build What’s Next on September 22, 9–10:15am IST',
-  'Weekly project snapshot for GCPS Skilling with new OFT requests and budget callouts',
-  'Monthly Partner Skilling Update focused on AI Workforce journeys',
-]
+const RECENT_COUNT = 5
+
+const TYPE_ICON: Record<MasterType, React.ReactNode> = {
+  event_invite: <IconCalendar />,
+  monthly_update: <IconNewsletter />,
+  weekly_snapshot: <IconTable />,
+  newsletter: <IconCustom />,
+}
 
 export function AgentPanel({
   bundle,
   onApply,
   prefill,
+  campaigns,
+  onNew,
+  onOpen,
+  onCopy,
 }: {
   bundle: CampaignBundle
   onApply: (bundle: CampaignBundle) => void
   /** A starting prompt handed over by "Fill with Copilot" on a form section. */
   prefill?: { text: string; key: number } | null
+  /** Every campaign, for the Recent list. */
+  campaigns: Campaign[]
+  /** Start a new email from one of the four templates. */
+  onNew: (choice: NewEmailChoice) => void
+  onOpen: (id: string) => void
+  /** Start a new email from a copy of an earlier one. */
+  onCopy: (id: string) => void
 }) {
   const [items, setItems] = useState<ChatItem[]>([])
   const [draft, setDraft] = useState('')
@@ -172,29 +212,9 @@ export function AgentPanel({
   const canSend = Boolean(draft.trim())
   const hasChat = items.length > 0
 
-  // Starters are always on screen: in full in the empty thread, then as three
-  // one-line buttons above the prompt once a conversation has started.
-  const starterList = (
-    <div className="grid gap-1.5">
-      {STARTERS.map((starter) => (
-        <button
-          key={starter}
-          type="button"
-          disabled={busy}
-          title={hasChat ? starter : undefined}
-          onClick={() => void send(starter)}
-          className={
-            'rounded-[var(--r-md)] border border-line bg-surface text-left text-ink-2 transition-colors hover:border-forest-line hover:bg-forest-soft hover:text-ink disabled:opacity-50 ' +
-            (hasChat
-              ? 'truncate px-3 py-1.5 text-[12px] leading-4'
-              : 'px-3 py-2 text-[14px] leading-5')
-          }
-        >
-          {starter}
-        </button>
-      ))}
-    </div>
-  )
+  const recent = [...campaigns]
+    .sort((x, y) => (y.updated_at ?? '').localeCompare(x.updated_at ?? ''))
+    .slice(0, RECENT_COUNT)
 
   return (
     <section className="copilot-wash flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -202,7 +222,22 @@ export function AgentPanel({
         <span className="copilot-mark flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
           <IconSpark />
         </span>
-        <h2 className="text-[15px] font-semibold leading-5 text-ink">Copilot</h2>
+        <h2 className="min-w-0 flex-1 text-[15px] font-semibold leading-5 text-ink">Copilot</h2>
+        {hasChat ? (
+          <button
+            type="button"
+            className="ui-btn ui-btn-subtle min-h-7 px-2.5 py-0.5 text-[12px] font-semibold"
+            title="Clear this chat and show the templates and recent emails again"
+            onClick={() => {
+              ticket.current += 1
+              setItems([])
+              setError(null)
+              setBusy(false)
+            }}
+          >
+            Start over
+          </button>
+        ) : null}
       </header>
 
       <div
@@ -211,32 +246,78 @@ export function AgentPanel({
       >
         <div className="space-y-4">
           {items.length === 0 ? (
-            <div className="pt-6">
+            <div className="pt-4">
               <h3 className="text-[22px] font-semibold leading-7 tracking-[-0.01em] text-ink">
                 What email are we <span className="copilot-text">building?</span>
               </h3>
               <p className="mt-2 max-w-[40ch] text-[14px] leading-5 text-ink-2">
-                Describe it or pick a starter. Copilot fills the fields, and nothing changes until you apply.
+                Start from a template, or pick up a recent email. Ask Copilot below to fill in the fields.
               </p>
-              <div className="mt-6 grid gap-2">
-                {STARTERS.map((starter, index) => (
+              <div className="mt-5 grid gap-2" role="group" aria-label="Start a new email">
+                {TEMPLATE_CHOICES.map((choice) => (
                   <button
-                    key={starter}
+                    key={choice.key}
                     type="button"
-                    disabled={busy}
-                    onClick={() => void send(starter)}
-                    className="copilot-glass group flex items-start gap-3 rounded-[var(--r-lg)] p-3 text-left disabled:opacity-50"
+                    onClick={() => onNew(choice.key)}
+                    className="copilot-glass group flex items-start gap-3 rounded-[var(--r-lg)] p-3 text-left"
                   >
                     <span className="copilot-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-forest">
-                      {STARTER_CARDS[index].icon}
+                      {choice.icon}
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold leading-5 text-ink">{STARTER_CARDS[index].kind}</span>
-                      <span className="block text-[13px] leading-[18px] text-muted group-hover:text-ink-2">{starter}</span>
+                      <span className="block text-[13px] font-semibold leading-5 text-ink">{choice.title}</span>
+                      <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">{choice.hint}</span>
                     </span>
                   </button>
                 ))}
               </div>
+
+              {recent.length ? (
+                <section className="mt-6" aria-labelledby="recent-heading">
+                  <h4 id="recent-heading" className="mb-2 text-[13px] font-semibold leading-5 text-ink">
+                    Recent
+                  </h4>
+                  <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
+                    {recent.map((campaign) => {
+                      const current = campaign.id === bundle.campaign.id
+                      return (
+                        <li key={campaign.id} className="group/recent flex min-w-0 items-center gap-1">
+                          <button
+                            type="button"
+                            aria-current={current ? 'true' : undefined}
+                            onClick={() => onOpen(campaign.id)}
+                            className={
+                              'flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--r-md)] px-2 py-1.5 text-left transition-colors hover:bg-surface/70 ' +
+                              (current ? 'bg-surface/80 ring-1 ring-forest-line' : '')
+                            }
+                          >
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface text-forest ring-1 ring-line [&_svg]:h-4 [&_svg]:w-4">
+                              {TYPE_ICON[campaign.master_type]}
+                            </span>
+                            <span className="min-w-0 flex-1 overflow-hidden">
+                              <span className={'block truncate text-[13px] leading-[18px] text-ink ' + (current ? 'font-semibold' : '')}>
+                                {campaign.name}
+                              </span>
+                              <span className="block truncate text-[11px] leading-4 text-muted">
+                                {MASTER_LABEL[campaign.master_type]} · {edited(campaign.updated_at)}
+                              </span>
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onCopy(campaign.id)}
+                            aria-label={`Use “${campaign.name}” as a sample for a new email`}
+                            title="Use as a sample: start a new email from a copy"
+                            className="ui-icon-btn h-7 w-7 shrink-0 opacity-60 group-hover/recent:opacity-100 focus-visible:opacity-100"
+                          >
+                            <IconDuplicate />
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </section>
+              ) : null}
             </div>
           ) : null}
           {items.map((item) =>
@@ -306,7 +387,6 @@ export function AgentPanel({
       {/* Compose stays open on every screen size: starters (once chatting)
           and a one-line prompt that grows as you type. */}
       <div className="shrink-0 px-3 pt-2 pb-3">
-        {hasChat ? <div className="mb-2.5">{starterList}</div> : null}
         <form
           onSubmit={(event) => {
             event.preventDefault()
@@ -426,5 +506,16 @@ function ChangeLine({ change }: { change: FieldChange }) {
         {change.after || '(empty)'}
       </p>
     </li>
+  )
+}
+
+/** Custom newsletter: a page of blocks. */
+function IconCustom() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="3" y="3" width="14" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="10" width="6" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="11" y="10" width="6" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
   )
 }

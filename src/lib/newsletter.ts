@@ -47,7 +47,19 @@ export interface NewsletterBanner {
 /** Blocks that can sit inside a card. */
 export type InnerBlock =
   | { id: string; kind: 'text'; html: string }
-  | { id: string; kind: 'callout'; html: string; background: string }
+  | {
+      id: string
+      kind: 'callout'
+      html: string
+      /** Shade behind the text. */
+      background: string
+      /** Show the coloured rule on the left. */
+      showRule: boolean
+      /** Rule colour; empty means the accent colour. */
+      rule: string
+      /** Text colour; empty means automatic (dark on light shades, white on dark). */
+      text: string
+    }
   | { id: string; kind: 'image'; src: string; alt: string; href: string; caption: string }
   | { id: string; kind: 'button'; label: string; url: string; align: Align; color: string }
   | { id: string; kind: 'divider' }
@@ -161,7 +173,7 @@ export function newInnerBlock(kind: InnerKind): InnerBlock {
     case 'text':
       return { id: id(), kind, html: '' }
     case 'callout':
-      return { id: id(), kind, html: '', background: CALLOUT_COLORS[0] }
+      return { id: id(), kind, html: '', background: CALLOUT_COLORS[0], showRule: true, rule: '', text: '' }
     case 'image':
       return { id: id(), kind, src: '', alt: '', href: '', caption: '' }
     case 'button':
@@ -207,7 +219,15 @@ function readInner(r: Record<string, unknown>, blockId: string): InnerBlock | nu
     case 'text':
       return { id: blockId, kind: 'text', html: text(r.html) }
     case 'callout':
-      return { id: blockId, kind: 'callout', html: text(r.html), background: color(r.background, CALLOUT_COLORS[0]) }
+      return {
+        id: blockId,
+        kind: 'callout',
+        html: text(r.html),
+        background: color(r.background, CALLOUT_COLORS[0]),
+        showRule: r.showRule !== false,
+        rule: optionalColor(r.rule),
+        text: optionalColor(r.text),
+      }
     case 'image':
       return {
         id: blockId,

@@ -2,28 +2,22 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { moveMenuFocus, usePopover } from '../hooks/usePopover'
 import type { Campaign, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
-import { STARTERS } from '../data/starters'
-import { IconCheck, IconChevron, IconDuplicate, IconMore, IconPlus, IconSearch, IconTrash } from './Icons'
+import { IconCheck, IconChevron, IconDuplicate, IconMore, IconSearch, IconTrash } from './Icons'
 
-const MASTERS: MasterType[] = ['newsletter', 'event_invite', 'monthly_update', 'weekly_snapshot']
+const MASTERS: MasterType[] = ['event_invite', 'monthly_update', 'weekly_snapshot', 'newsletter']
 
 /**
- * The campaign you are working on, as a picker: search, campaigns grouped by
- * email type, and new campaigns at the foot of the list.
+ * The campaign you are working on, as a picker: search, and campaigns grouped
+ * by email type. New emails start from the panel on the left.
  */
 export function CampaignSwitcher({
   campaigns,
   currentId,
   onSelect,
-  onCreate,
-  onCreateStarter,
 }: {
   campaigns: Campaign[]
   currentId: string | null
   onSelect: (id: string) => void
-  onCreate: (master: MasterType) => void
-  /** Start from a ready-made template (data/starters). */
-  onCreateStarter?: (starterId: string) => void
 }) {
   const { open, setOpen, close, root, trigger } = usePopover()
   const [query, setQuery] = useState('')
@@ -166,47 +160,6 @@ export function CampaignSwitcher({
             })}
           </ul>
 
-          <div className="shrink-0 border-t border-line p-1" role="group" aria-label="New campaign">
-            <p className="px-2.5 pt-1.5 pb-1 text-[12px] font-semibold leading-4 text-muted">New campaign</p>
-            {MASTERS.map((master) => (
-              <button
-                key={master}
-                type="button"
-                className="ui-menu-item"
-                onClick={() => {
-                  close()
-                  onCreate(master)
-                }}
-              >
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center text-forest">
-                  <IconPlus />
-                </span>
-                {MASTER_LABEL[master]}
-              </button>
-            ))}
-            {onCreateStarter ? (
-              <>
-                <p className="px-2.5 pt-2 pb-1 text-[12px] font-semibold leading-4 text-muted">From a template</p>
-                {STARTERS.map((starter) => (
-                  <button
-                    key={starter.id}
-                    type="button"
-                    className="ui-menu-item"
-                    onClick={() => {
-                      close()
-                      onCreateStarter(starter.id)
-                    }}
-                  >
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center text-forest">
-                      <IconPlus />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate">{starter.label}</span>
-                    <span className="shrink-0 text-[11px] text-muted">{MASTER_LABEL[starter.master]}</span>
-                  </button>
-                ))}
-              </>
-            ) : null}
-          </div>
         </div>
       ) : null}
     </div>
@@ -281,7 +234,7 @@ export function CampaignActions({
   )
 }
 
-function edited(iso: string): string {
+export function edited(iso: string): string {
   const then = new Date(iso).getTime()
   if (!Number.isFinite(then)) return 'Edited earlier'
   const minutes = Math.round((Date.now() - then) / 60000)

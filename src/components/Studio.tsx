@@ -14,7 +14,7 @@ import {
 } from '../lib/repo'
 import { readDesign } from '../lib/newsletter'
 import type { Campaign, CampaignBundle, MasterType } from '../types'
-import { AgentPanel } from './AgentPanel'
+import { AgentPanel, type NewEmailChoice } from './AgentPanel'
 import { CampaignActions, CampaignSwitcher } from './CampaignSwitcher'
 import { DownloadButton } from './DownloadButton'
 import { FieldForm } from './FieldForm'
@@ -140,8 +140,10 @@ export function Studio() {
         const list = await listCampaigns()
         if (cancelled) return
         setCampaigns(list)
-        if (list[0]) {
-          const next = await getBundle(list[0].id)
+        // Open the email worked on most recently.
+        const latest = [...list].sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))[0]
+        if (latest) {
+          const next = await getBundle(latest.id)
           if (!cancelled) setBundle(next)
         }
       } catch (caught) {
@@ -201,6 +203,27 @@ export function Studio() {
     }
   }
 
+  /** The four choices on the left: three masters, and Custom (the ME7 layout). */
+  function onNew(choice: NewEmailChoice) {
+    if (choice === 'custom') void onCreateStarter('me7')
+    else void onCreate(choice)
+  }
+
+  /** "Use as a sample" on a recent email: a copy to start the new one from. */
+  async function onCopy(id: string) {
+    try {
+      const source = bundle && bundle.campaign.id === id ? bundle : await getBundle(id)
+      if (!source) return
+      const copy = await duplicateCampaign(source)
+      setCampaigns((current) => [...current, copy.campaign])
+      setBundle(copy)
+      setMobilePane('fields')
+      show({ tone: 'success', text: `Started a new email from “${source.campaign.name}”. You are editing the copy.` })
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not copy that email.')
+    }
+  }
+
   async function onDuplicate() {
     if (!bundle) return
     try {
@@ -241,8 +264,6 @@ export function Studio() {
         campaigns={campaigns}
         currentId={bundle?.campaign.id ?? null}
         onSelect={(id) => void onSelect(id)}
-        onCreate={(master) => void onCreate(master)}
-        onCreateStarter={(starterId) => void onCreateStarter(starterId)}
       />
       {bundle ? <CampaignActions onDuplicate={() => void onDuplicate()} onDelete={() => void onDelete()} /> : null}
     </div>
@@ -272,7 +293,7 @@ export function Studio() {
           <MicrosoftMark className="h-6 w-6 shrink-0" />
           <div className="hidden min-w-0 md:block">
             <h1 className="text-[18px] font-semibold leading-6 whitespace-nowrap text-ink">
-              Newsletter Template Studio
+              Newsletter Studio
             </h1>
             <p className="hidden text-[12px] leading-4 whitespace-nowrap text-muted xl:block">
               Microsoft Partner Skilling Outlook emails: design, preview live, export .oft
@@ -364,7 +385,15 @@ export function Studio() {
               }
               style={isDesktop ? { width: agentPanel.width } : undefined}
             >
-              <AgentPanel bundle={bundle} onApply={queueSave} prefill={prefill} />
+              <AgentPanel
+                bundle={bundle}
+                onApply={queueSave}
+                prefill={prefill}
+                campaigns={campaigns}
+                onNew={onNew}
+                onOpen={(id) => void onSelect(id)}
+                onCopy={(id) => void onCopy(id)}
+              />
             </aside>
 
             <div className="resize-handle hidden lg:block" {...agentPanel.handleProps('Resize Copilot pane')} />
@@ -398,9 +427,24 @@ export function Studio() {
           </>
         ) : (
           <div className="flex flex-1 items-center justify-center p-6">
-            <p className="max-w-sm text-center text-muted">
-              Pick a campaign from the list at the top, or start a new one there.
-            </p>
+            <div className="w-full max-w-sm text-center">
+              <h2 className="text-[18px] font-semibold leading-6 text-ink">What email are we building?</h2>
+              <p className="mt-1 text-muted">Start a new email from a template.</p>
+              <div className="mt-4 grid gap-2">
+                {(
+                  [
+                    ['event_invite', 'Regional Template'],
+                    ['monthly_update', 'Partner Skilling Update Template'],
+                    ['weekly_snapshot', 'Weekly Project Snapshot'],
+                    ['custom', 'Custom'],
+                  ] as [NewEmailChoice, string][]
+                ).map(([choice, label]) => (
+                  <button key={choice} type="button" className="ui-btn ui-btn-ghost w-full" onClick={() => onNew(choice)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </main>

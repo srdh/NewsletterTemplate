@@ -1,12 +1,21 @@
-# Newsletter Template Studio (OFT Template Maker)
+# Newsletter Studio
 
 Template studio for Microsoft Partner Skilling Outlook emails. Pick a master, fill CMS fields, preview the mail, then download an Outlook template (`.oft`), download an `.eml` draft, or copy it straight into Outlook.
 
-## Newsletter studio
+## Starting an email
 
-The **Newsletter studio** master is a free-form newsletter you design yourself. Start one from the campaign picker → **New campaign → Newsletter studio** (an example, “Partner Skilling Newsletter · Nov 2026”, is already in the list).
+The left panel opens on **What email are we building?** with four templates:
 
-Ready-made templates are under **New campaign → From a template**:
+- **Regional Template**: regional event invite (banner, event details, agenda, signature).
+- **Partner Skilling Update Template**: monthly newsletter with spotlight cards and skilling tables.
+- **Weekly Project Snapshot**: status email with request, progress, and delivery tables.
+- **Custom**: a free-form newsletter in the ME7 + Copilot learning paths format, fully editable (below).
+
+Under **Recent**, the five emails you edited last: click one to open it, or use the copy button to start a new email from it as a sample. The campaign name at the top opens a searchable list of every email. Once you chat with Copilot, **Start over** brings the templates back.
+
+## Custom newsletters
+
+**Custom** starts from the ME7 + Copilot learning paths layout:
 
 - **ME7 + Copilot learning paths**: rebuilt from the “Find the right ME7 + Copilot and AI Consumption learning path for you!” Outlook template, with hero art, bordered learning-path cards, Titan badge rows, a “what’s coming next” band, and the Redmond footer. Its links are the original destinations, with Outlook Safe Links wrappers removed. Add more templates in `src/data/starters/`.
 
@@ -14,7 +23,7 @@ Ready-made templates are under **New campaign → From a template**:
 - **Banner**: three layouts (colour band, text + image, full-width image), eyebrow, headline, subheadline, alignment, date label, Microsoft logo on/off or your own logo image, banner and text colours, and an optional button.
 - **Body**: a stack of blocks you can add, reorder, duplicate, fold, and delete:
   - **Text**: a rich text editor with text style (normal, heading 1–3, quote), font (Segoe UI, Aptos, Calibri, Arial, Verdana, Tahoma, Trebuchet MS, Georgia, Times New Roman, Courier New), exact font size (10–36px), bold, italic, underline, strikethrough, text colour, highlight, bulleted and numbered lists, indent, alignment, links (Ctrl+K), clear formatting, undo and redo. Pasting from Word, Outlook, or a web page keeps the formatting that works in email and drops the rest.
-  - **Callout**: a shaded box with an accent rule, for an action or note (rich text).
+  - **Callout**: a shaded box for an action or note (rich text). Pick a preset or any shade colour; show, hide, or recolour the left rule (accent by default); and set the text colour (automatic picks dark or white text for the shade).
   - **Image**: uploaded picture at full body width, with alt text, optional link, and caption.
   - **Button**: a call-to-action button in the accent colour or any other colour, that renders as a solid button in classic Outlook too.
   - **Divider**: a thin line between sections.
@@ -78,7 +87,7 @@ Do not add the key as `VITE_ANTHROPIC_API_KEY`. It must stay server-only as `ANT
 
 ## Copilot agent
 
-The agent is the green column on the left. Describe the email you want, or pick one of the three starters, and it proposes field changes. Nothing changes until you click **Apply**. After that, the reply keeps a short note of what changed, and you can still edit any field by hand.
+The agent is the chat box at the bottom of the left column. Describe the email you want and it proposes field changes. Nothing changes until you click **Apply**. After that, the reply keeps a short note of what changed, and you can still edit any field by hand.
 
 - It sees the current email and the conversation, so follow-ups like "make the intro shorter" work.
 - It asks for details it doesn't have (dates, times, names, links) instead of inventing them. Links you didn't give it are removed automatically.
@@ -91,9 +100,9 @@ Setup:
 - POC with Claude: put `ANTHROPIC_API_KEY` in `.env` (see [docs/PLAN.md](docs/PLAN.md)). Optional: `ANTHROPIC_MODEL` (default Claude Haiku 4.5).
 - Later with Copilot Studio: [docs/copilot-studio-agent.md](docs/copilot-studio-agent.md).
 
-## Masters
+## Templates
 
-- Newsletter studio (free-form banner, rich text body blocks, footer)
-- Regional event invite (`Build What’s Next`, ASIA)
-- Partner Skilling Update newsletter
-- Weekly project snapshot
+- Regional Template: regional event invite (`Build What’s Next`, ASIA)
+- Partner Skilling Update Template: monthly newsletter
+- Weekly Project Snapshot: ops status email
+- Custom: free-form newsletter in the ME7 + Copilot learning paths format (banner, rich text blocks, cards, footer)

@@ -92,14 +92,14 @@ export interface CampaignBundle {
 }
 
 export const MASTER_LABEL: Record<MasterType, string> = {
-  newsletter: 'Newsletter studio',
-  event_invite: 'Regional event invite',
-  monthly_update: 'Partner Skilling Update',
-  weekly_snapshot: 'Weekly project snapshot',
+  newsletter: 'Custom',
+  event_invite: 'Regional Template',
+  monthly_update: 'Partner Skilling Update Template',
+  weekly_snapshot: 'Weekly Project Snapshot',
 }
 
 export const MASTER_HINT: Record<MasterType, string> = {
-  newsletter: 'Your own banner, rich text body blocks, and footer',
+  newsletter: 'Free-form newsletter in the ME7 + Copilot learning paths format',
   event_invite: 'Banner, Body, Section-1, Footer (MS Signature)',
   monthly_update: 'Newsletter with spotlight cards and skilling tables',
   weekly_snapshot: 'Ops status email with request and delivery tables',

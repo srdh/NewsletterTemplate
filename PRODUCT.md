@@ -1,4 +1,4 @@
-# Product
+# Product: Newsletter Studio
 
 ## Platform
 
@@ -18,7 +18,7 @@ A template studio, not a general CMS and not a Copilot chat. Left side is the Po
 
 ## Operating Context
 
-Used on a laptop during daylight production work. Four masters: Newsletter studio (free-form banner, rich text body blocks, footer), regional event invite, monthly Partner Skilling Update, weekly project snapshot.
+Used on a laptop during daylight production work. Four templates: Regional Template (event invite), Partner Skilling Update Template, Weekly Project Snapshot, and Custom (free-form newsletter in the ME7 + Copilot learning paths format).
 
 ## Brand Commitments
 

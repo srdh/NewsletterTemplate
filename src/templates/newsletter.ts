@@ -124,10 +124,13 @@ function innerHtml(block: InnerBlock, design: NewsletterDesign, width: number, l
       return isRichEmpty(block.html) ? '' : emailRichHtml(block.html, look)
     case 'callout': {
       if (isRichEmpty(block.html)) return ''
+      const rule = block.rule || accent
+      const ink = block.text || (readableOn(block.background) === '#FFFFFF' ? '#FFFFFF' : INK)
+      const calloutLook: RichTextLook = { ...look, color: ink, accent: block.text || look.accent }
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td width="4" bgcolor="${accent}" style="background:${accent};font-size:0;line-height:0;">&nbsp;</td>
-          <td bgcolor="${block.background}" style="background:${block.background};padding:16px 20px;">${emailRichHtml(block.html, look)}</td>
+          ${block.showRule ? `<td width="4" bgcolor="${rule}" style="background:${rule};font-size:0;line-height:0;">&nbsp;</td>` : ''}
+          <td bgcolor="${block.background}" style="background:${block.background};padding:16px 20px;color:${ink};">${emailRichHtml(block.html, calloutLook)}</td>
         </tr>
       </table>`
     }

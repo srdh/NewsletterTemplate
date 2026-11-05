@@ -7,6 +7,7 @@ import {
   newBlock,
   newFooterLink,
   readDesign,
+  readableOn,
   writeDesign,
   type Align,
   type BannerLayout,
@@ -534,24 +535,51 @@ function BlockEditor({
       )
     case 'callout':
       return (
-        <div className="grid gap-2.5">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-[12px] font-medium text-muted">Shade</span>
-            {CALLOUT_COLORS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                aria-label={`Shade ${color}`}
-                aria-pressed={block.background === color}
-                onClick={() => onChange({ ...block, background: color })}
-                className={
-                  'h-6 w-6 rounded-full ring-inset transition-shadow ' +
-                  (block.background === color ? 'ring-2 ring-forest' : 'ring-1 ring-line-strong')
-                }
-                style={{ background: color }}
-              />
-            ))}
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <div>
+            <span className="mb-1 block text-[12px] font-medium text-muted">Shade</span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[...CALLOUT_COLORS, ...CALLOUT_DARK].map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  aria-label={`Shade ${color}`}
+                  aria-pressed={block.background === color}
+                  onClick={() => onChange({ ...block, background: color })}
+                  className={
+                    'h-6 w-6 rounded-full ring-inset transition-shadow ' +
+                    (block.background === color ? 'ring-2 ring-forest ring-offset-1' : 'ring-1 ring-line-strong')
+                  }
+                  style={{ background: color }}
+                />
+              ))}
+            </div>
           </div>
+          <ColorField label="Shade colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Toggle label="Left rule" checked={block.showRule} onChange={(showRule) => onChange({ ...block, showRule })} />
+              {block.showRule ? (
+                <AutoColor
+                  label="Rule colour"
+                  autoLabel="Accent"
+                  autoSwatch={accent}
+                  value={block.rule}
+                  fallback={accent}
+                  onChange={(rule) => onChange({ ...block, rule })}
+                />
+              ) : null}
+            </div>
+            <AutoColor
+              label="Text colour"
+              autoLabel="Automatic"
+              autoSwatch={readableOn(block.background) === '#FFFFFF' ? '#FFFFFF' : '#242424'}
+              value={block.text}
+              fallback="#242424"
+              onChange={(text) => onChange({ ...block, text })}
+            />
+          </Cols>
+          <CalloutSample block={block} accent={accent} />
           <RichTextEditor
             compact
             label={name}
@@ -730,6 +758,71 @@ function BlockEditor({
     default:
       return <p className="text-[12px] text-muted">A thin grey line that separates two parts of the newsletter.</p>
   }
+}
+
+/** Dark shades for callouts that carry white text. */
+const CALLOUT_DARK = ['#0B4F38', '#194449', '#243A5E', '#5C2D91']
+
+/** A colour with an automatic default (empty value), e.g. "Accent" or "Automatic". */
+function AutoColor({
+  label,
+  autoLabel,
+  autoSwatch,
+  value,
+  fallback,
+  onChange,
+}: {
+  label: string
+  autoLabel: string
+  autoSwatch: string
+  value: string
+  fallback: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div className="grid min-w-0 gap-1.5">
+      <span className="text-[12px] font-medium text-muted">{label}</span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          aria-pressed={!value}
+          onClick={() => onChange('')}
+          className={
+            'flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] ring-inset ' +
+            (!value ? 'font-semibold ring-2 ring-forest' : 'ring-1 ring-line-strong hover:bg-fill')
+          }
+        >
+          <span className="h-3.5 w-3.5 rounded-full ring-1 ring-line-strong" style={{ background: autoSwatch }} />
+          {autoLabel}
+        </button>
+        <button
+          type="button"
+          aria-pressed={Boolean(value)}
+          onClick={() => onChange(value || fallback)}
+          className={
+            'h-7 rounded-full px-2.5 text-[12px] ring-inset ' +
+            (value ? 'font-semibold ring-2 ring-forest' : 'ring-1 ring-line-strong hover:bg-fill')
+          }
+        >
+          Custom
+        </button>
+      </div>
+      {value ? <ColorField label={`${label} (custom)`} value={value} onChange={onChange} /> : null}
+    </div>
+  )
+}
+
+/** A small preview of the callout's colours, so you can judge contrast as you pick. */
+function CalloutSample({ block, accent }: { block: Extract<BodyBlock, { kind: 'callout' }>; accent: string }) {
+  const ink = block.text || (readableOn(block.background) === '#FFFFFF' ? '#FFFFFF' : '#242424')
+  return (
+    <div aria-hidden="true" className="flex overflow-hidden rounded-[var(--r-sm)] ring-1 ring-line">
+      {block.showRule ? <span className="w-1 shrink-0" style={{ background: block.rule || accent }} /> : null}
+      <span className="min-w-0 flex-1 px-3 py-2 text-[13px] leading-5" style={{ background: block.background, color: ink }}>
+        <strong>Preview:</strong> how the callout text reads on this shade.
+      </span>
+    </div>
+  )
 }
 
 /** A colour that can be switched off (borders). */

@@ -55,10 +55,10 @@ function writeLocal(tables: Tables) {
 }
 
 function rankMaster(type: string): number {
-  if (type === 'newsletter') return -1
   if (type === 'event_invite') return 0
   if (type === 'monthly_update') return 1
   if (type === 'weekly_snapshot') return 2
+  if (type === 'newsletter') return 3
   return 9
 }
 
@@ -249,6 +249,7 @@ export async function createCampaign(master: MasterType): Promise<CampaignBundle
 /** A new campaign from a ready-made template (see data/starters). */
 export async function createFromStarter(starterId: string): Promise<CampaignBundle> {
   const bundle = await loadStarter(starterId)
+  bundle.campaign.name = 'New custom newsletter'
   await saveBundle(bundle)
   return bundle
 }

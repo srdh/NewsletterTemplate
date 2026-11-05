@@ -1,6 +1,6 @@
 # Publish the studio on Cloudflare
 
-The studio runs on Cloudflare as one **Worker with static assets**:
+Newsletter Studio runs on Cloudflare as one **Worker with static assets**:
 
 - the built app (`dist/`) is served as static files, and any unknown path loads the studio;
 - `/api/claude-fill` (the Copilot agent) runs in the Worker with your `ANTHROPIC_API_KEY` secret, so the key never reaches the browser.
