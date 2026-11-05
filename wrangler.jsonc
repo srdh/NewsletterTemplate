@@ -1,0 +1,17 @@
+// Cloudflare Workers config for the Newsletter Template Studio.
+// Deploy: npm run deploy:cloudflare   (see docs/cloudflare.md)
+{
+  "name": "newsletter-template-studio",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    // Output of `npm run build`.
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // Unknown paths load the studio instead of a 404.
+    "not_found_handling": "single-page-application",
+    // The Copilot route runs in the Worker; all other files are served directly.
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": { "enabled": true }
+}

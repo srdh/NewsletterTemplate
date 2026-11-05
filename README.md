@@ -1,0 +1,99 @@
+# Newsletter Template Studio (OFT Template Maker)
+
+Template studio for Microsoft Partner Skilling Outlook emails. Pick a master, fill CMS fields, preview the mail, then download an Outlook template (`.oft`), download an `.eml` draft, or copy it straight into Outlook.
+
+## Newsletter studio
+
+The **Newsletter studio** master is a free-form newsletter you design yourself. Start one from the campaign picker → **New campaign → Newsletter studio** (an example, “Partner Skilling Newsletter · Nov 2026”, is already in the list).
+
+Ready-made templates are under **New campaign → From a template**:
+
+- **ME7 + Copilot learning paths**: rebuilt from the “Find the right ME7 + Copilot and AI Consumption learning path for you!” Outlook template, with hero art, bordered learning-path cards, Titan badge rows, a “what’s coming next” band, and the Redmond footer. Its links are the original destinations, with Outlook Safe Links wrappers removed. Add more templates in `src/data/starters/`.
+
+- **Style**: five themes (Partner Skilling forest, Microsoft blue, Midnight, Purple, Light), font and text size for the whole email, accent and link colours, email width (600 / 640 / 720px), the email body colour, and the background around the email.
+- **Banner**: three layouts (colour band, text + image, full-width image), eyebrow, headline, subheadline, alignment, date label, Microsoft logo on/off or your own logo image, banner and text colours, and an optional button.
+- **Body**: a stack of blocks you can add, reorder, duplicate, fold, and delete:
+  - **Text**: a rich text editor with text style (normal, heading 1–3, quote), font (Segoe UI, Aptos, Calibri, Arial, Verdana, Tahoma, Trebuchet MS, Georgia, Times New Roman, Courier New), exact font size (10–36px), bold, italic, underline, strikethrough, text colour, highlight, bulleted and numbered lists, indent, alignment, links (Ctrl+K), clear formatting, undo and redo. Pasting from Word, Outlook, or a web page keeps the formatting that works in email and drops the rest.
+  - **Callout**: a shaded box with an accent rule, for an action or note (rich text).
+  - **Image**: uploaded picture at full body width, with alt text, optional link, and caption.
+  - **Button**: a call-to-action button in the accent colour or any other colour, that renders as a solid button in classic Outlook too.
+  - **Divider**: a thin line between sections.
+  - **Card**: a bordered box that holds its own text, buttons, images, callouts, and dividers. **Add a card like this** puts a new empty card with the same colours right below; **Use this style for all cards** copies one card's colours to every card. New cards from **Add a block** match the last card in the email.
+  - **Image + text**: a picture (badge, logo) beside rich text, in a shaded row.
+  - **Colour band**: a full-width coloured section with its own text and link colours.
+- **Footer**: rich text message, a row of links (privacy, unsubscribe, …), Microsoft logo on/off or your own logo image, small print, and footer colours.
+
+Everything is rendered as table-based HTML with inline styles, so it holds up in classic Outlook for Windows (Word engine), new Outlook, Outlook for Mac, and Outlook on the web. Images travel inside the `.oft` and `.eml` files.
+
+Copilot can draft the subject and banner text of a newsletter; the body and footer are edited by hand with the toolbar.
+
+Code: `src/lib/newsletter.ts` (design model), `src/lib/richText.ts` (sanitizer and email styling), `src/components/RichTextEditor.tsx`, `src/components/NewsletterFields.tsx`, `src/templates/newsletter.ts`, `src/data/starters/` (ready-made templates).
+
+**Supabase users:** re-run `supabase/schema.sql` once. It adds the `newsletter` column and allows the new `newsletter` email type.
+
+This is **Track B**: a React studio plus tables. Inside a Microsoft tenant the same shape is Dataverse + Power Apps + Power Automate. Mapping: [docs/dataverse-map.md](docs/dataverse-map.md).
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Without Supabase keys the same four tables live in this browser so you can demo immediately.
+
+## Connect Supabase (the database)
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. SQL editor: run `supabase/schema.sql`.
+3. Copy `.env.example` to `.env` and paste the project URL and anon key.
+4. Restart `npm run dev`.
+
+Open policies on the tables are for this POC only. Do not use them for production tenant data.
+
+## Getting the email into Outlook
+
+- **Download .oft**: a real Outlook template file, built in the browser. Double-click it in classic Outlook for Windows to open a ready-to-send email. Uploaded images travel inside the file.
+- **Download .eml** (arrow next to Download .oft): an unsent draft for Outlook for Mac, new Outlook, and other mail apps. Images travel inside the file.
+- **Copy for Outlook**: copies the designed email so you can paste it into any Outlook compose window, including Outlook on the web. Uploaded images may not survive the paste in every Outlook version; use a download when the email has images.
+
+## Host on Cloudflare
+
+The repo includes a Cloudflare Worker setup (`wrangler.jsonc`, `worker/index.ts`). In short: `npm install`, `npx wrangler login`, `npm run deploy:cloudflare`, then `npx wrangler secret put ANTHROPIC_API_KEY`. Full steps, including deploys from GitHub: [docs/cloudflare.md](docs/cloudflare.md).
+
+## Host on Vercel
+
+1. Push this repo to your own GitHub account.
+2. On [vercel.com](https://vercel.com) → **Add New…** → **Project**.
+3. Import **oft-template-maker**.
+4. Framework: Vite. Build `npm run build`, output `dist`. Leave as detected if Vercel fills that in.
+5. Before Deploy, open **Environment Variables** and add:
+   - Name: `ANTHROPIC_API_KEY`
+   - Value: your Claude key
+   - Environments: Production, Preview, Development
+6. Click **Deploy**.
+7. Open the `.vercel.app` URL. Ask the Copilot agent to fill an email, **Apply** its changes, then **Download .oft** or **Copy for Outlook**.
+
+Do not add the key as `VITE_ANTHROPIC_API_KEY`. It must stay server-only as `ANTHROPIC_API_KEY`.
+
+## Copilot agent
+
+The agent is the green column on the left. Describe the email you want, or pick one of the three starters, and it proposes field changes. Nothing changes until you click **Apply**. After that, the reply keeps a short note of what changed, and you can still edit any field by hand.
+
+- It sees the current email and the conversation, so follow-ups like "make the intro shorter" work.
+- It asks for details it doesn't have (dates, times, names, links) instead of inventing them. Links you didn't give it are removed automatically.
+- If you explicitly ask for placeholder or mock details, it uses clearly fake values on example.com.
+- It can't add images. Use **Add image** in the form.
+- Its instructions live in `api/claude-fill.ts` (`AGENT_INSTRUCTIONS`), shared by `npm run dev` and Vercel.
+
+Setup:
+
+- POC with Claude: put `ANTHROPIC_API_KEY` in `.env` (see [docs/PLAN.md](docs/PLAN.md)). Optional: `ANTHROPIC_MODEL` (default Claude Haiku 4.5).
+- Later with Copilot Studio: [docs/copilot-studio-agent.md](docs/copilot-studio-agent.md).
+
+## Masters
+
+- Newsletter studio (free-form banner, rich text body blocks, footer)
+- Regional event invite (`Build What’s Next`, ASIA)
+- Partner Skilling Update newsletter
+- Weekly project snapshot
