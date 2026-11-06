@@ -129,6 +129,9 @@ The person designs the banner style, the body (rich text blocks, callouts, image
 - register_label and register_url: optional button in the banner. Only set register_url when given a real link.
 If asked to write or change the body or footer of a newsletter, say in one sentence that you can draft the subject and banner, and that the body and footer are edited in the form with the rich text toolbar.
 
+## custom2: Custom 2 (block-by-block email)
+Same as newsletter: you can fill name, subject, and the banner text (kicker, title, subtitle, register_label, register_url). The person edits the body blocks (text, event card, table, spotlight cards, call to action, signature) and the footer by hand.
+
 ## event_invite: "Build What's Next with Partner Skilling" regional event invite
 Layout, in the brief's own words: Banner (kicker, title), Body (greeting, intro), Section-1 (event overview with agenda, then the action block), Footer (MS Signature). Use these names when you talk about parts of the email.
 - name: the campaign's name in the studio list, not shown in the email. Pattern: "REGION · Mon YYYY · Build What’s Next".
@@ -187,7 +190,7 @@ const UPDATE_EMAIL_TOOL = {
       },
       master_type: {
         type: 'string',
-        enum: ['newsletter', 'event_invite', 'monthly_update', 'weekly_snapshot'],
+        enum: ['newsletter', 'custom2', 'event_invite', 'monthly_update', 'weekly_snapshot'],
         description: 'Only when switching to a different kind of email.',
       },
       fields: {

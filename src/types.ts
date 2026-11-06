@@ -1,5 +1,6 @@
 export type MasterType =
   | 'newsletter'
+  | 'custom2'
   | 'event_invite'
   | 'monthly_update'
   | 'weekly_snapshot'
@@ -43,7 +44,7 @@ export interface Campaign {
    * Newsletter studio design (JSON): style, banner layout, body blocks with
    * rich text, and footer. Empty for the other masters. See lib/newsletter.ts.
    */
-  newsletter?: string
+  newsletter?: string // also used by Custom 2 (custom2)
   created_at: string
   updated_at: string
 }
@@ -93,6 +94,7 @@ export interface CampaignBundle {
 
 export const MASTER_LABEL: Record<MasterType, string> = {
   newsletter: 'Custom',
+  custom2: 'Custom 2',
   event_invite: 'Regional Template',
   monthly_update: 'Partner Skilling Update Template',
   weekly_snapshot: 'Weekly Project Snapshot',
@@ -100,6 +102,7 @@ export const MASTER_LABEL: Record<MasterType, string> = {
 
 export const MASTER_HINT: Record<MasterType, string> = {
   newsletter: 'Free-form newsletter in the ME7 + Copilot learning paths format',
+  custom2: 'Block-by-block email: banner, text, event card, table, spotlights, call to action, signature',
   event_invite: 'Banner, Body, Section-1, Footer (MS Signature)',
   monthly_update: 'Newsletter with spotlight cards and skilling tables',
   weekly_snapshot: 'Ops status email with request and delivery tables',

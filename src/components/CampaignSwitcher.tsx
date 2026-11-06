@@ -4,7 +4,7 @@ import type { Campaign, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
 import { IconCheck, IconChevron, IconDuplicate, IconMore, IconSearch, IconTrash } from './Icons'
 
-const MASTERS: MasterType[] = ['event_invite', 'monthly_update', 'weekly_snapshot', 'newsletter']
+const MASTERS: MasterType[] = ['event_invite', 'monthly_update', 'weekly_snapshot', 'newsletter', 'custom2']
 
 /**
  * The campaign you are working on, as a picker: search, and campaigns grouped
@@ -14,12 +14,19 @@ export function CampaignSwitcher({
   campaigns,
   currentId,
   onSelect,
+  openSignal,
 }: {
   campaigns: Campaign[]
   currentId: string | null
   onSelect: (id: string) => void
+  /** Bump this number to open the list from elsewhere ("All campaigns"). */
+  openSignal?: number
 }) {
   const { open, setOpen, close, root, trigger } = usePopover()
+
+  useEffect(() => {
+    if (openSignal) setOpen(true)
+  }, [openSignal, setOpen])
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const search = useRef<HTMLInputElement>(null)

@@ -151,11 +151,18 @@ function innerHtml(block: InnerBlock, design: NewsletterDesign, width: number, l
   }
 }
 
+/**
+ * Where a click on a block in the preview goes. Custom opens the Body
+ * section; Custom 2 opens that block (anchor "block:<id>").
+ */
+let blockAnchor: (block: BodyBlock) => string = () => 'body'
+
 function blockRow(block: BodyBlock, design: NewsletterDesign, preview: boolean): string {
   const width = design.style.width - GUTTER * 2
   const look: RichTextLook = { font: FONT, color: INK, link: design.style.link, accent: design.style.accent, size: design.style.size }
+  const anchor = blockAnchor(block)
   const row = (inner: string, padding = `0 ${GUTTER}px 20px`) =>
-    inner ? `<tr${sectionAttr(preview, 'body')}><td style="padding:${padding};font-family:${FONT};">${inner}</td></tr>` : ''
+    inner ? `<tr${sectionAttr(preview, anchor)}><td style="padding:${padding};font-family:${FONT};">${inner}</td></tr>` : ''
 
   switch (block.kind) {
     case 'card': {
@@ -195,7 +202,7 @@ function blockRow(block: BodyBlock, design: NewsletterDesign, preview: boolean):
     case 'section': {
       if (isRichEmpty(block.html)) return ''
       const sectionLook: RichTextLook = { font: FONT, color: block.text, link: block.link, accent: block.text, size: design.style.size }
-      return `<tr${sectionAttr(preview, 'body')}>
+      return `<tr${sectionAttr(preview, anchor)}>
         <td bgcolor="${block.background}" style="background:${block.background};padding:28px ${GUTTER}px;font-family:${FONT};color:${block.text};">${emailRichHtml(block.html, sectionLook)}</td>
       </tr>`
     }
@@ -203,9 +210,117 @@ function blockRow(block: BodyBlock, design: NewsletterDesign, preview: boolean):
       return row(innerHtml(block, design, width, look), `0 ${GUTTER}px 24px`)
     case 'divider':
       return row(innerHtml(block, design, width, look), `4px ${GUTTER}px 24px`)
+    case 'event':
+      return row(eventHtml(block, design, look), `4px ${GUTTER}px 24px`)
+    case 'table':
+      return row(tableHtml(block, design), `0 ${GUTTER}px 24px`)
+    case 'spotlights':
+      return row(spotlightsHtml(block, design, width, look), `4px ${GUTTER}px 24px`)
+    case 'signature':
+      return row(signatureHtml(block, design), `4px ${GUTTER}px 24px`)
     default:
       return row(innerHtml(block, design, width, look))
   }
+}
+
+type Block<K extends BodyBlock['kind']> = Extract<BodyBlock, { kind: K }>
+
+function eventHtml(block: Block<'event'>, design: NewsletterDesign, look: RichTextLook): string {
+  const accent = block.accent || design.style.accent
+  const details = (
+    [
+      ['Date', block.date],
+      ['Time', block.time],
+      ['Where', block.location],
+    ] as const
+  )
+    .filter(([, value]) => value.trim())
+    .map(
+      ([label, value]) => `<tr>
+        <td valign="top" width="72" style="width:72px;padding:3px 12px 3px 0;font-family:${FONT};font-size:12px;line-height:20px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#616161;">${label}</td>
+        <td valign="top" style="padding:3px 0;font-family:${FONT};font-size:${design.style.size}px;line-height:20px;font-weight:600;color:${INK};">${escapeHtml(value)}</td>
+      </tr>`,
+    )
+    .join('')
+  if (!block.title.trim() && !details && isRichEmpty(block.html)) return ''
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${block.background}" style="background:${block.background};border-collapse:separate;">
+    <tr>
+      <td width="4" bgcolor="${accent}" style="background:${accent};font-size:0;line-height:0;">&nbsp;</td>
+      <td style="padding:22px 24px;font-family:${FONT};">
+        ${block.title.trim() ? `<p style="margin:0 0 12px;font-family:${FONT};font-size:18px;line-height:24px;font-weight:700;color:${accent};">${escapeHtml(block.title)}</p>` : ''}
+        ${details ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px;">${details}</table>` : ''}
+        ${isRichEmpty(block.html) ? '' : `<div style="margin:0 0 4px;">${emailRichHtml(block.html, look)}</div>`}
+        ${block.buttonLabel.trim() && block.buttonUrl.trim() ? `<div style="padding-top:12px;">${button(block.buttonLabel, block.buttonUrl, accent, 'left')}</div>` : ''}
+      </td>
+    </tr>
+  </table>`
+}
+
+function tableHtml(block: Block<'table'>, design: NewsletterDesign): string {
+  const rows = block.rows.filter((row) => row.some((cell) => cell.trim()))
+  if (!rows.length) return ''
+  const size = Math.max(12, design.style.size - 1)
+  const cell = (value: string, header: boolean, shade: string) =>
+    `<${header ? 'th' : 'td'} align="left" valign="top" bgcolor="${shade}" style="background:${shade};padding:9px 12px;border:1px solid ${block.border};font-family:${FONT};font-size:${size}px;line-height:20px;text-align:left;${header ? `font-weight:600;color:${block.headerText};` : `color:${INK};`}">${escapeHtml(value) || '&nbsp;'}</${header ? 'th' : 'td'}>`
+  const body = rows
+    .map((row, index) => {
+      const header = block.header && index === 0
+      const dataIndex = block.header ? index - 1 : index
+      const shade = header ? block.headerBackground : block.striped && dataIndex % 2 === 1 ? '#F5F5F5' : '#FFFFFF'
+      return `<tr>${row.map((value) => cell(value, header, shade)).join('')}</tr>`
+    })
+    .join('')
+  const title = block.title.trim()
+    ? `<p style="margin:0 0 10px;font-family:${FONT};font-size:17px;line-height:22px;font-weight:600;color:${INK};">${escapeHtml(block.title)}</p>`
+    : ''
+  return `${title}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${body}</table>`
+}
+
+function spotlightsHtml(block: Block<'spotlights'>, design: NewsletterDesign, width: number, look: RichTextLook): string {
+  const cards = block.cards.filter((card) => card.title.trim() || card.image || !isRichEmpty(card.html))
+  if (!cards.length) return ''
+  const gap = 16
+  const columnWidth = Math.floor((width - gap * (cards.length - 1)) / cards.length)
+  const border = block.border ? `border:1px solid ${block.border};` : ''
+  const columns = cards
+    .map((card, index) => {
+      const image = card.image
+        ? `<img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.title)}" width="${columnWidth}" style="display:block;width:100%;max-width:${columnWidth}px;height:auto;border:0;">`
+        : ''
+      const link =
+        card.linkLabel.trim() && card.linkUrl.trim()
+          ? `<p style="margin:12px 0 0;font-family:${FONT};font-size:14px;line-height:20px;font-weight:600;"><a href="${escapeHtml(card.linkUrl)}" target="_blank" style="color:${design.style.link};text-decoration:none;">${escapeHtml(card.linkLabel)} &rsaquo;</a></p>`
+          : ''
+      return `<td valign="top" width="${columnWidth}" style="width:${columnWidth}px;${index ? `padding-left:${gap}px;` : ''}">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${block.background}" style="background:${block.background};${border}border-collapse:separate;">
+          ${image ? `<tr><td style="padding:0;">${image}</td></tr>` : ''}
+          <tr><td style="padding:16px 18px 18px;font-family:${FONT};">
+            ${card.title.trim() ? `<p style="margin:0 0 8px;font-family:${FONT};font-size:16px;line-height:22px;font-weight:700;color:${INK};">${escapeHtml(card.title)}</p>` : ''}
+            ${isRichEmpty(card.html) ? '' : emailRichHtml(card.html, { ...look, size: Math.max(12, design.style.size - 1) })}
+            ${link}
+          </td></tr>
+        </table>
+      </td>`
+    })
+    .join('')
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${columns}</tr></table>`
+}
+
+function signatureHtml(block: Block<'signature'>, design: NewsletterDesign): string {
+  if (!block.name.trim() && !block.signoff.trim()) return ''
+  const line = (value: string, style: string) =>
+    value.trim() ? `<p style="margin:0;font-family:${FONT};${style}">${escapeHtml(value)}</p>` : ''
+  const words = `
+    ${line(block.signoff, `font-size:${design.style.size}px;line-height:22px;color:${INK};margin-bottom:10px;`)}
+    ${line(block.name, `font-size:${design.style.size + 1}px;line-height:22px;font-weight:700;color:${INK};`)}
+    ${line(block.role, 'font-size:13px;line-height:18px;color:#616161;')}
+    ${line(block.team, `font-size:13px;line-height:18px;font-weight:600;color:${design.style.accent};`)}
+    ${block.email.trim() ? `<p style="margin:4px 0 0;font-family:${FONT};font-size:13px;line-height:18px;"><a href="mailto:${escapeHtml(block.email)}" style="color:${design.style.link};text-decoration:underline;">${escapeHtml(block.email)}</a></p>` : ''}`
+  if (!block.photo) return words
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td valign="top" width="64" style="width:64px;padding-right:14px;"><img src="${escapeHtml(block.photo)}" alt="${escapeHtml(block.name)}" width="64" height="64" style="display:block;width:64px;height:64px;border:0;border-radius:32px;"></td>
+    <td valign="top">${words}</td>
+  </tr></table>`
 }
 
 function footerHtml(design: NewsletterDesign, preview: boolean): string {
@@ -241,6 +356,7 @@ function footerHtml(design: NewsletterDesign, preview: boolean): string {
 export function renderNewsletter(bundle: CampaignBundle, preview = false): string {
   const design = readDesign(bundle.campaign)
   FONT = fontStack(design.style.font)
+  blockAnchor = bundle.campaign.master_type === 'custom2' ? (block) => `block:${block.id}` : () => 'body'
   const { width, paper, canvas } = design.style
   const body = design.blocks.map((block) => blockRow(block, design, preview)).join('')
   // A section band as the last block runs straight into the footer.

@@ -3,9 +3,11 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useResizableWidth } from '../hooks/useResizableWidth'
 import { AskCopilotContext } from '../lib/askCopilot'
 import { copyForOutlook, downloadEml, downloadOft } from '../lib/exports'
+import { deleteUserTemplate, listUserTemplates, saveUserTemplate, type UserTemplate } from '../data/userTemplates'
 import {
   createCampaign,
   createFromStarter,
+  createFromUserTemplate,
   deleteCampaign,
   duplicateCampaign,
   getBundle,
@@ -53,7 +55,7 @@ const PANES: [MobilePane, string][] = [
 function unfinishedFields(next: CampaignBundle): string[] {
   const missing: string[] = []
   if (!next.campaign.subject.trim()) missing.push('Subject')
-  if (next.campaign.master_type === 'newsletter') {
+  if (next.campaign.master_type === 'newsletter' || next.campaign.master_type === 'custom2') {
     // A full-image banner can carry the headline in the picture itself.
     const fullImage = readDesign(next.campaign).banner.layout === 'image' && next.campaign.banner_image
     if (!fullImage && !next.campaign.title.trim()) missing.push('Headline')
@@ -206,8 +208,47 @@ export function Studio() {
   /** The four choices on the left: three masters, and Custom (the ME7 layout). */
   function onNew(choice: NewEmailChoice) {
     if (choice === 'custom') void onCreateStarter('me7')
+    else if (choice === 'custom2') void onCreateStarter('custom2')
     else void onCreate(choice)
   }
+
+  // Templates saved with "Save as template" (Custom 2), kept in this browser.
+  const [templates, setTemplates] = useState<UserTemplate[]>(() => listUserTemplates())
+
+  function onSaveTemplate(name: string) {
+    if (!bundle) return
+    try {
+      const saved = saveUserTemplate(bundle, name)
+      setTemplates(listUserTemplates())
+      show({ tone: 'success', text: `Saved “${saved.name}” to Your templates. Start new emails from it on the left.` })
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not save the template.')
+    }
+  }
+
+  async function onUseTemplate(templateId: string) {
+    const template = templates.find((item) => item.id === templateId)
+    if (!template) return
+    try {
+      const created = await createFromUserTemplate(template)
+      setCampaigns((current) => [...current, created.campaign])
+      setBundle(created)
+      setMobilePane('fields')
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not start from that template.')
+    }
+  }
+
+  function onDeleteTemplate(templateId: string) {
+    try {
+      setTemplates(deleteUserTemplate(templateId))
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not delete the template.')
+    }
+  }
+
+  // "All campaigns" in Custom 2 opens the campaign list at the top.
+  const [listSignal, setListSignal] = useState(0)
 
   /** "Use as a sample" on a recent email: a copy to start the new one from. */
   async function onCopy(id: string) {
@@ -264,6 +305,7 @@ export function Studio() {
         campaigns={campaigns}
         currentId={bundle?.campaign.id ?? null}
         onSelect={(id) => void onSelect(id)}
+        openSignal={listSignal}
       />
       {bundle ? <CampaignActions onDuplicate={() => void onDuplicate()} onDelete={() => void onDelete()} /> : null}
     </div>
@@ -393,6 +435,9 @@ export function Studio() {
                 onNew={onNew}
                 onOpen={(id) => void onSelect(id)}
                 onCopy={(id) => void onCopy(id)}
+                templates={templates}
+                onUseTemplate={(id) => void onUseTemplate(id)}
+                onDeleteTemplate={onDeleteTemplate}
               />
             </aside>
 
@@ -408,7 +453,13 @@ export function Studio() {
               style={isDesktop ? { width: formPanel.width } : undefined}
             >
               <AskCopilotContext.Provider value={askCopilot}>
-                <FieldForm bundle={bundle} onChange={queueSave} focusRequest={focusRequest} />
+                <FieldForm
+                  bundle={bundle}
+                  onChange={queueSave}
+                  focusRequest={focusRequest}
+                  onShowCampaigns={() => setListSignal((n) => n + 1)}
+                  onSaveTemplate={onSaveTemplate}
+                />
               </AskCopilotContext.Provider>
             </section>
 
@@ -437,6 +488,7 @@ export function Studio() {
                     ['monthly_update', 'Partner Skilling Update Template'],
                     ['weekly_snapshot', 'Weekly Project Snapshot'],
                     ['custom', 'Custom'],
+                    ['custom2', 'Custom 2'],
                   ] as [NewEmailChoice, string][]
                 ).map(([choice, label]) => (
                   <button key={choice} type="button" className="ui-btn ui-btn-ghost w-full" onClick={() => onNew(choice)}>

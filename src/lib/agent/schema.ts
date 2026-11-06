@@ -69,6 +69,8 @@ export type AgentFill = {
 }
 
 const MASTER_ALIASES: Record<string, MasterType> = {
+  custom_2: 'custom2',
+  custom2: 'custom2',
   newsletter_studio: 'newsletter',
   custom_newsletter: 'newsletter',
   event_invite: 'event_invite',
@@ -110,7 +112,7 @@ const LIMITS = { agenda: 24, spotlights: 8, rows: 40, text: 8000 }
 export function agentPrompt(userText: string): string {
   return `You fill an Outlook email template. Reply with one JSON object and nothing else. No HTML, no markdown, no explanation.
 
-master_type must be one of: newsletter, event_invite, monthly_update, weekly_snapshot.
+master_type must be one of: newsletter, custom2, event_invite, monthly_update, weekly_snapshot.
 Text fields you may set: ${CAMPAIGN_KEYS.join(', ')}.
 agenda is a list of {"text": "..."}.
 spotlights is a list of {"headline","image_url","body","bullets","cta_label","cta_url"}.

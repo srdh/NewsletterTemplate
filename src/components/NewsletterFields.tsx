@@ -6,6 +6,7 @@ import {
   cloneBlock,
   newBlock,
   newFooterLink,
+  newSpotlight,
   readDesign,
   readableOn,
   writeDesign,
@@ -23,7 +24,7 @@ import { IconChevron, IconDuplicate, IconPlus, IconTrash } from './Icons'
 import { EditorLookContext, RichTextEditor } from './RichTextEditor'
 import { FONTS, FONT_SIZES, fontStack } from '../lib/fonts'
 
-const KIND_LABEL: Record<BlockKind, string> = {
+export const KIND_LABEL: Record<BlockKind, string> = {
   text: 'Text',
   callout: 'Callout',
   image: 'Image',
@@ -32,9 +33,13 @@ const KIND_LABEL: Record<BlockKind, string> = {
   card: 'Card',
   media: 'Image + text',
   section: 'Colour band',
+  event: 'Event card',
+  table: 'Table',
+  spotlights: 'Spotlight cards',
+  signature: 'Signature',
 }
 
-const KIND_HINT: Record<BlockKind, string> = {
+export const KIND_HINT: Record<BlockKind, string> = {
   text: 'Paragraphs, headings, lists, links',
   callout: 'Shaded box for an action or note',
   image: 'Full-width picture, optional link',
@@ -43,6 +48,10 @@ const KIND_HINT: Record<BlockKind, string> = {
   card: 'Bordered box that holds its own text, buttons, and images',
   media: 'Picture beside rich text, e.g. a badge and its list',
   section: 'Full-width coloured band with its own text colour',
+  event: 'Date, time, place, details, and a button',
+  table: 'Rows and columns, with an optional header row',
+  spotlights: 'Two or three cards side by side',
+  signature: 'Sign-off with name, role, team, and email',
 }
 
 /** What can go in the email body, and what can go inside a card. */
@@ -100,9 +109,9 @@ export function NewsletterFields({
   )
 }
 
-type Patch = <K extends keyof NewsletterDesign>(key: K, value: Partial<NewsletterDesign[K]>) => void
+export type Patch = <K extends keyof NewsletterDesign>(key: K, value: Partial<NewsletterDesign[K]>) => void
 
-function StyleSection({
+export function StyleSection({
   design,
   save,
   patch,
@@ -219,7 +228,7 @@ function StyleSection({
 }
 
 
-function BannerSection({
+export function BannerSection({
   campaign,
   set,
   design,
@@ -485,7 +494,7 @@ function plain(html: string): string {
   return html.replace(/<(br|\/p|\/h\d|\/li)>/g, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
-function blockSummary(block: BodyBlock): string {
+export function blockSummary(block: BodyBlock): string {
   switch (block.kind) {
     case 'text':
     case 'callout':
@@ -502,12 +511,22 @@ function blockSummary(block: BodyBlock): string {
       return block.src ? block.alt || block.caption || 'Image added' : 'No image yet'
     case 'button':
       return block.label || 'No label'
+    case 'event':
+      return block.title || [block.date, block.time].filter(Boolean).join(' · ') || 'Event details'
+    case 'table': {
+      const rows = block.rows.length - (block.header ? 1 : 0)
+      return `${rows} row${rows === 1 ? '' : 's'}${block.title ? ` · ${block.title}` : ''}`
+    }
+    case 'spotlights':
+      return `${block.cards.length} card${block.cards.length === 1 ? '' : 's'}`
+    case 'signature':
+      return [block.name, block.team].filter(Boolean).join(', ') || 'No name yet'
     default:
       return ''
   }
 }
 
-function BlockEditor({
+export function BlockEditor({
   block,
   name,
   index,
@@ -755,9 +774,215 @@ function BlockEditor({
           </Cols>
         </div>
       )
+    case 'event':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <Field label="Title" value={block.title} onChange={(title) => onChange({ ...block, title })} />
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <Field label="Date" value={block.date} onChange={(date) => onChange({ ...block, date })} />
+            <Field label="Time" value={block.time} onChange={(time) => onChange({ ...block, time })} />
+          </Cols>
+          <Field label="Where" hint="A venue, city, or “Microsoft Teams (online)”." value={block.location} onChange={(location) => onChange({ ...block, location })} />
+          <div>
+            <span className="mb-1 block text-[12px] font-medium text-muted">Details</span>
+            <RichTextEditor
+              label={`${name} details`}
+              placeholder="What the event covers, who should attend…"
+              value={block.html}
+              onChange={(html) => onChange({ ...block, html })}
+              minHeight={72}
+            />
+          </div>
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <Field label="Button label" value={block.buttonLabel} onChange={(buttonLabel) => onChange({ ...block, buttonLabel })} />
+            <Field label="Button link" value={block.buttonUrl} onChange={(buttonUrl) => onChange({ ...block, buttonUrl })} />
+          </Cols>
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <ColorField label="Card colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <AutoColor
+              label="Title and button colour"
+              autoLabel="Accent"
+              autoSwatch={accent}
+              value={block.accent}
+              fallback={accent}
+              onChange={(value) => onChange({ ...block, accent: value })}
+            />
+          </Cols>
+        </div>
+      )
+    case 'table':
+      return <TableEditor block={block} name={name} onChange={onChange} />
+    case 'spotlights':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <ol className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
+            {block.cards.map((card, cardIndex) => {
+              const setCard = (patch: Partial<typeof card>) =>
+                onChange({ ...block, cards: block.cards.map((item) => (item.id === card.id ? { ...item, ...patch } : item)) })
+              return (
+                <li key={card.id} className="grid min-w-0 gap-3 rounded-[var(--r-md)] border border-line bg-panel p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-ink-2">Card {cardIndex + 1}</span>
+                    {block.cards.length > 1 ? (
+                      <IconButton
+                        label={`Remove card ${cardIndex + 1}`}
+                        danger
+                        onClick={() => onChange({ ...block, cards: block.cards.filter((item) => item.id !== card.id) })}
+                      >
+                        <IconTrash />
+                      </IconButton>
+                    ) : null}
+                  </div>
+                  <ImageField
+                    label="Image (optional)"
+                    hint="Shown at the top of the card."
+                    value={card.image}
+                    fallbackLabel="No image"
+                    maxWidth={600}
+                    onChange={(image) => setCard({ image })}
+                  />
+                  <Field label="Title" value={card.title} onChange={(title) => setCard({ title })} />
+                  <RichTextEditor
+                    compact
+                    label={`${name} card ${cardIndex + 1} text`}
+                    placeholder="A sentence or two about this item."
+                    value={card.html}
+                    onChange={(html) => setCard({ html })}
+                    minHeight={64}
+                  />
+                  <Cols className="gap-3 @[22rem]:grid-cols-2">
+                    <Field label="Link label" value={card.linkLabel} onChange={(linkLabel) => setCard({ linkLabel })} />
+                    <Field label="Link" value={card.linkUrl} onChange={(linkUrl) => setCard({ linkUrl })} />
+                  </Cols>
+                </li>
+              )
+            })}
+          </ol>
+          {block.cards.length < 3 ? (
+            <button
+              type="button"
+              className="ui-btn ui-btn-ghost min-h-8 gap-1.5 justify-self-start px-3 py-1 text-[13px]"
+              onClick={() => onChange({ ...block, cards: [...block.cards, newSpotlight()] })}
+            >
+              <span className="text-forest">
+                <IconPlus />
+              </span>
+              Add a card
+            </button>
+          ) : (
+            <p className="text-[12px] text-muted">Up to three cards fit side by side.</p>
+          )}
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <ColorField label="Card colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <OptionalColor label="Border" value={block.border} fallback="#E0E0E0" onChange={(border) => onChange({ ...block, border })} />
+          </Cols>
+        </div>
+      )
+    case 'signature':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <Field label="Sign-off" hint="e.g. Thanks, or Best regards," value={block.signoff} onChange={(signoff) => onChange({ ...block, signoff })} />
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <Field label="Name" value={block.name} onChange={(value) => onChange({ ...block, name: value })} />
+            <Field label="Role" value={block.role} onChange={(role) => onChange({ ...block, role })} />
+          </Cols>
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <Field label="Team" value={block.team} onChange={(team) => onChange({ ...block, team })} />
+            <Field label="Email" value={block.email} onChange={(email) => onChange({ ...block, email })} />
+          </Cols>
+          <ImageField
+            label="Photo (optional)"
+            hint="A square headshot works best. Shown round, 64px."
+            value={block.photo}
+            fallbackLabel="No photo"
+            maxWidth={192}
+            onChange={(photo) => onChange({ ...block, photo })}
+          />
+        </div>
+      )
     default:
       return <p className="text-[12px] text-muted">A thin grey line that separates two parts of the newsletter.</p>
   }
+}
+
+/** Grid of cells for a table block, with rows and columns you can add and remove. */
+function TableEditor({
+  block,
+  name,
+  onChange,
+}: {
+  block: Extract<BodyBlock, { kind: 'table' }>
+  name: string
+  onChange: (block: BodyBlock) => void
+}) {
+  const columns = Math.max(1, block.rows[0]?.length ?? 3)
+  const setRows = (rows: string[][]) => onChange({ ...block, rows })
+  const setCell = (r: number, c: number, value: string) =>
+    setRows(block.rows.map((row, ri) => (ri === r ? row.map((cell, ci) => (ci === c ? value : cell)) : row)))
+  const setColumns = (count: number) =>
+    setRows(block.rows.map((row) => Array.from({ length: count }, (_, i) => row[i] ?? '')))
+  return (
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+      <Field label="Title (optional)" hint="Shown above the table, e.g. Agenda." value={block.title} onChange={(title) => onChange({ ...block, title })} />
+      <Cols className="gap-3 @[22rem]:grid-cols-[auto_1fr]">
+        <Segmented
+          label="Columns"
+          value={String(columns)}
+          options={[
+            ['2', '2'],
+            ['3', '3'],
+            ['4', '4'],
+          ]}
+          onChange={(count) => setColumns(Number(count))}
+        />
+        <div className="flex flex-wrap items-end gap-x-4">
+          <Toggle label="Header row" checked={block.header} onChange={(header) => onChange({ ...block, header })} />
+          <Toggle label="Striped rows" checked={block.striped} onChange={(striped) => onChange({ ...block, striped })} />
+        </div>
+      </Cols>
+      <div className="grid gap-1.5" role="group" aria-label={`${name} cells`}>
+        {block.rows.map((row, r) => (
+          <div key={r} className="flex min-w-0 items-center gap-1.5">
+            <div className="grid min-w-0 flex-1 gap-1.5" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+              {row.map((cell, c) => (
+                <input
+                  key={c}
+                  value={cell}
+                  aria-label={`${block.header && r === 0 ? 'Header' : `Row ${block.header ? r : r + 1}`}, column ${c + 1}`}
+                  placeholder={block.header && r === 0 ? 'Heading' : ''}
+                  onChange={(event) => setCell(r, c, event.target.value)}
+                  className={'ui-field ui-field-sm min-w-0 ' + (block.header && r === 0 ? 'font-semibold' : '')}
+                />
+              ))}
+            </div>
+            <IconButton
+              label={`Remove ${block.header && r === 0 ? 'header row' : `row ${block.header ? r : r + 1}`}`}
+              danger
+              disabled={block.rows.length <= 1}
+              onClick={() => setRows(block.rows.filter((_, ri) => ri !== r))}
+            >
+              <IconTrash />
+            </IconButton>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="ui-btn ui-btn-ghost min-h-8 gap-1.5 justify-self-start px-3 py-1 text-[13px]"
+        onClick={() => setRows([...block.rows, Array.from({ length: columns }, () => '')])}
+      >
+        <span className="text-forest">
+          <IconPlus />
+        </span>
+        Add a row
+      </button>
+      <Cols className="gap-3 @[24rem]:grid-cols-3">
+        <ColorField label="Header colour" value={block.headerBackground} onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
+        <ColorField label="Header text" value={block.headerText} onChange={(headerText) => onChange({ ...block, headerText })} />
+        <ColorField label="Lines" value={block.border} onChange={(border) => onChange({ ...block, border })} />
+      </Cols>
+    </div>
+  )
 }
 
 /** Dark shades for callouts that carry white text. */
@@ -845,7 +1070,7 @@ function OptionalColor({
   )
 }
 
-function FooterSection({ design, patch }: { design: NewsletterDesign; patch: Patch }) {
+export function FooterSection({ design, patch }: { design: NewsletterDesign; patch: Patch }) {
   const f = design.footer
   return (
     <Section title="Footer" anchor="footer" noCopilot>
@@ -930,7 +1155,7 @@ function FooterSection({ design, patch }: { design: NewsletterDesign; patch: Pat
   )
 }
 
-function IconButton({
+export function IconButton({
   label,
   onClick,
   disabled,
@@ -957,7 +1182,7 @@ function IconButton({
   )
 }
 
-function Segmented({
+export function Segmented({
   label,
   value,
   options,
@@ -992,7 +1217,7 @@ function Segmented({
   )
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+export function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return (
     <label className="flex cursor-pointer items-center gap-2 self-end pb-1.5 text-[13px] leading-5 text-ink">
       <input
@@ -1008,7 +1233,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 const HEX = /^#[0-9a-f]{6}$/i
 
-function ColorField({
+export function ColorField({
   label,
   hint,
   value,
@@ -1059,7 +1284,7 @@ function ColorField({
 }
 
 /** A grid that switches to columns when the form pane is wide enough. */
-function Cols({ className, children }: { className: string; children: ReactNode }) {
+export function Cols({ className, children }: { className: string; children: ReactNode }) {
   return (
     <div className="min-w-0 @container">
       <div className={'grid grid-cols-[minmax(0,1fr)] ' + className}>{children}</div>

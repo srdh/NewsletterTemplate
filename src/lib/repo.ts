@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { emptyCampaign, newsletterSeed, seedBundles } from '../data/seed'
-import { loadStarter } from '../data/starters'
+import { STARTERS, loadStarter } from '../data/starters'
+import { bundleFromTemplate, type UserTemplate } from '../data/userTemplates'
 import type {
   AgendaItem,
   Campaign,
@@ -59,6 +60,7 @@ function rankMaster(type: string): number {
   if (type === 'monthly_update') return 1
   if (type === 'weekly_snapshot') return 2
   if (type === 'newsletter') return 3
+  if (type === 'custom2') return 4
   return 9
 }
 
@@ -249,7 +251,14 @@ export async function createCampaign(master: MasterType): Promise<CampaignBundle
 /** A new campaign from a ready-made template (see data/starters). */
 export async function createFromStarter(starterId: string): Promise<CampaignBundle> {
   const bundle = await loadStarter(starterId)
-  bundle.campaign.name = 'New custom newsletter'
+  bundle.campaign.name = STARTERS.find((starter) => starter.id === starterId)?.newName ?? bundle.campaign.name
+  await saveBundle(bundle)
+  return bundle
+}
+
+/** A new campaign from a template you saved ("Save as template"). */
+export async function createFromUserTemplate(template: UserTemplate): Promise<CampaignBundle> {
+  const bundle = bundleFromTemplate(template)
   await saveBundle(bundle)
   return bundle
 }

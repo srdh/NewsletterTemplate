@@ -72,6 +72,55 @@ export type BodyBlock =
   | { id: string; kind: 'media'; src: string; alt: string; imageWidth: number; html: string; background: string; border: string }
   /** Full-width colour band with its own text and link colours. */
   | { id: string; kind: 'section'; html: string; background: string; text: string; link: string }
+  /** Event details: title, date, time, place, description, and a button. */
+  | {
+      id: string
+      kind: 'event'
+      title: string
+      date: string
+      time: string
+      location: string
+      html: string
+      buttonLabel: string
+      buttonUrl: string
+      background: string
+      /** Title and button colour; empty means the accent colour. */
+      accent: string
+    }
+  /** A simple table; with a header row, the first row is the header. */
+  | {
+      id: string
+      kind: 'table'
+      title: string
+      header: boolean
+      rows: string[][]
+      headerBackground: string
+      headerText: string
+      border: string
+      striped: boolean
+    }
+  /** Two or three cards side by side. */
+  | { id: string; kind: 'spotlights'; cards: SpotlightItem[]; background: string; border: string }
+  /** Sign-off with name, role, team, and contact. */
+  | {
+      id: string
+      kind: 'signature'
+      signoff: string
+      name: string
+      role: string
+      team: string
+      email: string
+      photo: string
+    }
+
+export interface SpotlightItem {
+  id: string
+  image: string
+  title: string
+  html: string
+  linkLabel: string
+  linkUrl: string
+}
 
 export type BlockKind = BodyBlock['kind']
 export type InnerKind = InnerBlock['kind']
@@ -163,9 +212,47 @@ export function newBlock(kind: BlockKind): BodyBlock {
       return { id: id(), kind, src: '', alt: '', imageWidth: 160, html: '', background: '#B9DCD2', border: '' }
     case 'section':
       return { id: id(), kind, html: '', background: '#194449', text: '#FFFFFF', link: '#6FC040' }
+    case 'event':
+      return {
+        id: id(),
+        kind,
+        title: 'Event overview',
+        date: '',
+        time: '',
+        location: '',
+        html: '',
+        buttonLabel: 'Register now',
+        buttonUrl: '',
+        background: '#EBF3EF',
+        accent: '',
+      }
+    case 'table':
+      return {
+        id: id(),
+        kind,
+        title: '',
+        header: true,
+        rows: [
+          ['Session', 'Date', 'Audience'],
+          ['', '', ''],
+          ['', '', ''],
+        ],
+        headerBackground: '#0B4F38',
+        headerText: '#FFFFFF',
+        border: '#D1D1D1',
+        striped: true,
+      }
+    case 'spotlights':
+      return { id: id(), kind, cards: [newSpotlight(), newSpotlight()], background: '#FFFFFF', border: '#E0E0E0' }
+    case 'signature':
+      return { id: id(), kind, signoff: 'Thanks,', name: 'Your name', role: '', team: 'Partner Skilling', email: '', photo: '' }
     default:
       return newInnerBlock(kind)
   }
+}
+
+export function newSpotlight(): SpotlightItem {
+  return { id: id(), image: '', title: '', html: '', linkLabel: 'Learn more', linkUrl: '' }
 }
 
 export function newInnerBlock(kind: InnerKind): InnerBlock {
@@ -191,6 +278,12 @@ export function newFooterLink(): FooterLink {
 export function cloneBlock<T extends BodyBlock>(block: T): T {
   if (block.kind === 'card') {
     return { ...block, id: id(), items: block.items.map((item) => ({ ...item, id: id() })) }
+  }
+  if (block.kind === 'spotlights') {
+    return { ...block, id: id(), cards: block.cards.map((card) => ({ ...card, id: id() })) }
+  }
+  if (block.kind === 'table') {
+    return { ...block, id: id(), rows: block.rows.map((row) => [...row]) }
   }
   return { ...block, id: id() }
 }
@@ -292,6 +385,69 @@ function readBlock(raw: unknown): BodyBlock | null {
         background: color(r.background, '#194449'),
         text: color(r.text, '#FFFFFF'),
         link: color(r.link, '#6FC040'),
+      }
+    case 'event':
+      return {
+        id: blockId,
+        kind: 'event',
+        title: text(r.title),
+        date: text(r.date),
+        time: text(r.time),
+        location: text(r.location),
+        html: text(r.html),
+        buttonLabel: text(r.buttonLabel),
+        buttonUrl: text(r.buttonUrl),
+        background: color(r.background, '#EBF3EF'),
+        accent: optionalColor(r.accent),
+      }
+    case 'table': {
+      const rows = Array.isArray(r.rows)
+        ? r.rows.filter(Array.isArray).map((row) => (row as unknown[]).map((cell) => text(cell)))
+        : []
+      const width = Math.min(6, Math.max(1, ...rows.map((row) => row.length)))
+      return {
+        id: blockId,
+        kind: 'table',
+        title: text(r.title),
+        header: r.header !== false,
+        // Every row gets the same number of cells.
+        rows: rows.map((row) => Array.from({ length: width }, (_, i) => row[i] ?? '')),
+        headerBackground: color(r.headerBackground, '#0B4F38'),
+        headerText: color(r.headerText, '#FFFFFF'),
+        border: color(r.border, '#D1D1D1'),
+        striped: r.striped !== false,
+      }
+    }
+    case 'spotlights':
+      return {
+        id: blockId,
+        kind: 'spotlights',
+        cards: Array.isArray(r.cards)
+          ? r.cards
+              .filter((card): card is Record<string, unknown> => Boolean(card) && typeof card === 'object')
+              .slice(0, 3)
+              .map((card) => ({
+                id: text(card.id) || id(),
+                image: text(card.image),
+                title: text(card.title),
+                html: text(card.html),
+                linkLabel: text(card.linkLabel),
+                linkUrl: text(card.linkUrl),
+              }))
+          : [],
+        background: color(r.background, '#FFFFFF'),
+        border: optionalColor(r.border),
+      }
+    case 'signature':
+      return {
+        id: blockId,
+        kind: 'signature',
+        signoff: text(r.signoff),
+        name: text(r.name),
+        role: text(r.role),
+        team: text(r.team),
+        email: text(r.email),
+        photo: text(r.photo),
       }
     default:
       return readInner(r, blockId)

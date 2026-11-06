@@ -8,8 +8,9 @@ import {
 import type { AgentFill } from '../lib/agent/schema'
 import type { Campaign, CampaignBundle, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
+import type { UserTemplate } from '../data/userTemplates'
 import { edited } from './CampaignSwitcher'
-import { IconCalendar, IconChevron, IconDuplicate, IconNewsletter, IconSend, IconSpark, IconTable } from './Icons'
+import { IconCalendar, IconChevron, IconDuplicate, IconNewsletter, IconSend, IconSpark, IconTable, IconTrash } from './Icons'
 
 type ChatItem = {
   id: string
@@ -23,7 +24,7 @@ type ChatItem = {
 }
 
 /** What a new email can start from. "custom" is the ME7 learning paths layout. */
-export type NewEmailChoice = Exclude<MasterType, 'newsletter'> | 'custom'
+export type NewEmailChoice = Exclude<MasterType, 'newsletter' | 'custom2'> | 'custom' | 'custom2'
 
 const TEMPLATE_CHOICES: { key: NewEmailChoice; title: string; hint: string; icon: React.ReactNode }[] = [
   {
@@ -50,6 +51,12 @@ const TEMPLATE_CHOICES: { key: NewEmailChoice; title: string; hint: string; icon
     hint: 'Free-form newsletter like ME7 + Copilot learning paths: hero image, cards, rich text',
     icon: <IconCustom />,
   },
+  {
+    key: 'custom2',
+    title: 'Custom 2',
+    hint: 'Edit block by block: banner, text, event card, table, spotlights, call to action, signature',
+    icon: <IconBlocks />,
+  },
 ]
 
 const RECENT_COUNT = 5
@@ -59,6 +66,7 @@ const TYPE_ICON: Record<MasterType, React.ReactNode> = {
   monthly_update: <IconNewsletter />,
   weekly_snapshot: <IconTable />,
   newsletter: <IconCustom />,
+  custom2: <IconBlocks />,
 }
 
 export function AgentPanel({
@@ -69,6 +77,9 @@ export function AgentPanel({
   onNew,
   onOpen,
   onCopy,
+  templates,
+  onUseTemplate,
+  onDeleteTemplate,
 }: {
   bundle: CampaignBundle
   onApply: (bundle: CampaignBundle) => void
@@ -81,6 +92,10 @@ export function AgentPanel({
   onOpen: (id: string) => void
   /** Start a new email from a copy of an earlier one. */
   onCopy: (id: string) => void
+  /** Templates saved with "Save as template". */
+  templates: UserTemplate[]
+  onUseTemplate: (id: string) => void
+  onDeleteTemplate: (id: string) => void
 }) {
   const [items, setItems] = useState<ChatItem[]>([])
   const [draft, setDraft] = useState('')
@@ -271,6 +286,45 @@ export function AgentPanel({
                   </button>
                 ))}
               </div>
+
+              {templates.length ? (
+                <section className="mt-6" aria-labelledby="templates-heading">
+                  <h4 id="templates-heading" className="mb-2 text-[13px] font-semibold leading-5 text-ink">
+                    Your templates
+                  </h4>
+                  <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
+                    {templates.map((template) => (
+                      <li key={template.id} className="group/tpl flex min-w-0 items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => onUseTemplate(template.id)}
+                          title="Start a new email from this template"
+                          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--r-md)] px-2 py-1.5 text-left transition-colors hover:bg-surface/70"
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface text-forest ring-1 ring-line [&_svg]:h-4 [&_svg]:w-4">
+                            {TYPE_ICON[template.master_type]}
+                          </span>
+                          <span className="min-w-0 flex-1 overflow-hidden">
+                            <span className="block truncate text-[13px] leading-[18px] text-ink">{template.name}</span>
+                            <span className="block truncate text-[11px] leading-4 text-muted">
+                              {MASTER_LABEL[template.master_type]} · saved {edited(template.saved_at).replace(/^Edited /, '')}
+                            </span>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDeleteTemplate(template.id)}
+                          aria-label={`Delete template “${template.name}”`}
+                          title="Delete template"
+                          className="ui-icon-btn ui-icon-btn-danger h-7 w-7 shrink-0 opacity-60 group-hover/tpl:opacity-100 focus-visible:opacity-100"
+                        >
+                          <IconTrash />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
 
               {recent.length ? (
                 <section className="mt-6" aria-labelledby="recent-heading">
@@ -516,6 +570,17 @@ function IconCustom() {
       <rect x="3" y="3" width="14" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
       <rect x="3" y="10" width="6" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
       <rect x="11" y="10" width="6" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
+/** Custom 2: a list of blocks. */
+function IconBlocks() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="3" y="3" width="14" height="4" rx="1.25" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="8.5" width="14" height="3" rx="1.25" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="13" width="14" height="4" rx="1.25" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   )
 }

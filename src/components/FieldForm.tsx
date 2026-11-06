@@ -12,6 +12,7 @@ import { MASTER_LABEL } from '../types'
 import { SECTION_TABS } from '../lib/sections'
 import { IconChevron, IconSpark, IconTrash } from './Icons'
 import { NewsletterFields } from './NewsletterFields'
+import { OutlineFields } from './OutlineFields'
 
 /** Shown under text boxes that accept links. */
 const LINK_HINT = 'To add a link, write [link text](https://…)'
@@ -185,11 +186,17 @@ export function FieldForm({
   bundle,
   onChange,
   focusRequest,
+  onShowCampaigns,
+  onSaveTemplate,
 }: {
   bundle: CampaignBundle
   onChange: (bundle: CampaignBundle) => void
   /** A click on the preview: scroll to this section and flash it. */
   focusRequest?: { anchor: string; key: number } | null
+  /** Custom 2: "All campaigns" opens the campaign list at the top. */
+  onShowCampaigns?: () => void
+  /** Custom 2: "Save as template". */
+  onSaveTemplate?: (name: string) => void
 }) {
   const campaign = bundle.campaign
   const set = (patch: Partial<Campaign>) =>
@@ -253,6 +260,31 @@ export function FieldForm({
     const done = () => target.classList.remove('section-flash')
     target.addEventListener('animationend', done, { once: true })
   })
+
+  // Custom 2 edits one block at a time instead of a long form with tabs.
+  if (campaign.master_type === 'custom2') {
+    return (
+      <>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
+          <h2 className="hidden text-[16px] font-semibold leading-[22px] text-ink lg:block">Blocks</h2>
+          <span
+            title="Set when the campaign is created. For a different email type, start a new campaign."
+            className="truncate rounded-full bg-forest-soft px-2.5 py-0.5 text-[12px] font-semibold leading-4 text-forest"
+          >
+            {MASTER_LABEL[campaign.master_type]}
+          </span>
+        </div>
+        <OutlineFields
+          key={campaign.id}
+          bundle={bundle}
+          set={set}
+          focusRequest={focusRequest}
+          onShowCampaigns={onShowCampaigns ?? (() => {})}
+          onSaveTemplate={onSaveTemplate ?? (() => {})}
+        />
+      </>
+    )
+  }
 
   return (
     <>

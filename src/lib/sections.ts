@@ -2,6 +2,8 @@ import type { MasterType } from '../types'
 
 // Short tab names for the section jump strip, in the order sections appear.
 export const SECTION_TABS: Record<MasterType, [anchor: string, label: string][]> = {
+  // Custom 2 edits blocks one at a time (OutlineFields), without tabs.
+  custom2: [['campaign', 'Campaign']],
   newsletter: [
     ['campaign', 'Campaign'],
     ['style', 'Style'],
