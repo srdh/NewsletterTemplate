@@ -1,4 +1,6 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useId, useMemo, useState, type ReactNode } from 'react'
+import { usePopover } from '../hooks/usePopover'
+import { MS_PRIMARY, MS_SECONDARY, paletteName, type PaletteColor } from '../lib/palette'
 import {
   CALLOUT_COLORS,
   THEMES,
@@ -1530,15 +1532,20 @@ export function ColorField({
 }) {
   const [draft, setDraft] = useState(value)
   const [last, setLast] = useState(value)
+  const palette = usePopover()
+  const inputId = useId()
   // Follow outside changes (theme buttons, campaign switch).
   if (value !== last) {
     setLast(value)
     setDraft(value)
   }
+  const named = paletteName(value)
   return (
-    <label className="block">
-      <span className="mb-1 block text-[12px] font-medium text-muted">{label}</span>
-      <span className="flex items-center gap-2">
+    <div ref={palette.root} className="block min-w-0">
+      <label htmlFor={inputId} className="mb-1 block text-[12px] font-medium text-muted">
+        {label}
+      </label>
+      <div className="flex items-center gap-2">
         <span className="relative h-[34px] w-[34px] shrink-0 overflow-hidden rounded-[var(--r-sm)] ring-1 ring-line-strong ring-inset" style={{ background: value }}>
           <input
             type="color"
@@ -1549,6 +1556,7 @@ export function ColorField({
           />
         </span>
         <input
+          id={inputId}
           value={draft}
           aria-label={label}
           spellCheck={false}
@@ -1561,9 +1569,73 @@ export function ColorField({
           onBlur={() => setDraft(value)}
           className="ui-field min-w-0 flex-1 font-mono text-[13px] uppercase"
         />
-      </span>
-      {hint ? <span className="mt-1 block text-[11px] text-muted">{hint}</span> : null}
-    </label>
+        <button
+          ref={palette.trigger}
+          type="button"
+          aria-label={`${label}: Microsoft palette`}
+          aria-expanded={palette.open}
+          title="Microsoft palette"
+          onClick={() => palette.setOpen(!palette.open)}
+          className={
+            'grid h-[34px] w-[34px] shrink-0 place-items-center rounded-[var(--r-sm)] ring-1 ring-inset transition-colors hover:bg-fill ' +
+            (palette.open ? 'bg-fill ring-forest' : 'ring-line-strong')
+          }
+        >
+          <span aria-hidden="true" className="grid grid-cols-2 gap-[2px]">
+            {['#225B62', '#49C5B1', '#0078D4', '#FFB900'].map((color) => (
+              <span key={color} className="h-[7px] w-[7px] rounded-[1px]" style={{ background: color }} />
+            ))}
+          </span>
+        </button>
+      </div>
+      {palette.open ? (
+        // Opens in place under the field, so it fits however narrow the column is.
+        <div role="dialog" aria-label="Microsoft palette" className="mt-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2.5">
+          <PaletteGroup title="Primary" colors={MS_PRIMARY} value={value} columns={5} onPick={(hex) => { onChange(hex); palette.close(true) }} />
+          <PaletteGroup title="Secondary" colors={MS_SECONDARY} value={value} columns={4} onPick={(hex) => { onChange(hex); palette.close(true) }} />
+        </div>
+      ) : null}
+      {hint || named ? (
+        <span className="mt-1 block text-[11px] text-muted">{[named ? `Microsoft ${named}` : '', hint].filter(Boolean).join(' · ')}</span>
+      ) : null}
+    </div>
+  )
+}
+
+function PaletteGroup({
+  title,
+  colors,
+  value,
+  columns,
+  onPick,
+}: {
+  title: string
+  colors: PaletteColor[]
+  value: string
+  columns: number
+  onPick: (hex: string) => void
+}) {
+  return (
+    <div className="mb-2 last:mb-0">
+      <span className="mb-1 block text-[11px] font-semibold tracking-wide text-muted uppercase">{title}</span>
+      <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+        {colors.map((color) => (
+          <button
+            key={color.hex}
+            type="button"
+            title={`${color.name} ${color.hex}`}
+            aria-label={`${color.name} ${color.hex}`}
+            aria-pressed={value.toUpperCase() === color.hex}
+            onClick={() => onPick(color.hex)}
+            className={
+              'h-6 min-w-0 rounded-[var(--r-sm)] ring-inset transition-transform hover:scale-105 ' +
+              (value.toUpperCase() === color.hex ? 'ring-2 ring-ink ring-offset-1' : 'ring-1 ring-line-strong')
+            }
+            style={{ background: color.hex }}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 

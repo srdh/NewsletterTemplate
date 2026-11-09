@@ -55,32 +55,33 @@ const BLOCKS: [BlockFormat, string][] = [
 ]
 
 
+/** Text colours: the strong Microsoft palette colours, plus neutrals. */
 const TEXT_COLORS: [string, string][] = [
+  ['#000000', 'Pure Black'],
   ['#242424', 'Black'],
   ['#616161', 'Gray'],
+  ['#225B62', 'Dark Teal'],
+  ['#0078D4', 'Blue'],
+  ['#8661C5', 'Purple'],
+  ['#C03BC4', 'Violet'],
+  ['#F4364C', 'Red'],
   ['#0B4F38', 'Forest'],
   ['#107C10', 'Green'],
-  ['#0067B8', 'Blue'],
-  ['#243A5E', 'Midnight'],
-  ['#5C2D91', 'Purple'],
-  ['#C239B3', 'Magenta'],
-  ['#A4262C', 'Red'],
-  ['#D83B01', 'Orange'],
-  ['#986F0B', 'Gold'],
   ['#FFFFFF', 'White'],
 ]
 
+/** Highlights: the light Microsoft palette colours, plus classic marker shades. */
 const HIGHLIGHTS: [string, string][] = [
-  ['#00FFFF', 'Aqua'],
   ['#FFFF00', 'Bright yellow'],
-  ['#D4EC8E', 'Lime'],
-  ['#FFF4CE', 'Yellow'],
-  ['#DFF6DD', 'Green'],
-  ['#DEECF9', 'Blue'],
-  ['#F3EEF8', 'Lavender'],
-  ['#FDE7E9', 'Pink'],
-  ['#EBF3EF', 'Mint'],
-  ['#F5F5F5', 'Gray'],
+  ['#00FFFF', 'Aqua'],
+  ['#B9DCD2', 'Light Teal'],
+  ['#8DC8E8', 'Light Blue'],
+  ['#D4EC8E', 'Light Green'],
+  ['#C5B4E3', 'Light Purple'],
+  ['#D59ED7', 'Light Violet'],
+  ['#FFE399', 'Light Yellow'],
+  ['#FFB3BB', 'Light Red'],
+  ['#FFF8F3', 'Warm White'],
 ]
 
 function query(command: string): boolean {

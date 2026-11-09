@@ -8,9 +8,9 @@ import { RT_BANNER_ART, RT_MS_LOGO_WHITE, RT_PARTNER_LOGO } from './registerToda
  * Hackathons "Register Today": an invitation to a partner hackathon,
  * generalized from the "Microsoft Insight Forge Hackathon" invitation.
  *
- * Kept: the layout (logo strip, banner, white intro, peach workshops band,
- * mint hackathon band, dark footer), the section wording, and the hackathon
- * stage names. Anything specific to one event (partner, name, themes, dates,
+ * Kept: the layout (logo strip, banner, white intro, workshops band,
+ * hackathon band, dark footer), the section wording, and the hackathon
+ * stage names. Colours are from the Microsoft palette. Anything specific to one event (partner, name, themes, dates,
  * workshops, courses, links, prizes) is a [placeholder].
  */
 
@@ -18,15 +18,17 @@ function id(): string {
   return crypto.randomUUID()
 }
 
-const TEAL = '#194449'
-const ORANGE = '#FA5108'
-const PEACH = '#FDE6E0'
-const MINT = '#EDF6F3'
+// Microsoft colour palette.
+const DARK_TEAL = '#225B62'
+const TEAL = '#49C5B1'
+const LIGHT_TEAL = '#B9DCD2'
+const WARM_WHITE = '#FFF8F3'
+const BLACK = '#000000'
 const REGISTER_URL = 'https://[registration-link]'
 
-const heading = (title: string, shade?: string): BodyBlock => ({ id: id(), kind: 'heading', title, color: TEAL, rule: '', size: 20, fill: '', outline: '', shade })
+const heading = (title: string, shade?: string): BodyBlock => ({ id: id(), kind: 'heading', title, color: DARK_TEAL, rule: '', size: 20, fill: '', outline: '', shade })
 const text = (html: string, shade?: string): BodyBlock => ({ id: id(), kind: 'text', html, shade })
-const register = (shade?: string): BodyBlock => ({ id: id(), kind: 'button', label: 'Register now', url: REGISTER_URL, align: 'left', color: ORANGE, shade })
+const register = (shade?: string): BodyBlock => ({ id: id(), kind: 'button', label: 'Register now', url: REGISTER_URL, align: 'left', color: DARK_TEAL, shade })
 const table = (rows: string[][], shade: string): BodyBlock => ({
   id: id(),
   kind: 'table',
@@ -34,7 +36,7 @@ const table = (rows: string[][], shade: string): BodyBlock => ({
   header: true,
   rows,
   headerBackground: '#FFFFFF',
-  headerText: '#091F2C',
+  headerText: BLACK,
   border: '#D1D1D1',
   striped: false,
   plain: true,
@@ -47,21 +49,21 @@ export function registerTodayStarter(): CampaignBundle {
     ...base,
     style: {
       ...base.style,
-      accent: TEAL,
-      link: TEAL,
+      accent: DARK_TEAL,
+      link: DARK_TEAL,
       paper: '#FFFFFF',
-      canvas: '#F4F3F5',
+      canvas: WARM_WHITE,
       font: 'Segoe UI',
       size: 14,
-      frame: '',
+      frame: LIGHT_TEAL,
       width: 640,
     },
     banner: {
       ...base.banner,
       layout: 'split',
       align: 'left',
-      background: PEACH,
-      text: '#091F2C',
+      background: DARK_TEAL,
+      text: '#FFFFFF',
       showMark: true,
       logo: FY_MS_LOGO,
       rightLogo: RT_PARTNER_LOGO,
@@ -77,22 +79,22 @@ export function registerTodayStarter(): CampaignBundle {
       {
         id: id(),
         kind: 'callout',
-        html: `<p style="text-align:center"><span style="font-size:20px;color:${TEAL}">[Start date] – [End date], [Year]</span><br>[Start time] [Time zone]</p>`,
+        html: `<p style="text-align:center"><span style="font-size:20px;color:${DARK_TEAL}">[Start date] – [End date], [Year]</span><br>[Start time] [Time zone]</p>`,
         background: '#FFFFFF',
         showRule: false,
         rule: '',
         text: '',
-        border: '#BFBFBF',
+        border: TEAL,
       },
       text(
         '<p>Bring your best ideas to the challenge—<strong>our top teams will earn [prizes, e.g. major prizes, including an exclusive celebration experience with standout gifts]</strong>. This is your chance to innovate, compete, and shine on a global stage.</p>',
       ),
       register(),
 
-      heading('Gain technical expertise from Hack Prep Workshops', PEACH),
+      heading('Gain technical expertise from Hack Prep Workshops', LIGHT_TEAL),
       text(
         '<p>Delivered by Microsoft Subject Matter Experts (SMEs), these preparatory sessions empower attendees to showcase the potential of each technology and demonstrate how it can be applied to build real-world solutions.</p>',
-        PEACH,
+        LIGHT_TEAL,
       ),
       table(
         [
@@ -101,11 +103,11 @@ export function registerTodayStarter(): CampaignBundle {
           ['[DD-Mon-YYYY]', '[Workshop topic]'],
           ['[DD-Mon-YYYY]', '[Workshop topic]'],
         ],
-        PEACH,
+        LIGHT_TEAL,
       ),
       text(
         '<p>Attendees can <strong>also leverage self-paced courses</strong> to develop comprehensive expertise, enabling them to master advanced concepts at their own pace and reinforce hands-on learning from the workshops.</p>',
-        PEACH,
+        LIGHT_TEAL,
       ),
       table(
         [
@@ -114,13 +116,13 @@ export function registerTodayStarter(): CampaignBundle {
           ['Self-Paced', '[Course title](https://course-link)'],
           ['Self-Paced', '[Course title](https://course-link)'],
         ],
-        PEACH,
+        LIGHT_TEAL,
       ),
 
-      heading('Bring your ideas to life at the Hackathon!', MINT),
+      heading('Bring your ideas to life at the Hackathon!', WARM_WHITE),
       text(
         '<p>You’ll work in a dynamic, team-based environment—gaining not only technical experience but also valuable mentorship and guidance from dedicated Microsoft subject matter experts. It’s a great opportunity to learn, create, and make a real impact.</p>',
-        MINT,
+        WARM_WHITE,
       ),
       table(
         [
@@ -130,21 +132,21 @@ export function registerTodayStarter(): CampaignBundle {
           ['[DD-Mon-YYYY]', 'Hackathon – Evaluation'],
           ['[DD-Mon-YYYY]', 'Hackathon Conclusion & Recognition'],
         ],
-        MINT,
+        WARM_WHITE,
       ),
       text(
         '<p>Participants will gain practical experience in [what they will learn, e.g. orchestrating AI agents and integrating advanced capabilities into real-world applications].</p>',
-        MINT,
+        WARM_WHITE,
       ),
       text(
         '<p><strong>Looking to complete your year-end CRT requirements?</strong><br>This hackathon is the perfect springboard. The live workshops and self-paced courses included in the program map directly to the foundational learning behind several key certifications. While exams are still required, you’ll walk away with the knowledge, practice, and confidence to fast-track your CRT requirements and finish the year strong.</p>',
-        MINT,
+        WARM_WHITE,
       ),
-      register(MINT),
+      register(WARM_WHITE),
     ],
     footer: {
       ...base.footer,
-      background: TEAL,
+      background: DARK_TEAL,
       text: '#FFFFFF',
       html: `<p><span style="font-size:11px">Let me know if you’d prefer I not forward you these communications. To learn how to manage your contact preferences for other parts of Microsoft, please read our <a href="${PRIVACY_URL}">Privacy Statement</a>.</span></p>`,
       links: [],

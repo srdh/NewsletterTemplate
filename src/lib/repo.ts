@@ -202,6 +202,42 @@ async function addKeyDatesTable(tables: Tables): Promise<Tables> {
   return renameKeyDatesHeadings(result)
 }
 
+/** The first Register Today colours (taken from the PwC invite), and their Microsoft palette replacements. */
+const REGISTER_TODAY_RECOLOR: [string, string][] = [
+  ['#FDE6E0', '#B9DCD2'], // peach band → Light Teal
+  ['#EDF6F3', '#FFF8F3'], // mint band → Warm White
+  ['#FA5108', '#225B62'], // orange buttons → Dark Teal
+  ['#194449', '#225B62'], // teal headings, links, footer → Dark Teal
+  ['#091F2C', '#000000'], // table headings → Pure Black
+  ['#BFBFBF', '#49C5B1'], // date box border → Teal
+  ['#F4F3F5', '#FFF8F3'], // canvas → Warm White
+]
+
+/**
+ * The Register Today example was first added in the invite's own orange and
+ * peach. Copies still in those colours move to the Microsoft palette. Safe to
+ * run on every load: it only acts while the peach band is still there.
+ */
+async function recolorRegisterToday(tables: Tables): Promise<Tables> {
+  const target = tables.campaigns.find((row) => row.id === EXAMPLES[3].id)
+  if (!target?.newsletter || !target.newsletter.includes('"#FDE6E0"')) return tables
+  try {
+    let json = target.newsletter
+    for (const [from, to] of REGISTER_TODAY_RECOLOR) json = json.split(from).join(to)
+    const design = JSON.parse(json)
+    if (design.banner) design.banner = { ...design.banner, text: '#FFFFFF' }
+    if (design.style && !design.style.frame) design.style = { ...design.style, frame: '#B9DCD2' }
+    // The banner is Dark Teal now, not Light Teal like the workshops band.
+    if (design.banner?.background === '#B9DCD2') design.banner.background = '#225B62'
+    const { RT_BANNER_ART } = await import('../data/starters/registerTodayImages')
+    const oldArt = target.banner_image?.startsWith('data:image/png') && (target.banner_image?.length ?? 0) < 8000
+    const updated = { ...target, newsletter: JSON.stringify(design), banner_image: oldArt ? RT_BANNER_ART : target.banner_image }
+    return { ...tables, campaigns: tables.campaigns.map((row) => (row.id === target.id ? updated : row)) }
+  } catch {
+    return tables
+  }
+}
+
 async function addStarterExample(tables: Tables): Promise<Tables> {
   let result = tables
   for (const example of EXAMPLES) {
@@ -250,7 +286,7 @@ export async function listCampaigns(): Promise<Campaign[]> {
     }
     return sortCampaigns(data)
   }
-  const tables = await addKeyDatesTable(await addStarterExample(applySeed(readLocal())))
+  const tables = await recolorRegisterToday(await addKeyDatesTable(await addStarterExample(applySeed(readLocal()))))
   writeLocal(tables)
   return sortCampaigns(tables.campaigns)
 }
