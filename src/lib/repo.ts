@@ -127,6 +127,71 @@ const EXAMPLES: { starter: string; key: string; id: string }[] = [
   },
 ]
 
+/**
+ * The Registration Confirmation example got a Key dates table under the
+ * greeting. Copies added before that get it once, if they have no table yet.
+ */
+const KEY_DATES_KEY = 'oft-template-maker/hackathon-key-dates-added'
+
+/**
+ * Renames the Key dates headings (Stage → Phase, What to do → What happens)
+ * in the Registration Confirmation example made before the rename. Safe to
+ * run on every load: it only matches the original pair of headings.
+ */
+function renameKeyDatesHeadings(tables: Tables): Tables {
+  const target = tables.campaigns.find((row) => row.id === EXAMPLES[1].id)
+  if (!target?.newsletter) return tables
+  try {
+    const design = JSON.parse(target.newsletter)
+    let changed = false
+    for (const block of Array.isArray(design.blocks) ? design.blocks : []) {
+      const head = block?.kind === 'table' && Array.isArray(block.rows) ? block.rows[0] : null
+      // Only the untouched original headings are renamed.
+      if (head && head[0] === 'Stage' && head[2] === 'What to do') {
+        head[0] = 'Phase'
+        head[2] = 'What happens'
+        changed = true
+      }
+    }
+    if (!changed) return tables
+    const updated = { ...target, newsletter: JSON.stringify(design) }
+    return { ...tables, campaigns: tables.campaigns.map((row) => (row.id === target.id ? updated : row)) }
+  } catch {
+    return tables
+  }
+}
+
+async function addKeyDatesTable(tables: Tables): Promise<Tables> {
+  try {
+    if (localStorage.getItem(KEY_DATES_KEY)) return renameKeyDatesHeadings(tables)
+  } catch {
+    return tables
+  }
+  const target = tables.campaigns.find((row) => row.id === EXAMPLES[1].id)
+  let result = tables
+  if (target?.newsletter) {
+    try {
+      const design = JSON.parse(target.newsletter)
+      const blocks: { kind?: string }[] = Array.isArray(design.blocks) ? design.blocks : []
+      if (!blocks.some((block) => block.kind === 'table')) {
+        const { keyDatesTable } = await import('../data/starters/hackathon')
+        const firstText = blocks.findIndex((block) => block.kind === 'text')
+        blocks.splice(firstText + 1, 0, keyDatesTable())
+        const updated = { ...target, newsletter: JSON.stringify({ ...design, blocks }) }
+        result = { ...tables, campaigns: tables.campaigns.map((row) => (row.id === target.id ? updated : row)) }
+      }
+    } catch {
+      return tables
+    }
+  }
+  try {
+    localStorage.setItem(KEY_DATES_KEY, '1')
+  } catch {
+    // Without storage this simply runs again next time; it only adds a missing table.
+  }
+  return renameKeyDatesHeadings(result)
+}
+
 async function addStarterExample(tables: Tables): Promise<Tables> {
   let result = tables
   for (const example of EXAMPLES) {
@@ -175,7 +240,7 @@ export async function listCampaigns(): Promise<Campaign[]> {
     }
     return sortCampaigns(data)
   }
-  const tables = await addStarterExample(applySeed(readLocal()))
+  const tables = await addKeyDatesTable(await addStarterExample(applySeed(readLocal())))
   writeLocal(tables)
   return sortCampaigns(tables.campaigns)
 }

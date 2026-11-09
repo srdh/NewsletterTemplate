@@ -97,9 +97,11 @@ export function OutlineFields({
     if (view.kind === 'block' && !openBlock) setView({ kind: 'list' })
   }, [view, openBlock])
 
+  /** New blocks go right below the block you have open, or at the end from the list. */
   function addBlock(kind: BlockKind) {
     const block = newBlock(kind)
-    setBlocks([...design.blocks, block])
+    const at = openBlock ? design.blocks.indexOf(openBlock) + 1 : design.blocks.length
+    setBlocks([...design.blocks.slice(0, at), block, ...design.blocks.slice(at)])
     setView({ kind: 'block', id: block.id })
   }
 

@@ -24,6 +24,27 @@ const PORTAL_URL =
 const SUPPORT_EMAIL = 'platform-support@vectorsenseus.com'
 const PRIVACY = 'https://www.microsoft.com/en-us/privacy/privacystatement'
 
+/** The Key dates table under the greeting (also added to existing copies, see repo.ts). */
+export function keyDatesTable(): Extract<NewsletterDesign['blocks'][number], { kind: 'table' }> {
+  return {
+    id: id(),
+    kind: 'table',
+    title: 'Key dates',
+    header: true,
+    rows: [
+      ['Phase', 'Date', 'What happens'],
+      ['Registration', '[Date]', 'Confirmed: sign in to the Hackathon Portal'],
+      ['Idea submission', '[Date]', 'Submit your Architecture Blueprint'],
+      ['Idea review', '[Date]', 'Check the Status Review tab'],
+      ['Build and demo', '[Date]', '[Details]'],
+    ],
+    headerBackground: NAVY,
+    headerText: '#FFFFFF',
+    border: '#D1D1D1',
+    striped: true,
+  }
+}
+
 const step = (text: string) => `<strong><span style="color:${NAVY}">${text}</span></strong>`
 const term = (text: string) => `<strong><span style="color:${BLUE}">${text}</span></strong>`
 
@@ -68,6 +89,7 @@ export function registrationConfirmationStarter(): CampaignBundle {
           '<p><strong>Hello [First name],</strong></p>' +
           '<p>Thank you for registering for the <strong>SoftwareOne Agentic AI Hackathon</strong>.</p>',
       },
+      keyDatesTable(),
       {
         id: id(),
         kind: 'callout',
