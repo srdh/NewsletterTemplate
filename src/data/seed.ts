@@ -464,6 +464,7 @@ export function newsletterSeed(): CampaignBundle {
       rightLogo: '',
       dateLabel: 'November 2026',
       imageAlt: '',
+      logoBar: false,
     },
     blocks: [
       {

@@ -58,8 +58,22 @@ function bannerHtml(bundle: CampaignBundle, design: NewsletterDesign, preview: b
   const width = design.style.width
   const align = b.align
   const logo = logoHtml(b.logo, b.showMark, b.text, 'banner')
+  const hasLogoRow = Boolean(logo || b.dateLabel || b.rightLogo)
+  // The logo row on a strip of the email body colour, above the banner.
+  const logoBar = hasLogoRow
+    ? `<tr${sectionAttr(preview, 'banner')}>
+      <td bgcolor="${design.style.paper}" style="background:${design.style.paper};padding:20px ${GUTTER}px 18px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td valign="middle" align="left">${logoHtml(b.logo, b.showMark, INK, 'banner')}</td>
+            <td valign="middle" align="right">${rightOfLogoRow(b, '#616161')}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>`
+    : ''
   const markRow =
-    logo || b.dateLabel || b.rightLogo
+    hasLogoRow && !b.logoBar
       ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
           <tr>
             <td valign="middle" align="left">${logo}</td>
@@ -76,20 +90,8 @@ function bannerHtml(bundle: CampaignBundle, design: NewsletterDesign, preview: b
   const image = c.banner_image
   if (b.layout === 'image' && image) {
     const hasWords = Boolean(c.kicker || c.title || c.subtitle || (c.register_label && c.register_url))
-    // The logo row sits on the email body colour above the picture.
-    const logoRow = logo || b.dateLabel || b.rightLogo
-      ? `<tr${sectionAttr(preview, 'banner')}>
-      <td bgcolor="${design.style.paper}" style="background:${design.style.paper};padding:20px ${GUTTER}px 18px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td valign="middle" align="left">${logoHtml(b.logo, b.showMark, INK, 'banner')}</td>
-            <td valign="middle" align="right">${rightOfLogoRow(b, '#616161')}</td>
-          </tr>
-        </table>
-      </td>
-    </tr>`
-      : ''
-    return `${logoRow}<tr${sectionAttr(preview, 'banner')}>
+    // The logo row always sits on the email body colour above the picture.
+    return `${logoBar}<tr${sectionAttr(preview, 'banner')}>
       <td style="padding:0;">
         <img src="${escapeHtml(image)}" alt="${escapeHtml(b.imageAlt || c.title || c.subject)}" width="${width}" style="display:block;width:100%;max-width:${width}px;height:auto;border:0;">
       </td>
@@ -103,8 +105,9 @@ function bannerHtml(bundle: CampaignBundle, design: NewsletterDesign, preview: b
     }`
   }
 
+  const before = b.logoBar ? logoBar : ''
   if (b.layout === 'split' && image) {
-    return `<tr${sectionAttr(preview, 'banner')}>
+    return `${before}<tr${sectionAttr(preview, 'banner')}>
       <td bgcolor="${b.background}" style="background:${b.background};padding:28px ${GUTTER}px;">
         ${markRow}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -117,7 +120,7 @@ function bannerHtml(bundle: CampaignBundle, design: NewsletterDesign, preview: b
     </tr>`
   }
 
-  return `<tr${sectionAttr(preview, 'banner')}>
+  return `${before}<tr${sectionAttr(preview, 'banner')}>
     <td bgcolor="${b.background}" style="background:${b.background};padding:28px ${GUTTER}px 32px;">
       ${markRow}
       ${words}
@@ -169,10 +172,21 @@ let blockAnchor: (block: BodyBlock) => string = () => 'body'
 
 function blockRow(block: BodyBlock, design: NewsletterDesign, preview: boolean): string {
   const width = design.style.width - GUTTER * 2
-  const look: RichTextLook = { font: FONT, color: INK, link: design.style.link, accent: design.style.accent, size: design.style.size }
+  const shade = bandOf(block)
+  const onDark = Boolean(shade) && readableOn(shade) === '#FFFFFF'
+  const look: RichTextLook = {
+    font: FONT,
+    color: onDark ? '#FFFFFF' : INK,
+    link: onDark ? '#FFFFFF' : design.style.link,
+    accent: onDark ? '#FFFFFF' : design.style.accent,
+    size: design.style.size,
+  }
   const anchor = blockAnchor(block)
+  const fill = shade ? ` bgcolor="${shade}"` : ''
   const row = (inner: string, padding = `0 ${GUTTER}px 20px`) =>
-    inner ? `<tr${sectionAttr(preview, anchor)}><td style="padding:${padding};font-family:${FONT};">${inner}</td></tr>` : ''
+    inner
+      ? `<tr${sectionAttr(preview, anchor)}><td${fill} style="${shade ? `background:${shade};` : ''}padding:${padding};font-family:${FONT};">${inner}</td></tr>`
+      : ''
 
   switch (block.kind) {
     case 'card': {
@@ -223,7 +237,7 @@ function blockRow(block: BodyBlock, design: NewsletterDesign, preview: boolean):
     case 'event':
       return row(eventHtml(block, design, look), `4px ${GUTTER}px 24px`)
     case 'table':
-      return row(tableHtml(block, design), `0 ${GUTTER}px 24px`)
+      return row(tableHtml(block, design, look.link), `0 ${GUTTER}px 24px`)
     case 'spotlights':
       return row(spotlightsHtml(block, design, width, look), `4px ${GUTTER}px 24px`)
     case 'signature':
@@ -278,12 +292,49 @@ function eventHtml(block: Block<'event'>, design: NewsletterDesign, look: RichTe
   </table>`
 }
 
-function tableHtml(block: Block<'table'>, design: NewsletterDesign): string {
+/**
+ * A table cell's text: [label](https://…) becomes a link, and so does a bare
+ * web address. Everything else is plain text.
+ */
+function cellHtml(value: string, link: string): string {
+  const style = `color:${link};text-decoration:underline;`
+  let out = ''
+  let last = 0
+  for (const match of value.matchAll(/\[([^\]]+)\]\(([^)\s]+)\)|(https?:\/\/[^\s<>"]+)/g)) {
+    out += escapeHtml(value.slice(last, match.index))
+    const [whole, label, url, bare] = match
+    const href = url ?? bare
+    out += `<a href="${escapeHtml(href)}" target="_blank" style="${style}">${escapeHtml(label ?? bare)}</a>`
+    last = match.index + whole.length
+  }
+  return out + escapeHtml(value.slice(last))
+}
+
+function tableHtml(block: Block<'table'>, design: NewsletterDesign, link: string): string {
   const rows = block.rows.filter((row) => row.some((cell) => cell.trim()))
   if (!rows.length) return ''
   const size = Math.max(12, design.style.size - 1)
+  const title = block.title.trim()
+    ? `<p style="margin:0 0 10px;font-family:${FONT};font-size:17px;line-height:22px;font-weight:600;color:${INK};">${escapeHtml(block.title)}</p>`
+    : ''
+  if (block.plain) {
+    // Open style: no lines or fill, sized to the words, with a bold header.
+    const body = rows
+      .map((row, index) => {
+        const header = block.header && index === 0
+        const tag = header ? 'th' : 'td'
+        return `<tr>${row
+          .map(
+            (value, c) =>
+              `<${tag} align="left" valign="top" style="padding:3px ${c === row.length - 1 ? 0 : 24}px 3px 0;font-family:${FONT};font-size:${size}px;line-height:20px;text-align:left;${header ? `font-weight:700;color:${block.headerText};` : 'font-weight:400;'}">${cellHtml(value, link) || '&nbsp;'}</${tag}>`,
+          )
+          .join('')}</tr>`
+      })
+      .join('')
+    return `${title}<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${body}</table>`
+  }
   const cell = (value: string, header: boolean, shade: string) =>
-    `<${header ? 'th' : 'td'} align="left" valign="top" bgcolor="${shade}" style="background:${shade};padding:9px 12px;border:1px solid ${block.border};font-family:${FONT};font-size:${size}px;line-height:20px;text-align:left;${header ? `font-weight:600;color:${block.headerText};` : `color:${INK};`}">${escapeHtml(value) || '&nbsp;'}</${header ? 'th' : 'td'}>`
+    `<${header ? 'th' : 'td'} align="left" valign="top" bgcolor="${shade}" style="background:${shade};padding:9px 12px;border:1px solid ${block.border};font-family:${FONT};font-size:${size}px;line-height:20px;text-align:left;${header ? `font-weight:600;color:${block.headerText};` : `color:${INK};`}">${cellHtml(value, link) || '&nbsp;'}</${header ? 'th' : 'td'}>`
   const body = rows
     .map((row, index) => {
       const header = block.header && index === 0
@@ -292,9 +343,6 @@ function tableHtml(block: Block<'table'>, design: NewsletterDesign): string {
       return `<tr>${row.map((value) => cell(value, header, shade)).join('')}</tr>`
     })
     .join('')
-  const title = block.title.trim()
-    ? `<p style="margin:0 0 10px;font-family:${FONT};font-size:17px;line-height:22px;font-weight:600;color:${INK};">${escapeHtml(block.title)}</p>`
-    : ''
   return `${title}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${body}</table>`
 }
 
@@ -526,15 +574,48 @@ function footerHtml(design: NewsletterDesign, preview: boolean): string {
   </tr>`
 }
 
+/** The band colour behind a block ('' for none). A section block is its own band. */
+function bandOf(block: BodyBlock): string {
+  return block.kind === 'section' ? '' : block.shade || ''
+}
+
+/**
+ * The body rows. Blocks with a band colour get padding above the first and
+ * below the last of a run, so a run of blocks reads as one coloured band.
+ */
+function bodyHtml(design: NewsletterDesign, preview: boolean): { body: string; endsWithBand: boolean } {
+  const shown = design.blocks
+    .map((block) => ({ block, html: blockRow(block, design, preview) }))
+    .filter((item) => item.html)
+  const spacer = (shade: string, height: number, anchor: string) =>
+    `<tr${sectionAttr(preview, anchor)}><td height="${height}"${shade ? ` bgcolor="${shade}"` : ''} style="height:${height}px;${shade ? `background:${shade};` : ''}font-size:0;line-height:0;">&nbsp;</td></tr>`
+  const parts: string[] = []
+  shown.forEach(({ block, html }, index) => {
+    const shade = bandOf(block)
+    const before = index > 0 ? bandOf(shown[index - 1].block) : ''
+    const next = shown[index + 1]
+    const after = next ? bandOf(next.block) : ''
+    const anchor = blockAnchor(block)
+    if (shade && shade !== before) parts.push(spacer(shade, 24, anchor))
+    parts.push(html)
+    if (shade && shade !== after) {
+      parts.push(spacer(shade, 8, anchor))
+      // Room between the band and an ordinary block after it.
+      if (next && !after && next.block.kind !== 'section') parts.push(spacer('', 24, anchor))
+    }
+  })
+  // A band as the last block runs straight into the footer.
+  const last = shown[shown.length - 1]?.block
+  const endsWithBand = Boolean(last && (last.kind === 'section' || bandOf(last)))
+  return { body: parts.join(''), endsWithBand }
+}
+
 export function renderNewsletter(bundle: CampaignBundle, preview = false): string {
   const design = readDesign(bundle.campaign)
   FONT = fontStack(design.style.font)
   blockAnchor = usesBlockList(bundle.campaign.master_type) ? (block) => `block:${block.id}` : () => 'body'
   const { width, paper, canvas, frame } = design.style
-  const body = design.blocks.map((block) => blockRow(block, design, preview)).join('')
-  // A section band as the last block runs straight into the footer.
-  const last = design.blocks[design.blocks.length - 1]
-  const endsWithBand = last?.kind === 'section' && !isRichEmpty(last.html)
+  const { body, endsWithBand } = bodyHtml(design, preview)
 
   const inner = `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${canvas}" style="background:${canvas};">

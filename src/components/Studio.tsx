@@ -210,8 +210,8 @@ export function Studio() {
   function onNew(choice: NewEmailChoice) {
     if (choice === 'custom') void onCreateStarter('me7')
     else if (choice === 'custom2') void onCreateStarter('custom2')
-    else if (choice === 'hackathon-registration' || choice === 'hackathon-fy-summary' || choice === 'hackathon-blank') void onCreateStarter(choice)
-    else void onCreate(choice)
+    else if (choice === 'event_invite' || choice === 'monthly_update' || choice === 'weekly_snapshot') void onCreate(choice)
+    else void onCreateStarter(choice)
   }
 
   // Templates saved with "Save as template" (Custom 2), kept in this browser.

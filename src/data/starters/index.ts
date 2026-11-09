@@ -8,6 +8,13 @@ export const STARTERS: { id: string; master: MasterType; label: string; newName:
   { id: 'me7', master: 'newsletter', label: 'ME7 + Copilot learning paths', newName: 'New custom newsletter' },
   { id: 'custom2', master: 'custom2', label: 'Custom 2', newName: 'Untitled campaign' },
   {
+    id: 'hackathon-register-today',
+    master: 'hackathon',
+    label: 'Register Today',
+    newName: 'Register Today',
+    hint: 'Invitation: event dates, prep workshops, courses, stages, and Register buttons',
+  },
+  {
     id: 'hackathon-registration',
     master: 'hackathon',
     label: 'Registration Confirmation',
@@ -35,6 +42,7 @@ export async function loadStarter(id: string): Promise<CampaignBundle> {
   if (id === 'custom2') return (await import('./custom2')).custom2Starter()
   if (id === 'hackathon-registration') return (await import('./hackathon')).registrationConfirmationStarter()
   if (id === 'hackathon-blank') return (await import('./hackathon')).blankHackathonStarter()
+  if (id === 'hackathon-register-today') return (await import('./registerToday')).registerTodayStarter()
   if (id === 'hackathon-fy-summary') return (await import('./hackathonFy')).fySummaryStarter()
   throw new Error('That template is not available.')
 }

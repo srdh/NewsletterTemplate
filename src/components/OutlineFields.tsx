@@ -11,6 +11,7 @@ import {
   FooterSection,
   IconButton,
   KIND_HINT,
+  OptionalColor,
   StyleSection,
   blockSummary,
   type Patch,
@@ -122,7 +123,9 @@ export function OutlineFields({
 
   /** New blocks go right below the block you have open, or at the end from the list. */
   function addBlock(kind: BlockKind) {
-    const block = newBlock(kind)
+    const made = newBlock(kind)
+    // A block added inside a band joins that band.
+    const block: BodyBlock = openBlock?.shade && kind !== 'section' ? { ...made, shade: openBlock.shade } : made
     const at = openBlock ? design.blocks.indexOf(openBlock) + 1 : design.blocks.length
     setBlocks([...design.blocks.slice(0, at), block, ...design.blocks.slice(at)])
     setView({ kind: 'block', id: block.id })
@@ -182,6 +185,21 @@ export function OutlineFields({
                 onChange={(next) => setBlocks(design.blocks.map((block) => (block.id === next.id ? next : block)))}
               />
             ) : null}
+            {openBlock && openBlock.kind !== 'section' ? (
+              <div className="mt-5 grid gap-1.5 border-t border-line pt-4">
+                <OptionalColor
+                  label="Background band"
+                  value={openBlock.shade ?? ''}
+                  fallback="#EDF6F3"
+                  onChange={(shade) =>
+                    setBlocks(design.blocks.map((block) => (block.id === openBlock.id ? { ...block, shade: shade || undefined } : block)))
+                  }
+                />
+                <p className="text-[12px] leading-4 text-muted">
+                  Colours the full width behind this block. Blocks next to each other with the same colour join into one band.
+                </p>
+              </div>
+            ) : null}
           </DetailView>
         )}
       </div>
@@ -237,6 +255,7 @@ function ListView({
             thumb={<Thumb kind={block.kind} />}
             title={LABEL[block.kind]}
             summary={blockSummary(block) || HINT[block.kind]}
+            band={block.kind === 'section' ? undefined : block.shade}
             onClick={() => onOpen({ kind: 'block', id: block.id })}
           />
         ))}
@@ -299,9 +318,22 @@ function CampaignName({ value, onChange }: { value: string; onChange: (value: st
   )
 }
 
-function Row({ thumb, title, summary, onClick }: { thumb: ReactNode; title: string; summary: string; onClick: () => void }) {
+function Row({
+  thumb,
+  title,
+  summary,
+  band,
+  onClick,
+}: {
+  thumb: ReactNode
+  title: string
+  summary: string
+  /** Band colour behind the block, shown as a strip on the left. */
+  band?: string
+  onClick: () => void
+}) {
   return (
-    <li className="border-b border-line last:border-b-0">
+    <li className="border-b border-line last:border-b-0" style={band ? { boxShadow: `inset 4px 0 0 ${band}` } : undefined}>
       <button type="button" onClick={onClick} className="flex w-full min-w-0 items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-fill">
         {thumb}
         <span className="min-w-0 flex-1">

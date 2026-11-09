@@ -313,6 +313,13 @@ export function BannerSection({
         />
         <Toggle label="Microsoft logo" checked={b.showMark} onChange={(showMark) => patch('banner', { showMark })} />
       </Cols>
+      {b.layout !== 'image' ? (
+        <Toggle
+          label="Logo row on a white strip above the banner"
+          checked={b.logoBar}
+          onChange={(logoBar) => patch('banner', { logoBar })}
+        />
+      ) : null}
       {b.showMark ? (
         <ImageField
           label="Logo image (optional)"
@@ -1204,9 +1211,15 @@ function TableEditor({
         />
         <div className="flex flex-wrap items-end gap-x-4">
           <Toggle label="Header row" checked={block.header} onChange={(header) => onChange({ ...block, header })} />
-          <Toggle label="Striped rows" checked={block.striped} onChange={(striped) => onChange({ ...block, striped })} />
+          {block.plain ? null : (
+            <Toggle label="Striped rows" checked={block.striped} onChange={(striped) => onChange({ ...block, striped })} />
+          )}
+          <Toggle label="Open style (no lines)" checked={Boolean(block.plain)} onChange={(plain) => onChange({ ...block, plain })} />
         </div>
       </Cols>
+      <p className="-mt-1 text-[12px] leading-4 text-muted">
+        To link a cell, write [link text](https://…). Web addresses become links on their own.
+      </p>
       <div className="grid gap-1.5" role="group" aria-label={`${name} cells`}>
         {block.rows.map((row, r) => (
           <div key={r} className="flex min-w-0 items-center gap-1.5">
@@ -1243,11 +1256,15 @@ function TableEditor({
         </span>
         Add a row
       </button>
-      <Cols className="gap-3 @[24rem]:grid-cols-3">
-        <ColorField label="Header colour" value={block.headerBackground} onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
+      {block.plain ? (
         <ColorField label="Header text" value={block.headerText} onChange={(headerText) => onChange({ ...block, headerText })} />
-        <ColorField label="Lines" value={block.border} onChange={(border) => onChange({ ...block, border })} />
-      </Cols>
+      ) : (
+        <Cols className="gap-3 @[24rem]:grid-cols-3">
+          <ColorField label="Header colour" value={block.headerBackground} onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
+          <ColorField label="Header text" value={block.headerText} onChange={(headerText) => onChange({ ...block, headerText })} />
+          <ColorField label="Lines" value={block.border} onChange={(border) => onChange({ ...block, border })} />
+        </Cols>
+      )}
     </div>
   )
 }
@@ -1318,7 +1335,7 @@ function CalloutSample({ block, accent }: { block: Extract<BodyBlock, { kind: 'c
 }
 
 /** A colour that can be switched off (borders). */
-function OptionalColor({
+export function OptionalColor({
   label,
   value,
   fallback,

@@ -46,6 +46,8 @@ export interface NewsletterBanner {
   dateLabel: string
   /** Alt text for a banner image (full-image layout). */
   imageAlt: string
+  /** Put the logo row on a strip of the email body colour above the banner. */
+  logoBar: boolean
 }
 
 /** Blocks that can sit inside a card. */
@@ -70,7 +72,7 @@ export type InnerBlock =
   | { id: string; kind: 'button'; label: string; url: string; align: Align; color: string }
   | { id: string; kind: 'divider' }
 
-export type BodyBlock =
+export type BodyBlock = (
   | InnerBlock
   /** A bordered box holding its own blocks (text, buttons, images…). */
   | { id: string; kind: 'card'; border: string; background: string; items: InnerBlock[] }
@@ -104,6 +106,8 @@ export type BodyBlock =
       headerText: string
       border: string
       striped: boolean
+      /** Open style: no lines or cell fill, a bold header row. */
+      plain?: boolean
     }
   /** Two or three cards side by side. */
   | { id: string; kind: 'spotlights'; cards: SpotlightItem[]; background: string; border: string }
@@ -140,6 +144,13 @@ export type BodyBlock =
       email: string
       photo: string
     }
+) & {
+  /**
+   * Background band behind the block, edge to edge; empty for none. Blocks
+   * next to each other with the same band colour join into one band.
+   */
+  shade?: string
+}
 
 export interface StatTile {
   id: string
@@ -254,6 +265,7 @@ export function defaultDesign(): NewsletterDesign {
       rightLogo: '',
       dateLabel: '',
       imageAlt: '',
+      logoBar: false,
     },
     blocks: [
       {
@@ -479,6 +491,13 @@ function readInner(r: Record<string, unknown>, blockId: string): InnerBlock | nu
 }
 
 function readBlock(raw: unknown): BodyBlock | null {
+  const block = readBlockKind(raw)
+  if (!block) return null
+  const shade = optionalColor((raw as Record<string, unknown>).shade)
+  return shade ? { ...block, shade } : block
+}
+
+function readBlockKind(raw: unknown): BodyBlock | null {
   if (!raw || typeof raw !== 'object') return null
   const r = raw as Record<string, unknown>
   const blockId = text(r.id) || id()
@@ -548,6 +567,7 @@ function readBlock(raw: unknown): BodyBlock | null {
         headerText: color(r.headerText, '#FFFFFF'),
         border: color(r.border, '#D1D1D1'),
         striped: r.striped !== false,
+        plain: r.plain === true,
       }
     }
     case 'spotlights':
@@ -711,6 +731,7 @@ export function readDesign(campaign: Pick<Campaign, 'newsletter'>): NewsletterDe
       rightLogo: text(banner.rightLogo),
       dateLabel: text(banner.dateLabel),
       imageAlt: text(banner.imageAlt),
+      logoBar: banner.logoBar === true,
     },
     blocks: Array.isArray(raw.blocks)
       ? raw.blocks.map(readBlock).filter((block): block is BodyBlock => Boolean(block))

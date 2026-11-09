@@ -47,6 +47,7 @@ export function me7Starter(): CampaignBundle {
       rightLogo: '',
       dateLabel: '',
       imageAlt: 'Banner: ME7 + Copilot and AI Consumption Skilling - Find the learning path that is right for you',
+      logoBar: false,
     },
     blocks: [
       text(
