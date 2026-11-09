@@ -210,7 +210,7 @@ export function Studio() {
   function onNew(choice: NewEmailChoice) {
     if (choice === 'custom') void onCreateStarter('me7')
     else if (choice === 'custom2') void onCreateStarter('custom2')
-    else if (choice === 'hackathon-registration' || choice === 'hackathon-blank') void onCreateStarter(choice)
+    else if (choice === 'hackathon-registration' || choice === 'hackathon-fy-summary' || choice === 'hackathon-blank') void onCreateStarter(choice)
     else void onCreate(choice)
   }
 

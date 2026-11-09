@@ -15,6 +15,13 @@ export const STARTERS: { id: string; master: MasterType; label: string; newName:
     hint: 'Confirmed registration, portal login details, and next steps',
   },
   {
+    id: 'hackathon-fy-summary',
+    master: 'hackathon',
+    label: 'FY Summary',
+    newName: 'FY Summary',
+    hint: 'Year-end report: overview, numbers, events, photos, highlights, people',
+  },
+  {
     id: 'hackathon-blank',
     master: 'hackathon',
     label: 'Blank hackathon email',
@@ -28,5 +35,6 @@ export async function loadStarter(id: string): Promise<CampaignBundle> {
   if (id === 'custom2') return (await import('./custom2')).custom2Starter()
   if (id === 'hackathon-registration') return (await import('./hackathon')).registrationConfirmationStarter()
   if (id === 'hackathon-blank') return (await import('./hackathon')).blankHackathonStarter()
+  if (id === 'hackathon-fy-summary') return (await import('./hackathonFy')).fySummaryStarter()
   throw new Error('That template is not available.')
 }

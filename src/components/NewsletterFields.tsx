@@ -8,6 +8,10 @@ import {
   newFooterLink,
   newSpotlight,
   newDetailRow,
+  newStatTile,
+  newTextColumn,
+  newGalleryImage,
+  newPerson,
   readDesign,
   readableOn,
   writeDesign,
@@ -40,6 +44,10 @@ export const KIND_LABEL: Record<BlockKind, string> = {
   signature: 'Signature',
   heading: 'Heading',
   details: 'Details',
+  stats: 'Number tiles',
+  columns: 'Columns',
+  gallery: 'Photo gallery',
+  people: 'People',
 }
 
 export const KIND_HINT: Record<BlockKind, string> = {
@@ -57,6 +65,10 @@ export const KIND_HINT: Record<BlockKind, string> = {
   signature: 'Sign-off with name, role, team, and email',
   heading: 'A section heading with an optional line under it',
   details: 'Label : value rows in a box, e.g. login details',
+  stats: 'Big numbers with labels, e.g. 28 Hackathons',
+  columns: 'Two or three columns of text, each with a title',
+  gallery: 'Photos in a grid of two or three',
+  people: 'Names, roles, and round photos, e.g. sponsors',
 }
 
 /** What can go in the email body, and what can go inside a card. */
@@ -539,6 +551,16 @@ export function blockSummary(block: BodyBlock): string {
       return block.title || 'No heading yet'
     case 'details':
       return [block.title, `${block.rows.length} row${block.rows.length === 1 ? '' : 's'}`].filter(Boolean).join(' · ')
+    case 'stats':
+      return block.tiles.map((tile) => `${tile.value} ${tile.label}`.trim()).join(' · ') || 'No tiles yet'
+    case 'columns':
+      return block.columns.map((column) => column.title).filter(Boolean).join(' · ') || `${block.columns.length} columns`
+    case 'gallery': {
+      const added = block.images.filter((image) => image.src).length
+      return `${added} of ${block.images.length} photo${block.images.length === 1 ? '' : 's'} added`
+    }
+    case 'people':
+      return [block.title, `${block.people.length} ${block.people.length === 1 ? 'person' : 'people'}`].filter(Boolean).join(' · ')
     default:
       return ''
   }
@@ -935,17 +957,140 @@ export function BlockEditor({
             ]}
             onChange={(size) => onChange({ ...block, size: Number(size) })}
           />
+          <Segmented
+            label="Style"
+            value={block.fill ? 'bar' : block.outline ? 'outline' : 'plain'}
+            options={[
+              ['plain', 'Plain'],
+              ['bar', 'Filled bar'],
+              ['outline', 'Outlined'],
+            ]}
+            onChange={(style) =>
+              onChange({
+                ...block,
+                fill: style === 'bar' ? block.fill || '#008575' : '',
+                outline: style === 'outline' ? block.outline || '#008575' : '',
+              })
+            }
+          />
           <Cols className="gap-3 @[22rem]:grid-cols-2">
             <AutoColor
               label="Heading colour"
-              autoLabel="Accent"
-              autoSwatch={accent}
+              autoLabel="Automatic"
+              autoSwatch={block.fill ? readableOn(block.fill) : accent}
               value={block.color}
               fallback={accent}
               onChange={(color) => onChange({ ...block, color })}
             />
-            <OptionalColor label="Line under it" value={block.rule} fallback="#0078D4" onChange={(rule) => onChange({ ...block, rule })} />
+            {block.fill ? (
+              <ColorField label="Bar colour" value={block.fill} onChange={(fill) => onChange({ ...block, fill })} />
+            ) : block.outline ? (
+              <ColorField label="Outline colour" value={block.outline} onChange={(outline) => onChange({ ...block, outline })} />
+            ) : (
+              <OptionalColor label="Line under it" value={block.rule} fallback="#0078D4" onChange={(rule) => onChange({ ...block, rule })} />
+            )}
           </Cols>
+        </div>
+      )
+    case 'stats':
+      return <StatsEditor block={block} onChange={onChange} />
+    case 'columns':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <ItemList
+            items={block.columns}
+            noun="column"
+            max={3}
+            min={1}
+            onChange={(columns) => onChange({ ...block, columns })}
+            make={() => newTextColumn()}
+            render={(column, set, i) => (
+              <>
+                <Field label="Title" value={column.title} onChange={(title) => set({ title })} />
+                <RichTextEditor
+                  compact
+                  label={`${name} column ${i + 1} text`}
+                  placeholder="Bullets or a short paragraph."
+                  value={column.html}
+                  onChange={(html) => set({ html })}
+                  minHeight={72}
+                />
+                <Cols className="gap-3 @[22rem]:grid-cols-2">
+                  <OptionalColor
+                    label="Title bar"
+                    value={column.headerBackground}
+                    fallback="#E2EFD9"
+                    onChange={(headerBackground) => set({ headerBackground })}
+                  />
+                  <ColorField label="Title colour" value={column.headerText} onChange={(headerText) => set({ headerText })} />
+                </Cols>
+              </>
+            )}
+          />
+        </div>
+      )
+    case 'gallery':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <Segmented
+            label="Photos per row"
+            value={String(block.columns)}
+            options={[
+              ['2', '2'],
+              ['3', '3'],
+            ]}
+            onChange={(columns) => onChange({ ...block, columns: Number(columns) })}
+          />
+          <ItemList
+            items={block.images}
+            noun="photo"
+            max={12}
+            min={1}
+            onChange={(images) => onChange({ ...block, images })}
+            make={() => newGalleryImage()}
+            render={(image, set) => (
+              <>
+                <ImageField label="Photo" hint="JPG or PNG. Landscape photos line up best." value={image.src} fallbackLabel="No photo yet" maxWidth={800} onChange={(src) => set({ src })} />
+                <Field label="Alt text" value={image.alt} onChange={(alt) => set({ alt })} />
+              </>
+            )}
+          />
+        </div>
+      )
+    case 'people':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <Cols className="gap-3 @[22rem]:grid-cols-[1fr_auto]">
+            <Field label="Group title (optional)" hint="e.g. Microsoft Sponsors" value={block.title} onChange={(title) => onChange({ ...block, title })} />
+            <Segmented
+              label="Per row"
+              value={String(block.columns)}
+              options={[
+                ['2', '2'],
+                ['3', '3'],
+              ]}
+              onChange={(columns) => onChange({ ...block, columns: Number(columns) })}
+            />
+          </Cols>
+          <OptionalColor label="Title bar" value={block.headerBackground} fallback="#E2EFD9" onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
+          <ItemList
+            items={block.people}
+            noun="person"
+            max={24}
+            min={1}
+            onChange={(people) => onChange({ ...block, people })}
+            make={() => newPerson()}
+            render={(person, set) => (
+              <>
+                <Cols className="gap-3 @[22rem]:grid-cols-2">
+                  <Field label="Name" value={person.name} onChange={(value) => set({ name: value })} />
+                  <Field label="Role" value={person.role} onChange={(role) => set({ role })} />
+                </Cols>
+                <Field label="Detail (optional)" hint="e.g. the accounts they cover" value={person.detail} onChange={(detail) => set({ detail })} />
+                <ImageField label="Photo (optional)" hint="Square headshot, shown round. Without one, initials show." value={person.photo} fallbackLabel="Initials" maxWidth={144} onChange={(photo) => set({ photo })} />
+              </>
+            )}
+          />
         </div>
       )
     case 'details':
@@ -1052,6 +1197,8 @@ function TableEditor({
             ['2', '2'],
             ['3', '3'],
             ['4', '4'],
+            ['5', '5'],
+            ['6', '6'],
           ]}
           onChange={(count) => setColumns(Number(count))}
         />
@@ -1408,6 +1555,138 @@ export function Cols({ className, children }: { className: string; children: Rea
   return (
     <div className="min-w-0 @container">
       <div className={'grid grid-cols-[minmax(0,1fr)] ' + className}>{children}</div>
+    </div>
+  )
+}
+
+/** A list of items (columns, photos, people) with add, move, and remove. */
+function ItemList<T extends { id: string }>({
+  items,
+  noun,
+  max,
+  min,
+  onChange,
+  make,
+  render,
+}: {
+  items: T[]
+  noun: string
+  max: number
+  min: number
+  onChange: (items: T[]) => void
+  make: () => T
+  render: (item: T, set: (patch: Partial<T>) => void, index: number) => ReactNode
+}) {
+  const Noun = noun[0].toUpperCase() + noun.slice(1)
+  const move = (index: number, by: -1 | 1) => {
+    const target = index + by
+    if (target < 0 || target >= items.length) return
+    const next = [...items]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    onChange(next)
+  }
+  return (
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2.5">
+      <ol className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
+        {items.map((item, index) => {
+          const set = (patch: Partial<T>) => onChange(items.map((other) => (other.id === item.id ? { ...other, ...patch } : other)))
+          return (
+            <li key={item.id} className="grid min-w-0 gap-3 rounded-[var(--r-md)] border border-line bg-panel p-3">
+              <div className="flex items-center gap-0.5">
+                <span className="min-w-0 flex-1 text-[12px] font-semibold text-ink-2">
+                  {Noun} {index + 1}
+                </span>
+                <IconButton label={`Move ${noun} ${index + 1} up`} disabled={index === 0} onClick={() => move(index, -1)}>
+                  <IconChevron className="rotate-180" />
+                </IconButton>
+                <IconButton label={`Move ${noun} ${index + 1} down`} disabled={index === items.length - 1} onClick={() => move(index, 1)}>
+                  <IconChevron />
+                </IconButton>
+                <IconButton
+                  label={`Remove ${noun} ${index + 1}`}
+                  danger
+                  disabled={items.length <= min}
+                  onClick={() => onChange(items.filter((other) => other.id !== item.id))}
+                >
+                  <IconTrash />
+                </IconButton>
+              </div>
+              {render(item, set, index)}
+            </li>
+          )
+        })}
+      </ol>
+      {items.length < max ? (
+        <button
+          type="button"
+          className="ui-btn ui-btn-ghost min-h-8 gap-1.5 justify-self-start px-3 py-1 text-[13px]"
+          onClick={() => onChange([...items, make()])}
+        >
+          <span className="text-forest">
+            <IconPlus />
+          </span>
+          Add a {noun}
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
+/** Number tiles: an optional label tile, then value/label tiles with their own colours. */
+function StatsEditor({ block, onChange }: { block: Extract<BodyBlock, { kind: 'stats' }>; onChange: (block: BodyBlock) => void }) {
+  return (
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+      <div className="grid min-w-0 gap-3 rounded-[var(--r-md)] border border-line bg-panel p-3">
+        <span className="text-[12px] font-semibold text-ink-2">Label tile (optional, shown first)</span>
+        <Cols className="gap-3 @[22rem]:grid-cols-2">
+          <Field label="Title" hint="e.g. Partner Mix" value={block.leadTitle} onChange={(leadTitle) => onChange({ ...block, leadTitle })} />
+          <Field label="Caption" hint="e.g. (Private 1:1 Events)" value={block.leadCaption} onChange={(leadCaption) => onChange({ ...block, leadCaption })} />
+        </Cols>
+        {block.leadTitle.trim() ? (
+          <ColorField label="Label tile colour" value={block.leadBackground} onChange={(leadBackground) => onChange({ ...block, leadBackground })} />
+        ) : null}
+      </div>
+      <ItemList
+        items={block.tiles}
+        noun="tile"
+        max={8}
+        min={1}
+        onChange={(tiles) => onChange({ ...block, tiles })}
+        make={() => newStatTile()}
+        render={(tile, set) => (
+          <>
+            <Cols className="gap-3 @[22rem]:grid-cols-[1fr_2fr]">
+              <Field label="Number" value={tile.value} onChange={(value) => set({ value })} />
+              <Field label="Label" value={tile.label} onChange={(label) => set({ label })} />
+            </Cols>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-[12px] font-medium text-muted">Tile colour</span>
+              {[
+                ['#02AE68', '#FFFFFF'],
+                ['#FCFC92', '#1B1B1B'],
+                ['#E2EFD9', '#1B1B1B'],
+                ['#C3DEB0', '#1B1B1B'],
+                ['#008575', '#FFFFFF'],
+                ['#F2F2F2', '#1B1B1B'],
+              ].map(([background, text]) => (
+                <button
+                  key={background}
+                  type="button"
+                  aria-label={`Tile colour ${background}`}
+                  aria-pressed={tile.background === background}
+                  onClick={() => set({ background, text })}
+                  className={'h-6 w-6 rounded-full ring-inset ' + (tile.background === background ? 'ring-2 ring-forest' : 'ring-1 ring-line-strong')}
+                  style={{ background }}
+                />
+              ))}
+            </div>
+            <Cols className="gap-3 @[22rem]:grid-cols-2">
+              <ColorField label="Tile colour (custom)" value={tile.background} onChange={(background) => set({ background })} />
+              <ColorField label="Number colour" value={tile.text} onChange={(text) => set({ text })} />
+            </Cols>
+          </>
+        )}
+      />
     </div>
   )
 }

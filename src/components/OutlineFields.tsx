@@ -24,7 +24,26 @@ import { EditorLookContext } from './RichTextEditor'
  */
 
 /** Blocks you can add to a Custom 2 email, in menu order. */
-const ADD_KINDS: BlockKind[] = ['text', 'heading', 'details', 'event', 'table', 'spotlights', 'button', 'signature', 'image', 'card', 'callout', 'media', 'section', 'divider']
+const ADD_KINDS: BlockKind[] = [
+  'text',
+  'heading',
+  'stats',
+  'columns',
+  'table',
+  'details',
+  'event',
+  'spotlights',
+  'gallery',
+  'people',
+  'button',
+  'signature',
+  'image',
+  'card',
+  'callout',
+  'media',
+  'section',
+  'divider',
+]
 
 /** Custom 2 calls the button block "Call to action". */
 const LABEL: Record<BlockKind, string> = {
@@ -42,6 +61,10 @@ const LABEL: Record<BlockKind, string> = {
   divider: 'Divider',
   heading: 'Heading',
   details: 'Details',
+  stats: 'Number tiles',
+  columns: 'Columns',
+  gallery: 'Photo gallery',
+  people: 'People',
 }
 
 const HINT: Record<BlockKind, string> = { ...KIND_HINT, button: 'A button that links to registration or a page' }
@@ -568,6 +591,46 @@ function Thumb({ kind }: { kind: BlockKind | 'settings' | 'banner' | 'footer' })
           <span className="absolute top-2 left-1.5 h-[4px] w-5 rounded-full bg-[#5A6B7B]" />
           <span className="absolute top-[14px] inset-x-1.5 h-[2px] bg-[#0078D4]" />
         </>
+      )
+      break
+    case 'stats':
+      inner = (
+        <span className="absolute inset-1 grid grid-cols-3 gap-px">
+          <span className="bg-[#02AE68]" />
+          <span className="bg-[#FCFC92]" />
+          <span className="bg-[#E2EFD9]" />
+        </span>
+      )
+      break
+    case 'columns':
+      inner = (
+        <span className="absolute inset-1 grid grid-cols-3 gap-1">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="flex flex-col gap-[3px]">
+              <span className="h-[3px] rounded-full bg-[#7FB36A]" />
+              <span className={line} />
+              <span className={line} />
+            </span>
+          ))}
+        </span>
+      )
+      break
+    case 'gallery':
+      inner = (
+        <span className="absolute inset-1 grid grid-cols-3 grid-rows-2 gap-px">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <span key={i} className="bg-[#C9D6DF]" />
+          ))}
+        </span>
+      )
+      break
+    case 'people':
+      inner = (
+        <span className="absolute inset-1 flex items-center justify-around">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="h-[9px] w-[9px] rounded-full bg-[#B5B5B5]" />
+          ))}
+        </span>
       )
       break
     case 'details':

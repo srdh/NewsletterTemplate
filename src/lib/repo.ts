@@ -125,6 +125,11 @@ const EXAMPLES: { starter: string; key: string; id: string }[] = [
     key: 'oft-template-maker/hackathon-registration-seeded',
     id: '0f6c2d1a-6a0a-4d2e-9c2b-0000000000f6',
   },
+  {
+    starter: 'hackathon-fy-summary',
+    key: 'oft-template-maker/hackathon-fy-summary-seeded',
+    id: '0f6c2d1a-6a0a-4d2e-9c2b-000000000107',
+  },
 ]
 
 /**

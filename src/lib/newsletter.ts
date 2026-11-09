@@ -107,8 +107,26 @@ export type BodyBlock =
     }
   /** Two or three cards side by side. */
   | { id: string; kind: 'spotlights'; cards: SpotlightItem[]; background: string; border: string }
-  /** A heading with an optional coloured line under it. */
-  | { id: string; kind: 'heading'; title: string; color: string; rule: string; size: number }
+  /**
+   * A section heading: plain with an optional line under it, a filled bar
+   * (fill), or an outlined pill (outline).
+   */
+  | { id: string; kind: 'heading'; title: string; color: string; rule: string; size: number; fill?: string; outline?: string }
+  /** A row of number tiles, with an optional label tile first. */
+  | {
+      id: string
+      kind: 'stats'
+      leadTitle: string
+      leadCaption: string
+      leadBackground: string
+      tiles: StatTile[]
+    }
+  /** Two or three columns of rich text, each with an optional header bar. */
+  | { id: string; kind: 'columns'; columns: TextColumn[] }
+  /** A grid of photos. */
+  | { id: string; kind: 'gallery'; images: GalleryImage[]; columns: number }
+  /** People with round photos, name, role, and a detail line. */
+  | { id: string; kind: 'people'; title: string; headerBackground: string; people: Person[]; columns: number }
   /** Label : value rows in a box, e.g. login details. */
   | { id: string; kind: 'details'; title: string; rows: DetailRow[]; labelColor: string; accent: string; background: string }
   /** Sign-off with name, role, team, and contact. */
@@ -122,6 +140,37 @@ export type BodyBlock =
       email: string
       photo: string
     }
+
+export interface StatTile {
+  id: string
+  value: string
+  label: string
+  background: string
+  text: string
+}
+
+export interface TextColumn {
+  id: string
+  title: string
+  html: string
+  /** Header bar colour; empty for a plain bold title. */
+  headerBackground: string
+  headerText: string
+}
+
+export interface GalleryImage {
+  id: string
+  src: string
+  alt: string
+}
+
+export interface Person {
+  id: string
+  photo: string
+  name: string
+  role: string
+  detail: string
+}
 
 export interface DetailRow {
   id: string
@@ -268,7 +317,22 @@ export function newBlock(kind: BlockKind): BodyBlock {
     case 'signature':
       return { id: id(), kind, signoff: 'Thanks,', name: 'Your name', role: '', team: 'Partner Skilling', email: '', photo: '' }
     case 'heading':
-      return { id: id(), kind, title: 'Section heading', color: '', rule: '#0078D4', size: 18 }
+      return { id: id(), kind, title: 'Section heading', color: '', rule: '#0078D4', size: 18, fill: '', outline: '' }
+    case 'stats':
+      return {
+        id: id(),
+        kind,
+        leadTitle: '',
+        leadCaption: '',
+        leadBackground: '#FCFC92',
+        tiles: [newStatTile('[0]', 'Label', '#02AE68', '#FFFFFF'), newStatTile('[0]', 'Label'), newStatTile('[0]', 'Label')],
+      }
+    case 'columns':
+      return { id: id(), kind, columns: [newTextColumn(), newTextColumn(), newTextColumn()] }
+    case 'gallery':
+      return { id: id(), kind, images: [newGalleryImage(), newGalleryImage(), newGalleryImage()], columns: 3 }
+    case 'people':
+      return { id: id(), kind, title: '', headerBackground: '#E2EFD9', people: [newPerson(), newPerson(), newPerson()], columns: 3 }
     case 'details':
       return {
         id: id(),
@@ -282,6 +346,22 @@ export function newBlock(kind: BlockKind): BodyBlock {
     default:
       return newInnerBlock(kind)
   }
+}
+
+export function newStatTile(value = '[0]', label = 'Label', background = '#E2EFD9', text = '#1B1B1B'): StatTile {
+  return { id: id(), value, label, background, text }
+}
+
+export function newTextColumn(title = 'Column title'): TextColumn {
+  return { id: id(), title, html: '', headerBackground: '', headerText: '#1B1B1B' }
+}
+
+export function newGalleryImage(): GalleryImage {
+  return { id: id(), src: '', alt: '' }
+}
+
+export function newPerson(): Person {
+  return { id: id(), photo: '', name: '[Name]', role: '[Role]', detail: '' }
 }
 
 export function newDetailRow(label = ''): DetailRow {
@@ -319,6 +399,10 @@ export function cloneBlock<T extends BodyBlock>(block: T): T {
   if (block.kind === 'spotlights') {
     return { ...block, id: id(), cards: block.cards.map((card) => ({ ...card, id: id() })) }
   }
+  if (block.kind === 'stats') return { ...block, id: id(), tiles: block.tiles.map((tile) => ({ ...tile, id: id() })) }
+  if (block.kind === 'columns') return { ...block, id: id(), columns: block.columns.map((column) => ({ ...column, id: id() })) }
+  if (block.kind === 'gallery') return { ...block, id: id(), images: block.images.map((image) => ({ ...image, id: id() })) }
+  if (block.kind === 'people') return { ...block, id: id(), people: block.people.map((person) => ({ ...person, id: id() })) }
   if (block.kind === 'details') {
     return { ...block, id: id(), rows: block.rows.map((row) => ({ ...row, id: id() })) }
   }
@@ -345,6 +429,13 @@ function text(value: unknown, fallback = ''): string {
 
 function oneOf<T extends string>(value: unknown, options: readonly T[], fallback: T): T {
   return options.includes(value as T) ? (value as T) : fallback
+}
+
+/** The object items of a stored list (skips anything malformed). */
+function list(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    : []
 }
 
 function readInner(r: Record<string, unknown>, blockId: string): InnerBlock | null {
@@ -488,6 +579,61 @@ function readBlock(raw: unknown): BodyBlock | null {
         color: optionalColor(r.color),
         rule: optionalColor(r.rule),
         size: [16, 18, 20, 24, 28].includes(size) ? size : 18,
+        fill: optionalColor(r.fill),
+        outline: optionalColor(r.outline),
+      }
+    }
+    case 'stats':
+      return {
+        id: blockId,
+        kind: 'stats',
+        leadTitle: text(r.leadTitle),
+        leadCaption: text(r.leadCaption),
+        leadBackground: color(r.leadBackground, '#FCFC92'),
+        tiles: list(r.tiles).slice(0, 8).map((tile) => ({
+          id: text(tile.id) || id(),
+          value: text(tile.value),
+          label: text(tile.label),
+          background: color(tile.background, '#E2EFD9'),
+          text: color(tile.text, '#1B1B1B'),
+        })),
+      }
+    case 'columns':
+      return {
+        id: blockId,
+        kind: 'columns',
+        columns: list(r.columns).slice(0, 3).map((column) => ({
+          id: text(column.id) || id(),
+          title: text(column.title),
+          html: text(column.html),
+          headerBackground: optionalColor(column.headerBackground),
+          headerText: color(column.headerText, '#1B1B1B'),
+        })),
+      }
+    case 'gallery': {
+      const columns = Number(r.columns)
+      return {
+        id: blockId,
+        kind: 'gallery',
+        images: list(r.images).map((image) => ({ id: text(image.id) || id(), src: text(image.src), alt: text(image.alt) })),
+        columns: [2, 3].includes(columns) ? columns : 3,
+      }
+    }
+    case 'people': {
+      const columns = Number(r.columns)
+      return {
+        id: blockId,
+        kind: 'people',
+        title: text(r.title),
+        headerBackground: optionalColor(r.headerBackground),
+        people: list(r.people).map((person) => ({
+          id: text(person.id) || id(),
+          photo: text(person.photo),
+          name: text(person.name),
+          role: text(person.role),
+          detail: text(person.detail),
+        })),
+        columns: [2, 3].includes(columns) ? columns : 3,
       }
     }
     case 'details':

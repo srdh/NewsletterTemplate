@@ -32,6 +32,7 @@ export type NewEmailChoice =
   | 'custom'
   | 'custom2'
   | 'hackathon-registration'
+  | 'hackathon-fy-summary'
   | 'hackathon-blank'
 
 /** Campaigns under the Hackathons template. */

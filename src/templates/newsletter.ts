@@ -230,6 +230,14 @@ function blockRow(block: BodyBlock, design: NewsletterDesign, preview: boolean):
       return row(signatureHtml(block, design), `4px ${GUTTER}px 24px`)
     case 'heading':
       return row(headingHtml(block, design), `8px ${GUTTER}px 16px`)
+    case 'stats':
+      return row(statsHtml(block, design), `0 ${GUTTER}px 20px`)
+    case 'columns':
+      return row(columnsHtml(block, design, width, look), `0 ${GUTTER}px 20px`)
+    case 'gallery':
+      return row(galleryHtml(block, width), `0 ${GUTTER}px 20px`)
+    case 'people':
+      return row(peopleHtml(block, design, width), `0 ${GUTTER}px 20px`)
     case 'details':
       return row(detailsHtml(block, design), `0 ${GUTTER}px 20px`)
     default:
@@ -322,9 +330,118 @@ function spotlightsHtml(block: Block<'spotlights'>, design: NewsletterDesign, wi
 
 function headingHtml(block: Block<'heading'>, design: NewsletterDesign): string {
   if (!block.title.trim()) return ''
+  const lineHeight = Math.round(block.size * 1.3)
+  // Filled bar or outlined pill: a table cell carries the shape for Outlook.
+  if (block.fill || block.outline) {
+    const fill = block.fill || design.style.paper
+    const color = block.color || (block.fill ? readableOn(block.fill) : design.style.accent)
+    const border = block.outline ? `border:1.5px solid ${block.outline};` : ''
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;">
+      <tr><td bgcolor="${fill}" style="background:${fill};${border}border-radius:0 22px 22px 0;padding:8px 18px;font-family:${FONT};font-size:${block.size}px;line-height:${lineHeight}px;font-weight:700;color:${color};">${escapeHtml(block.title)}</td></tr>
+    </table>`
+  }
   const color = block.color || design.style.accent
   const rule = block.rule ? `border-bottom:2px solid ${block.rule};padding-bottom:8px;` : ''
   return `<p style="margin:0;font-family:${FONT};font-size:${block.size}px;line-height:${Math.round(block.size * 1.3)}px;font-weight:700;color:${color};${rule}">${escapeHtml(block.title)}</p>`
+}
+
+function statsHtml(block: Block<'stats'>, design: NewsletterDesign): string {
+  const tiles = block.tiles.filter((tile) => tile.value.trim() || tile.label.trim())
+  if (!tiles.length && !block.leadTitle.trim()) return ''
+  const count = tiles.length + (block.leadTitle.trim() ? 1 : 0)
+  const share = Math.floor(100 / Math.max(1, count))
+  const lead = block.leadTitle.trim()
+    ? `<td valign="middle" width="${share}%" bgcolor="${block.leadBackground}" style="background:${block.leadBackground};padding:12px 12px;border:2px solid ${design.style.paper};font-family:${FONT};">
+        <p style="margin:0;font-family:${FONT};font-size:20px;line-height:24px;color:${readableOn(block.leadBackground)};">${escapeHtml(block.leadTitle)}</p>
+        ${block.leadCaption.trim() ? `<p style="margin:2px 0 0;font-family:${FONT};font-size:11px;line-height:14px;font-weight:700;color:${readableOn(block.leadBackground)};">${escapeHtml(block.leadCaption)}</p>` : ''}
+      </td>`
+    : ''
+  const cells = tiles
+    .map(
+      (tile) => `<td valign="top" width="${share}%" bgcolor="${tile.background}" style="background:${tile.background};padding:10px 10px 12px;border:2px solid ${design.style.paper};font-family:${FONT};">
+        <p style="margin:0;font-family:${FONT};font-size:${count > 6 ? 24 : 28}px;line-height:32px;font-weight:400;color:${tile.text};">${escapeHtml(tile.value)}</p>
+        <p style="margin:2px 0 0;font-family:${FONT};font-size:12px;line-height:16px;color:${tile.text};">${escapeHtml(tile.label)}</p>
+      </td>`,
+    )
+    .join('')
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;table-layout:fixed;"><tr>${lead}${cells}</tr></table>`
+}
+
+function columnsHtml(block: Block<'columns'>, design: NewsletterDesign, width: number, look: RichTextLook): string {
+  const columns = block.columns.filter((column) => column.title.trim() || !isRichEmpty(column.html))
+  if (!columns.length) return ''
+  const gap = 14
+  const columnWidth = Math.floor((width - gap * (columns.length - 1)) / columns.length)
+  const size = Math.max(12, design.style.size - 1)
+  const cells = columns
+    .map((column, index) => {
+      const header = column.title.trim()
+        ? column.headerBackground
+          ? `<p style="margin:0 0 8px;padding:5px 8px;background:${column.headerBackground};font-family:${FONT};font-size:${size}px;line-height:20px;font-weight:700;color:${column.headerText};">${escapeHtml(column.title)}</p>`
+          : `<p style="margin:0 0 6px;font-family:${FONT};font-size:${size + 1}px;line-height:22px;font-weight:700;color:${column.headerText};">${escapeHtml(column.title)}</p>`
+        : ''
+      return `<td valign="top" width="${columnWidth}" style="width:${columnWidth}px;${index ? `padding-left:${gap}px;` : ''}font-family:${FONT};">${header}${isRichEmpty(column.html) ? '' : emailRichHtml(column.html, { ...look, size })}</td>`
+    })
+    .join('')
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${cells}</tr></table>`
+}
+
+function galleryHtml(block: Block<'gallery'>, width: number): string {
+  const images = block.images.filter((image) => image.src)
+  if (!images.length) return ''
+  const gap = 8
+  const perRow = block.columns
+  const cellWidth = Math.floor((width - gap * (perRow - 1)) / perRow)
+  const rows: string[] = []
+  for (let i = 0; i < images.length; i += perRow) {
+    const cells = images
+      .slice(i, i + perRow)
+      .map(
+        (image, index) =>
+          `<td valign="top" width="${cellWidth}" style="width:${cellWidth}px;${index ? `padding-left:${gap}px;` : ''}padding-bottom:${gap}px;"><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" width="${cellWidth}" style="display:block;width:100%;max-width:${cellWidth}px;height:auto;border:0;"></td>`,
+      )
+      .join('')
+    rows.push(`<tr>${cells}</tr>`)
+  }
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows.join('')}</table>`
+}
+
+function peopleHtml(block: Block<'people'>, design: NewsletterDesign, width: number): string {
+  const people = block.people.filter((person) => person.name.trim() || person.photo)
+  if (!people.length) return ''
+  const perRow = block.columns
+  const cellWidth = Math.floor(width / perRow)
+  const rows: string[] = []
+  for (let i = 0; i < people.length; i += perRow) {
+    const cells = people
+      .slice(i, i + perRow)
+      .map((person) => {
+        const photo = person.photo
+          ? `<img src="${escapeHtml(person.photo)}" alt="${escapeHtml(person.name)}" width="48" height="48" style="display:block;width:48px;height:48px;border:0;border-radius:24px;">`
+          : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="48" height="48" align="center" bgcolor="#E2EFD9" style="width:48px;height:48px;background:#E2EFD9;border-radius:24px;font-family:${FONT};font-size:16px;font-weight:700;color:${design.style.accent};">${escapeHtml(initials(person.name))}</td></tr></table>`
+        return `<td valign="top" width="${cellWidth}" style="width:${cellWidth}px;padding:8px 8px 8px 0;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td valign="top" width="48" style="width:48px;padding-right:10px;">${photo}</td>
+            <td valign="top" style="font-family:${FONT};">
+              <p style="margin:0;font-family:${FONT};font-size:13px;line-height:17px;color:${design.style.accent};">${escapeHtml(person.name)}</p>
+              ${person.role.trim() ? `<p style="margin:0;font-family:${FONT};font-size:11px;line-height:15px;color:${design.style.accent};">${escapeHtml(person.role)}</p>` : ''}
+              ${person.detail.trim() ? `<p style="margin:0;font-family:${FONT};font-size:11px;line-height:15px;color:#404040;">${escapeHtml(person.detail)}</p>` : ''}
+            </td>
+          </tr></table>
+        </td>`
+      })
+      .join('')
+    rows.push(`<tr>${cells}</tr>`)
+  }
+  const title = block.title.trim()
+    ? `<p style="margin:0 0 4px;padding:4px 8px;${block.headerBackground ? `background:${block.headerBackground};` : ''}font-family:${FONT};font-size:14px;line-height:20px;color:${INK};">${escapeHtml(block.title)}</p>`
+    : ''
+  return `${title}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout:fixed;">${rows.join('')}</table>`
+}
+
+function initials(name: string): string {
+  const words = name.replace(/[[\]]/g, '').trim().split(/\s+/).filter(Boolean)
+  return ((words[0]?.[0] ?? '') + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase()
 }
 
 /** Plain value, or a link when it is an email address or web address. */
