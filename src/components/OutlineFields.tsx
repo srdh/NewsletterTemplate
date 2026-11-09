@@ -24,7 +24,7 @@ import { EditorLookContext } from './RichTextEditor'
  */
 
 /** Blocks you can add to a Custom 2 email, in menu order. */
-const ADD_KINDS: BlockKind[] = ['text', 'event', 'table', 'spotlights', 'button', 'signature', 'image', 'card', 'callout', 'media', 'section', 'divider']
+const ADD_KINDS: BlockKind[] = ['text', 'heading', 'details', 'event', 'table', 'spotlights', 'button', 'signature', 'image', 'card', 'callout', 'media', 'section', 'divider']
 
 /** Custom 2 calls the button block "Call to action". */
 const LABEL: Record<BlockKind, string> = {
@@ -40,6 +40,8 @@ const LABEL: Record<BlockKind, string> = {
   media: 'Image + text',
   section: 'Colour band',
   divider: 'Divider',
+  heading: 'Heading',
+  details: 'Details',
 }
 
 const HINT: Record<BlockKind, string> = { ...KIND_HINT, button: 'A button that links to registration or a page' }
@@ -557,6 +559,25 @@ function Thumb({ kind }: { kind: BlockKind | 'settings' | 'banner' | 'footer' })
       break
     case 'footer':
       inner = <span className="absolute inset-x-0 bottom-0 h-2 bg-[#D9D9D9]" />
+      break
+    case 'heading':
+      inner = (
+        <>
+          <span className="absolute top-2 left-1.5 h-[4px] w-5 rounded-full bg-[#5A6B7B]" />
+          <span className="absolute top-[14px] inset-x-1.5 h-[2px] bg-[#0078D4]" />
+        </>
+      )
+      break
+    case 'details':
+      inner = (
+        <span className="absolute inset-1 rounded-[2px] bg-[#F3F8FC]">
+          <span className="absolute inset-y-0 left-0 w-[3px] bg-[#0078D4]" />
+          <span className="absolute top-[5px] left-1.5 h-[3px] w-2 rounded-full bg-[#77206D]" />
+          <span className="absolute top-[5px] left-[14px] h-[3px] w-2 rounded-full bg-[#C8C8C8]" />
+          <span className="absolute top-[11px] left-1.5 h-[3px] w-2 rounded-full bg-[#77206D]" />
+          <span className="absolute top-[11px] left-[14px] h-[3px] w-2 rounded-full bg-[#C8C8C8]" />
+        </span>
+      )
       break
     case 'settings':
       inner = (

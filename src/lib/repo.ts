@@ -61,6 +61,7 @@ function rankMaster(type: string): number {
   if (type === 'weekly_snapshot') return 2
   if (type === 'newsletter') return 3
   if (type === 'custom2') return 4
+  if (type === 'hackathon') return 5
   return 9
 }
 
@@ -112,29 +113,48 @@ function addNewsletterExample(tables: Tables): Tables {
   return { ...tables, campaigns: [example.campaign, ...tables.campaigns] }
 }
 
-/** Adds the ME7 learning path newsletter to this browser's list, once. */
+/**
+ * Ready-made examples added to this browser's list once each: the ME7
+ * learning path newsletter and the Hackathons Registration Confirmation.
+ * Deleting one later does not bring it back.
+ */
+const EXAMPLES: { starter: string; key: string; id: string }[] = [
+  { starter: 'me7', key: ME7_SEEDED_KEY, id: ME7_EXAMPLE_ID },
+  {
+    starter: 'hackathon-registration',
+    key: 'oft-template-maker/hackathon-registration-seeded',
+    id: '0f6c2d1a-6a0a-4d2e-9c2b-0000000000f6',
+  },
+]
+
 async function addStarterExample(tables: Tables): Promise<Tables> {
-  try {
-    if (localStorage.getItem(ME7_SEEDED_KEY)) return tables
-  } catch {
-    return tables
+  let result = tables
+  for (const example of EXAMPLES) {
+    try {
+      if (localStorage.getItem(example.key)) continue
+    } catch {
+      return result
+    }
+    let bundle: CampaignBundle
+    try {
+      bundle = await loadStarter(example.starter)
+    } catch {
+      continue
+    }
+    // Re-read after the wait: another load of the list may have saved since.
+    const latest = readLocal()
+    const base = latest.campaigns.length >= result.campaigns.length ? latest : result
+    try {
+      localStorage.setItem(example.key, '1')
+    } catch {
+      // Without storage the example simply shows again next time.
+    }
+    result = base.campaigns.some((row) => row.id === example.id)
+      ? base
+      : { ...base, campaigns: [{ ...bundle.campaign, id: example.id }, ...base.campaigns] }
+    writeLocal(result)
   }
-  let example: CampaignBundle
-  try {
-    example = await loadStarter('me7')
-  } catch {
-    return tables
-  }
-  // Re-read after the wait: another load of the list may have saved since.
-  const latest = readLocal()
-  const base = latest.campaigns.length ? latest : tables
-  try {
-    localStorage.setItem(ME7_SEEDED_KEY, '1')
-  } catch {
-    // Without storage the example simply shows again next time.
-  }
-  if (base.campaigns.some((row) => row.id === ME7_EXAMPLE_ID)) return base
-  return { ...base, campaigns: [{ ...example.campaign, id: ME7_EXAMPLE_ID }, ...base.campaigns] }
+  return result
 }
 
 export async function listCampaigns(): Promise<Campaign[]> {

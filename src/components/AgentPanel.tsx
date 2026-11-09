@@ -8,6 +8,7 @@ import {
 import type { AgentFill } from '../lib/agent/schema'
 import type { Campaign, CampaignBundle, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
+import { STARTERS } from '../data/starters'
 import type { UserTemplate } from '../data/userTemplates'
 import { edited } from './CampaignSwitcher'
 import { IconCalendar, IconChevron, IconDuplicate, IconNewsletter, IconSend, IconSpark, IconTable, IconTrash } from './Icons'
@@ -24,7 +25,21 @@ type ChatItem = {
 }
 
 /** What a new email can start from. "custom" is the ME7 learning paths layout. */
-export type NewEmailChoice = Exclude<MasterType, 'newsletter' | 'custom2'> | 'custom' | 'custom2'
+export type NewEmailChoice =
+  | 'event_invite'
+  | 'monthly_update'
+  | 'weekly_snapshot'
+  | 'custom'
+  | 'custom2'
+  | 'hackathon-registration'
+  | 'hackathon-blank'
+
+/** Campaigns under the Hackathons template. */
+const HACKATHON_CAMPAIGNS = STARTERS.filter((starter) => starter.master === 'hackathon') as {
+  id: Extract<NewEmailChoice, `hackathon-${string}`>
+  label: string
+  hint?: string
+}[]
 
 const TEMPLATE_CHOICES: { key: NewEmailChoice; title: string; hint: string; icon: React.ReactNode }[] = [
   {
@@ -67,6 +82,7 @@ const TYPE_ICON: Record<MasterType, React.ReactNode> = {
   weekly_snapshot: <IconTable />,
   newsletter: <IconCustom />,
   custom2: <IconBlocks />,
+  hackathon: <IconTrophy />,
 }
 
 export function AgentPanel({
@@ -98,6 +114,7 @@ export function AgentPanel({
   onDeleteTemplate: (id: string) => void
 }) {
   const [items, setItems] = useState<ChatItem[]>([])
+  const [hackathonsOpen, setHackathonsOpen] = useState(false)
   const [draft, setDraft] = useState('')
   const input = useRef<HTMLTextAreaElement>(null)
 
@@ -285,6 +302,42 @@ export function AgentPanel({
                     </span>
                   </button>
                 ))}
+                <div className="copilot-glass overflow-hidden rounded-[var(--r-lg)]">
+                  <button
+                    type="button"
+                    aria-expanded={hackathonsOpen}
+                    aria-controls="hackathon-campaigns"
+                    onClick={() => setHackathonsOpen((open) => !open)}
+                    className="group flex w-full items-start gap-3 p-3 text-left"
+                  >
+                    <span className="copilot-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-forest">
+                      <IconTrophy />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-semibold leading-5 text-ink">Hackathons</span>
+                      <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">
+                        Hackathon emails, block by block. Pick a campaign:
+                      </span>
+                    </span>
+                    <IconChevron className={'mt-2 shrink-0 text-ink-2 transition-transform ' + (hackathonsOpen ? 'rotate-180' : '')} />
+                  </button>
+                  {hackathonsOpen ? (
+                    <ul id="hackathon-campaigns" className="grid gap-1 px-3 pb-3 pl-[60px]">
+                      {HACKATHON_CAMPAIGNS.map((campaign) => (
+                        <li key={campaign.id}>
+                          <button
+                            type="button"
+                            onClick={() => onNew(campaign.id)}
+                            className="w-full rounded-[var(--r-md)] bg-surface/70 px-2.5 py-1.5 text-left ring-1 ring-line transition-colors hover:bg-surface hover:ring-forest-line"
+                          >
+                            <span className="block text-[13px] font-semibold leading-[18px] text-ink">{campaign.label}</span>
+                            {campaign.hint ? <span className="block text-[11px] leading-4 text-muted">{campaign.hint}</span> : null}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
               </div>
 
               {templates.length ? (
@@ -581,6 +634,16 @@ function IconBlocks() {
       <rect x="3" y="3" width="14" height="4" rx="1.25" stroke="currentColor" strokeWidth="1.5" />
       <rect x="3" y="8.5" width="14" height="3" rx="1.25" stroke="currentColor" strokeWidth="1.5" />
       <rect x="3" y="13" width="14" height="4" rx="1.25" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
+/** Hackathons: a trophy. */
+function IconTrophy() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M6 3.5h8v4a4 4 0 0 1-8 0v-4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M6 5H3.5v1a3 3 0 0 0 2.8 3M14 5h2.5v1a3 3 0 0 1-2.8 3M10 11.5v3M7 16.5h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }

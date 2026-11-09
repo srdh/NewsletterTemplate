@@ -4,6 +4,7 @@ import type { MasterType } from '../types'
 export const SECTION_TABS: Record<MasterType, [anchor: string, label: string][]> = {
   // Custom 2 edits blocks one at a time (OutlineFields), without tabs.
   custom2: [['campaign', 'Campaign']],
+  hackathon: [['campaign', 'Campaign']],
   newsletter: [
     ['campaign', 'Campaign'],
     ['style', 'Style'],

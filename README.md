@@ -12,6 +12,8 @@ The left panel opens on **What email are we building?** with four templates:
 - **Custom**: a free-form newsletter in the ME7 + Copilot learning paths format, fully editable (below).
 - **Custom 2**: the same engine and formatting, edited **block by block**. The Fields pane lists the email's blocks (Email settings, Banner, Text, Event card, Table, Spotlight cards, Call to action, Signature, Footer), each with a thumbnail and summary. Open a block to edit it, then **All blocks** to go back. **Add block** adds any block type; **Save as template** keeps the email under **Your templates** on the left (stored in this browser) to start new emails from. Click a block in the preview to open it.
 
+- **Hackathons**: hackathon emails in the Custom 2 block editor. Expand it to pick a campaign: **Registration Confirmation** (rebuilt from the SoftwareOne Agentic AI Hackathon confirmation, with the participant's name, email, temporary password, team, and role as `[placeholders]`), or **Blank hackathon email** in the same branding.
+
 Under **Your templates**, emails you saved with **Save as template** (Custom 2). Under **Recent**, the five emails you edited last: click one to open it, or use the copy button to start a new email from it as a sample. The campaign name at the top opens a searchable list of every email. Once you chat with Copilot, **Start over** brings the templates back.
 
 ## Custom newsletters
@@ -107,4 +109,5 @@ Setup:
 - Partner Skilling Update Template: monthly newsletter
 - Weekly Project Snapshot: ops status email
 - Custom: free-form newsletter in the ME7 + Copilot learning paths format (banner, rich text blocks, cards, footer)
-- Custom 2: block-by-block email (banner, text, event card, table, spotlight cards, call to action, signature, footer, plus every Custom block)
+- Custom 2: block-by-block email (banner, text, heading, details, event card, table, spotlight cards, call to action, signature, footer, plus every Custom block)
+- Hackathons: block-by-block hackathon emails; campaigns: Registration Confirmation, Blank hackathon email

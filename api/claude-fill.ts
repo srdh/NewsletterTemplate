@@ -132,6 +132,9 @@ If asked to write or change the body or footer of a newsletter, say in one sente
 ## custom2: Custom 2 (block-by-block email)
 Same as newsletter: you can fill name, subject, and the banner text (kicker, title, subtitle, register_label, register_url). The person edits the body blocks (text, event card, table, spotlight cards, call to action, signature) and the footer by hand.
 
+## hackathon: Hackathons (block-by-block email)
+Same as custom2: fill name, subject, and banner text only. Body blocks (registration confirmation, login details, steps) and the footer are edited by hand. Never invent login details or passwords.
+
 ## event_invite: "Build What's Next with Partner Skilling" regional event invite
 Layout, in the brief's own words: Banner (kicker, title), Body (greeting, intro), Section-1 (event overview with agenda, then the action block), Footer (MS Signature). Use these names when you talk about parts of the email.
 - name: the campaign's name in the studio list, not shown in the email. Pattern: "REGION · Mon YYYY · Build What’s Next".
@@ -190,7 +193,7 @@ const UPDATE_EMAIL_TOOL = {
       },
       master_type: {
         type: 'string',
-        enum: ['newsletter', 'custom2', 'event_invite', 'monthly_update', 'weekly_snapshot'],
+        enum: ['newsletter', 'custom2', 'hackathon', 'event_invite', 'monthly_update', 'weekly_snapshot'],
         description: 'Only when switching to a different kind of email.',
       },
       fields: {

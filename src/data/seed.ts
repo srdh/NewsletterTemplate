@@ -461,6 +461,7 @@ export function newsletterSeed(): CampaignBundle {
       text: forest.bannerText,
       showMark: true,
       logo: '',
+      rightLogo: '',
       dateLabel: 'November 2026',
       imageAlt: '',
     },

@@ -7,7 +7,7 @@ create extension if not exists "pgcrypto";
 -- Dataverse: Campaign
 create table if not exists public.campaigns (
   id uuid primary key default gen_random_uuid(),
-  master_type text not null check (master_type in ('newsletter', 'custom2', 'event_invite', 'monthly_update', 'weekly_snapshot')),
+  master_type text not null check (master_type in ('newsletter', 'custom2', 'hackathon', 'event_invite', 'monthly_update', 'weekly_snapshot')),
   name text not null,
   subject text not null default '',
   region text not null default '',
@@ -51,7 +51,7 @@ alter table public.campaigns add column if not exists section_image text not nul
 alter table public.campaigns add column if not exists newsletter text not null default '';
 alter table public.campaigns drop constraint if exists campaigns_master_type_check;
 alter table public.campaigns add constraint campaigns_master_type_check
-  check (master_type in ('newsletter', 'custom2', 'event_invite', 'monthly_update', 'weekly_snapshot'));
+  check (master_type in ('newsletter', 'custom2', 'hackathon', 'event_invite', 'monthly_update', 'weekly_snapshot'));
 
 -- Dataverse: AgendaItem
 create table if not exists public.agenda_items (

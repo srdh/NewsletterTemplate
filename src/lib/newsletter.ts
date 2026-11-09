@@ -25,6 +25,8 @@ export interface NewsletterStyle {
   font: string
   /** Body text size in px. */
   size: number
+  /** Thin border around the email; empty for none. */
+  frame: string
   /** Email width in pixels. */
   width: number
 }
@@ -38,6 +40,8 @@ export interface NewsletterBanner {
   showMark: boolean
   /** Optional uploaded logo (data URL) shown instead of the four-square mark. */
   logo: string
+  /** Optional second logo on the right of the logo row, e.g. a partner's. */
+  rightLogo: string
   /** Small label on the right of the mark row, e.g. "November 2026". */
   dateLabel: string
   /** Alt text for a banner image (full-image layout). */
@@ -59,6 +63,8 @@ export type InnerBlock =
       rule: string
       /** Text colour; empty means automatic (dark on light shades, white on dark). */
       text: string
+      /** Thin border around the box; empty for none. */
+      border?: string
     }
   | { id: string; kind: 'image'; src: string; alt: string; href: string; caption: string }
   | { id: string; kind: 'button'; label: string; url: string; align: Align; color: string }
@@ -101,6 +107,10 @@ export type BodyBlock =
     }
   /** Two or three cards side by side. */
   | { id: string; kind: 'spotlights'; cards: SpotlightItem[]; background: string; border: string }
+  /** A heading with an optional coloured line under it. */
+  | { id: string; kind: 'heading'; title: string; color: string; rule: string; size: number }
+  /** Label : value rows in a box, e.g. login details. */
+  | { id: string; kind: 'details'; title: string; rows: DetailRow[]; labelColor: string; accent: string; background: string }
   /** Sign-off with name, role, team, and contact. */
   | {
       id: string
@@ -112,6 +122,16 @@ export type BodyBlock =
       email: string
       photo: string
     }
+
+export interface DetailRow {
+  id: string
+  label: string
+  value: string
+  /** Small grey note after the value, e.g. "(Temporary password)". */
+  note: string
+  /** Show the value in bold. */
+  strong: boolean
+}
 
 export interface SpotlightItem {
   id: string
@@ -174,7 +194,7 @@ export function defaultDesign(): NewsletterDesign {
   const forest = THEMES[0]
   return {
     version: 1,
-    style: { accent: forest.accent, canvas: '#FFFFFF', paper: '#FFFFFF', link: '#0067C0', font: DEFAULT_FONT, size: DEFAULT_SIZE, width: 640 },
+    style: { accent: forest.accent, canvas: '#FFFFFF', paper: '#FFFFFF', link: '#0067C0', font: DEFAULT_FONT, size: DEFAULT_SIZE, frame: '', width: 640 },
     banner: {
       layout: 'band',
       align: 'left',
@@ -182,6 +202,7 @@ export function defaultDesign(): NewsletterDesign {
       text: forest.bannerText,
       showMark: true,
       logo: '',
+      rightLogo: '',
       dateLabel: '',
       imageAlt: '',
     },
@@ -246,9 +267,25 @@ export function newBlock(kind: BlockKind): BodyBlock {
       return { id: id(), kind, cards: [newSpotlight(), newSpotlight()], background: '#FFFFFF', border: '#E0E0E0' }
     case 'signature':
       return { id: id(), kind, signoff: 'Thanks,', name: 'Your name', role: '', team: 'Partner Skilling', email: '', photo: '' }
+    case 'heading':
+      return { id: id(), kind, title: 'Section heading', color: '', rule: '#0078D4', size: 18 }
+    case 'details':
+      return {
+        id: id(),
+        kind,
+        title: 'Details',
+        rows: [newDetailRow('Email'), newDetailRow('Team name')],
+        labelColor: '#77206D',
+        accent: '',
+        background: '#FFFFFF',
+      }
     default:
       return newInnerBlock(kind)
   }
+}
+
+export function newDetailRow(label = ''): DetailRow {
+  return { id: id(), label, value: '', note: '', strong: false }
 }
 
 export function newSpotlight(): SpotlightItem {
@@ -281,6 +318,9 @@ export function cloneBlock<T extends BodyBlock>(block: T): T {
   }
   if (block.kind === 'spotlights') {
     return { ...block, id: id(), cards: block.cards.map((card) => ({ ...card, id: id() })) }
+  }
+  if (block.kind === 'details') {
+    return { ...block, id: id(), rows: block.rows.map((row) => ({ ...row, id: id() })) }
   }
   if (block.kind === 'table') {
     return { ...block, id: id(), rows: block.rows.map((row) => [...row]) }
@@ -320,6 +360,7 @@ function readInner(r: Record<string, unknown>, blockId: string): InnerBlock | nu
         showRule: r.showRule !== false,
         rule: optionalColor(r.rule),
         text: optionalColor(r.text),
+        border: optionalColor(r.border),
       }
     case 'image':
       return {
@@ -438,6 +479,37 @@ function readBlock(raw: unknown): BodyBlock | null {
         background: color(r.background, '#FFFFFF'),
         border: optionalColor(r.border),
       }
+    case 'heading': {
+      const size = Number(r.size)
+      return {
+        id: blockId,
+        kind: 'heading',
+        title: text(r.title),
+        color: optionalColor(r.color),
+        rule: optionalColor(r.rule),
+        size: [16, 18, 20, 24, 28].includes(size) ? size : 18,
+      }
+    }
+    case 'details':
+      return {
+        id: blockId,
+        kind: 'details',
+        title: text(r.title),
+        rows: Array.isArray(r.rows)
+          ? r.rows
+              .filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object')
+              .map((row) => ({
+                id: text(row.id) || id(),
+                label: text(row.label),
+                value: text(row.value),
+                note: text(row.note),
+                strong: row.strong === true,
+              }))
+          : [],
+        labelColor: color(r.labelColor, '#77206D'),
+        accent: optionalColor(r.accent),
+        background: color(r.background, '#FFFFFF'),
+      }
     case 'signature':
       return {
         id: blockId,
@@ -480,6 +552,7 @@ export function readDesign(campaign: Pick<Campaign, 'newsletter'>): NewsletterDe
       link: color(style.link, base.style.link),
       font: FONTS.some((font) => font.name === style.font) ? (style.font as string) : DEFAULT_FONT,
       size: FONT_SIZES.includes(Number(style.size)) ? Number(style.size) : DEFAULT_SIZE,
+      frame: optionalColor(style.frame),
       width: WIDTHS.includes(width) ? width : base.style.width,
     },
     banner: {
@@ -489,6 +562,7 @@ export function readDesign(campaign: Pick<Campaign, 'newsletter'>): NewsletterDe
       text: color(banner.text, base.banner.text),
       showMark: banner.showMark !== false,
       logo: text(banner.logo),
+      rightLogo: text(banner.rightLogo),
       dateLabel: text(banner.dateLabel),
       imageAlt: text(banner.imageAlt),
     },

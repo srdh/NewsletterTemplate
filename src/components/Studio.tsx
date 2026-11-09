@@ -16,6 +16,7 @@ import {
 } from '../lib/repo'
 import { readDesign } from '../lib/newsletter'
 import type { Campaign, CampaignBundle, MasterType } from '../types'
+import { usesDesign } from '../types'
 import { AgentPanel, type NewEmailChoice } from './AgentPanel'
 import { CampaignActions, CampaignSwitcher } from './CampaignSwitcher'
 import { DownloadButton } from './DownloadButton'
@@ -55,7 +56,7 @@ const PANES: [MobilePane, string][] = [
 function unfinishedFields(next: CampaignBundle): string[] {
   const missing: string[] = []
   if (!next.campaign.subject.trim()) missing.push('Subject')
-  if (next.campaign.master_type === 'newsletter' || next.campaign.master_type === 'custom2') {
+  if (usesDesign(next.campaign.master_type)) {
     // A full-image banner can carry the headline in the picture itself.
     const fullImage = readDesign(next.campaign).banner.layout === 'image' && next.campaign.banner_image
     if (!fullImage && !next.campaign.title.trim()) missing.push('Headline')
@@ -209,6 +210,7 @@ export function Studio() {
   function onNew(choice: NewEmailChoice) {
     if (choice === 'custom') void onCreateStarter('me7')
     else if (choice === 'custom2') void onCreateStarter('custom2')
+    else if (choice === 'hackathon-registration' || choice === 'hackathon-blank') void onCreateStarter(choice)
     else void onCreate(choice)
   }
 
@@ -489,6 +491,7 @@ export function Studio() {
                     ['weekly_snapshot', 'Weekly Project Snapshot'],
                     ['custom', 'Custom'],
                     ['custom2', 'Custom 2'],
+                    ['hackathon-registration', 'Hackathons: Registration Confirmation'],
                   ] as [NewEmailChoice, string][]
                 ).map(([choice, label]) => (
                   <button key={choice} type="button" className="ui-btn ui-btn-ghost w-full" onClick={() => onNew(choice)}>

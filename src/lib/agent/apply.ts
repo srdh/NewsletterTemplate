@@ -6,6 +6,7 @@ import type {
   MasterType,
   SpotlightCard,
 } from '../../types'
+import { usesDesign } from '../../types'
 import { MASTER_LABEL } from '../../types'
 import type { AgentFill, CampaignKey } from './schema'
 
@@ -51,6 +52,7 @@ const FIELDS_BY_MASTER: Record<MasterType, CampaignKey[]> = {
   // Banner text only; body blocks and footer are edited by hand.
   newsletter: ['name', 'subject', 'kicker', 'title', 'subtitle', 'register_label', 'register_url'],
   custom2: ['name', 'subject', 'kicker', 'title', 'subtitle', 'register_label', 'register_url'],
+  hackathon: ['name', 'subject', 'kicker', 'title', 'subtitle', 'register_label', 'register_url'],
   event_invite: [
     'name', 'subject', 'region', 'kicker', 'title', 'greeting', 'intro',
     'event_name', 'event_url', 'event_date_label', 'event_time_label',
@@ -73,6 +75,7 @@ const FIELDS_BY_MASTER: Record<MasterType, CampaignKey[]> = {
 const SECTIONS_BY_MASTER: Record<MasterType, string[]> = {
   newsletter: [],
   custom2: [],
+  hackathon: [],
   event_invite: [],
   monthly_update: ['virtual_skilling', 'on_demand'],
   weekly_snapshot: ['new_requests', 'work_in_progress', 'completed'],
@@ -81,6 +84,7 @@ const SECTIONS_BY_MASTER: Record<MasterType, string[]> = {
 const USES_AGENDA: Record<MasterType, boolean> = {
   newsletter: false,
   custom2: false,
+  hackathon: false,
   event_invite: true,
   monthly_update: false,
   weekly_snapshot: false,
@@ -89,6 +93,7 @@ const USES_AGENDA: Record<MasterType, boolean> = {
 const USES_SPOTLIGHTS: Record<MasterType, boolean> = {
   newsletter: false,
   custom2: false,
+  hackathon: false,
   event_invite: false,
   monthly_update: true,
   weekly_snapshot: false,
@@ -183,7 +188,7 @@ export function applyFill(current: CampaignBundle, fill: AgentFill): CampaignBun
   if (next) for (const key of leftoverFields(current, next, fill)) cleared[key] = ''
   // Uploaded banner art belongs to the invite and the newsletter; the
   // Section-1 image to the invite only.
-  if (next && next !== 'event_invite' && next !== 'newsletter' && next !== 'custom2') cleared.banner_image = ''
+  if (next && next !== 'event_invite' && !usesDesign(next)) cleared.banner_image = ''
   if (next && next !== 'event_invite') cleared.section_image = ''
 
   const campaign: Campaign = {
@@ -260,7 +265,7 @@ export function changesFor(current: CampaignBundle, fill: AgentFill): FieldChang
   if (next) {
     const leftovers = leftoverFields(current, next, fill)
     const lists = [
-      next !== 'event_invite' && next !== 'newsletter' && next !== 'custom2' && current.campaign.banner_image ? 'Banner art' : '',
+      next !== 'event_invite' && !usesDesign(next) && current.campaign.banner_image ? 'Banner art' : '',
       next !== 'event_invite' && current.campaign.section_image ? 'Section-1 image' : '',
       !fill.agenda && !USES_AGENDA[next] && current.agenda.length ? 'Agenda' : '',
       !fill.spotlights && !USES_SPOTLIGHTS[next] && current.spotlights.length ? 'Spotlight cards' : '',

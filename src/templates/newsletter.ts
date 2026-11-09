@@ -1,4 +1,5 @@
 import type { CampaignBundle } from '../types'
+import { usesBlockList } from '../types'
 import { emailDocument, escapeHtml, msSquares, sectionAttr } from '../lib/html'
 import { readDesign, readableOn, type BodyBlock, type InnerBlock, type NewsletterDesign } from '../lib/newsletter'
 import { emailRichHtml, isRichEmpty, type RichTextLook } from '../lib/richText'
@@ -43,6 +44,14 @@ function logoHtml(logo: string, showMark: boolean, color: string, size: 'banner'
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle">${msSquares(9, 2)}</td><td valign="middle" style="padding-left:8px;font-family:${FONT};font-size:14px;font-weight:600;color:${color};">Microsoft</td></tr></table>`
 }
 
+/** The right side of the logo row: a partner logo, or the date label. */
+function rightOfLogoRow(b: NewsletterDesign['banner'], color: string): string {
+  if (b.rightLogo) {
+    return `<img src="${escapeHtml(b.rightLogo)}" alt="" height="30" style="display:inline-block;height:30px;width:auto;border:0;">`
+  }
+  return `<span style="font-family:${FONT};font-size:12px;line-height:16px;color:${color};">${escapeHtml(b.dateLabel)}</span>`
+}
+
 function bannerHtml(bundle: CampaignBundle, design: NewsletterDesign, preview: boolean): string {
   const c = bundle.campaign
   const b = design.banner
@@ -50,11 +59,11 @@ function bannerHtml(bundle: CampaignBundle, design: NewsletterDesign, preview: b
   const align = b.align
   const logo = logoHtml(b.logo, b.showMark, b.text, 'banner')
   const markRow =
-    logo || b.dateLabel
+    logo || b.dateLabel || b.rightLogo
       ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
           <tr>
             <td valign="middle" align="left">${logo}</td>
-            <td valign="middle" align="right" style="font-family:${FONT};font-size:12px;line-height:16px;color:${b.text};">${escapeHtml(b.dateLabel)}</td>
+            <td valign="middle" align="right">${rightOfLogoRow(b, b.text)}</td>
           </tr>
         </table>`
       : ''
@@ -68,13 +77,13 @@ function bannerHtml(bundle: CampaignBundle, design: NewsletterDesign, preview: b
   if (b.layout === 'image' && image) {
     const hasWords = Boolean(c.kicker || c.title || c.subtitle || (c.register_label && c.register_url))
     // The logo row sits on the email body colour above the picture.
-    const logoRow = logo || b.dateLabel
+    const logoRow = logo || b.dateLabel || b.rightLogo
       ? `<tr${sectionAttr(preview, 'banner')}>
       <td bgcolor="${design.style.paper}" style="background:${design.style.paper};padding:20px ${GUTTER}px 18px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td valign="middle" align="left">${logoHtml(b.logo, b.showMark, INK, 'banner')}</td>
-            <td valign="middle" align="right" style="font-family:${FONT};font-size:12px;line-height:16px;color:#616161;">${escapeHtml(b.dateLabel)}</td>
+            <td valign="middle" align="right">${rightOfLogoRow(b, '#616161')}</td>
           </tr>
         </table>
       </td>
@@ -127,7 +136,8 @@ function innerHtml(block: InnerBlock, design: NewsletterDesign, width: number, l
       const rule = block.rule || accent
       const ink = block.text || (readableOn(block.background) === '#FFFFFF' ? '#FFFFFF' : INK)
       const calloutLook: RichTextLook = { ...look, color: ink, accent: block.text || look.accent }
-      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      const boxBorder = block.border ? `border:1px solid ${block.border};border-collapse:separate;` : ''
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="${boxBorder}">
         <tr>
           ${block.showRule ? `<td width="4" bgcolor="${rule}" style="background:${rule};font-size:0;line-height:0;">&nbsp;</td>` : ''}
           <td bgcolor="${block.background}" style="background:${block.background};padding:16px 20px;color:${ink};">${emailRichHtml(block.html, calloutLook)}</td>
@@ -218,6 +228,10 @@ function blockRow(block: BodyBlock, design: NewsletterDesign, preview: boolean):
       return row(spotlightsHtml(block, design, width, look), `4px ${GUTTER}px 24px`)
     case 'signature':
       return row(signatureHtml(block, design), `4px ${GUTTER}px 24px`)
+    case 'heading':
+      return row(headingHtml(block, design), `8px ${GUTTER}px 16px`)
+    case 'details':
+      return row(detailsHtml(block, design), `0 ${GUTTER}px 20px`)
     default:
       return row(innerHtml(block, design, width, look))
   }
@@ -306,6 +320,48 @@ function spotlightsHtml(block: Block<'spotlights'>, design: NewsletterDesign, wi
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${columns}</tr></table>`
 }
 
+function headingHtml(block: Block<'heading'>, design: NewsletterDesign): string {
+  if (!block.title.trim()) return ''
+  const color = block.color || design.style.accent
+  const rule = block.rule ? `border-bottom:2px solid ${block.rule};padding-bottom:8px;` : ''
+  return `<p style="margin:0;font-family:${FONT};font-size:${block.size}px;line-height:${Math.round(block.size * 1.3)}px;font-weight:700;color:${color};${rule}">${escapeHtml(block.title)}</p>`
+}
+
+/** Plain value, or a link when it is an email address or web address. */
+function detailValue(value: string, link: string): string {
+  const v = value.trim()
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return `<a href="mailto:${escapeHtml(v)}" style="color:${link};text-decoration:underline;">${escapeHtml(v)}</a>`
+  if (/^https?:\/\//i.test(v)) return `<a href="${escapeHtml(v)}" target="_blank" style="color:${link};text-decoration:underline;">${escapeHtml(v)}</a>`
+  return escapeHtml(v)
+}
+
+function detailsHtml(block: Block<'details'>, design: NewsletterDesign): string {
+  const rows = block.rows.filter((row) => row.label.trim() || row.value.trim())
+  if (!rows.length && !block.title.trim()) return ''
+  const accent = block.accent || design.style.link
+  const size = design.style.size
+  const body = rows
+    .map(
+      (row) => `<tr>
+        <td valign="top" width="110" style="width:110px;padding:5px 8px 5px 0;font-family:${FONT};font-size:${size - 1}px;line-height:20px;font-weight:700;color:${block.labelColor};">${escapeHtml(row.label)}</td>
+        <td valign="top" width="14" style="width:14px;padding:5px 8px 5px 0;font-family:${FONT};font-size:${size - 1}px;line-height:20px;color:${INK};">:</td>
+        <td valign="top" style="padding:5px 0;font-family:${FONT};font-size:${size - 1}px;line-height:20px;color:${INK};${row.strong ? 'font-weight:700;' : ''}">${detailValue(row.value, design.style.link)}${row.note.trim() ? ` <span style="font-size:12px;font-weight:400;color:#616161;">${escapeHtml(row.note)}</span>` : ''}</td>
+      </tr>`,
+    )
+    .join('')
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${block.background}" style="background:${block.background};border-collapse:separate;">
+    <tr>
+      <td width="4" bgcolor="${accent}" style="background:${accent};font-size:0;line-height:0;">&nbsp;</td>
+      <td style="padding:0;">
+        ${block.title.trim() ? `<p style="margin:0;padding:6px 16px;background:#F3F8FC;font-family:${FONT};font-size:${size}px;line-height:22px;font-weight:700;color:${design.style.accent};">${escapeHtml(block.title)}</p>` : ''}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 8px;"><tr><td style="padding:0 16px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">${body}</table>
+        </td></tr></table>
+      </td>
+    </tr>
+  </table>`
+}
+
 function signatureHtml(block: Block<'signature'>, design: NewsletterDesign): string {
   if (!block.name.trim() && !block.signoff.trim()) return ''
   const line = (value: string, style: string) =>
@@ -356,8 +412,8 @@ function footerHtml(design: NewsletterDesign, preview: boolean): string {
 export function renderNewsletter(bundle: CampaignBundle, preview = false): string {
   const design = readDesign(bundle.campaign)
   FONT = fontStack(design.style.font)
-  blockAnchor = bundle.campaign.master_type === 'custom2' ? (block) => `block:${block.id}` : () => 'body'
-  const { width, paper, canvas } = design.style
+  blockAnchor = usesBlockList(bundle.campaign.master_type) ? (block) => `block:${block.id}` : () => 'body'
+  const { width, paper, canvas, frame } = design.style
   const body = design.blocks.map((block) => blockRow(block, design, preview)).join('')
   // A section band as the last block runs straight into the footer.
   const last = design.blocks[design.blocks.length - 1]
@@ -368,7 +424,7 @@ export function renderNewsletter(bundle: CampaignBundle, preview = false): strin
     <tr>
       <td align="center" style="padding:0;">
         <!--[if mso]><table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
-        <table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" bgcolor="${paper}" style="width:${width}px;max-width:${width}px;background:${paper};font-family:${FONT};">
+        <table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0" bgcolor="${paper}" style="width:${width}px;max-width:${width}px;background:${paper};font-family:${FONT};${frame ? `border:1px solid ${frame};` : ''}">
           ${bannerHtml(bundle, design, preview)}
           <tr><td height="28" style="height:28px;font-size:0;line-height:0;">&nbsp;</td></tr>
           ${body}

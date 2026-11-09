@@ -8,7 +8,7 @@ import type {
   EventRow,
   SpotlightCard,
 } from '../types'
-import { MASTER_LABEL } from '../types'
+import { MASTER_LABEL, usesBlockList } from '../types'
 import { SECTION_TABS } from '../lib/sections'
 import { IconChevron, IconSpark, IconTrash } from './Icons'
 import { NewsletterFields } from './NewsletterFields'
@@ -262,7 +262,7 @@ export function FieldForm({
   })
 
   // Custom 2 edits one block at a time instead of a long form with tabs.
-  if (campaign.master_type === 'custom2') {
+  if (usesBlockList(campaign.master_type)) {
     return (
       <>
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">

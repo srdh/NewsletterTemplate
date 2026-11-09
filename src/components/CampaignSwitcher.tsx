@@ -4,7 +4,7 @@ import type { Campaign, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
 import { IconCheck, IconChevron, IconDuplicate, IconMore, IconSearch, IconTrash } from './Icons'
 
-const MASTERS: MasterType[] = ['event_invite', 'monthly_update', 'weekly_snapshot', 'newsletter', 'custom2']
+const MASTERS: MasterType[] = ['event_invite', 'monthly_update', 'weekly_snapshot', 'newsletter', 'custom2', 'hackathon']
 
 /**
  * The campaign you are working on, as a picker: search, and campaigns grouped

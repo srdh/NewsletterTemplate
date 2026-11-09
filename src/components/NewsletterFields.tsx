@@ -7,6 +7,7 @@ import {
   newBlock,
   newFooterLink,
   newSpotlight,
+  newDetailRow,
   readDesign,
   readableOn,
   writeDesign,
@@ -37,6 +38,8 @@ export const KIND_LABEL: Record<BlockKind, string> = {
   table: 'Table',
   spotlights: 'Spotlight cards',
   signature: 'Signature',
+  heading: 'Heading',
+  details: 'Details',
 }
 
 export const KIND_HINT: Record<BlockKind, string> = {
@@ -52,6 +55,8 @@ export const KIND_HINT: Record<BlockKind, string> = {
   table: 'Rows and columns, with an optional header row',
   spotlights: 'Two or three cards side by side',
   signature: 'Sign-off with name, role, team, and email',
+  heading: 'A section heading with an optional line under it',
+  details: 'Label : value rows in a box, e.g. login details',
 }
 
 /** What can go in the email body, and what can go inside a card. */
@@ -223,6 +228,7 @@ export function StyleSection({
           onChange={(canvas) => patch('style', { canvas })}
         />
       </Cols>
+      <OptionalColor label="Border around the email" value={design.style.frame} fallback="#D1D1D1" onChange={(frame) => patch('style', { frame })} />
     </Section>
   )
 }
@@ -305,6 +311,14 @@ export function BannerSection({
           onChange={(logo) => patch('banner', { logo })}
         />
       ) : null}
+      <ImageField
+        label="Right-side logo (optional)"
+        hint="A partner or event logo on the right of the logo row. Replaces the date label. Shown 30px tall."
+        value={b.rightLogo}
+        fallbackLabel="None"
+        maxWidth={480}
+        onChange={(rightLogo) => patch('banner', { rightLogo })}
+      />
       <Cols className="gap-3.5 @[22rem]:grid-cols-2">
         <ColorField label="Banner colour" value={b.background} onChange={(background) => patch('banner', { background })} />
         <ColorField label="Banner text" value={b.text} onChange={(text) => patch('banner', { text })} />
@@ -521,6 +535,10 @@ export function blockSummary(block: BodyBlock): string {
       return `${block.cards.length} card${block.cards.length === 1 ? '' : 's'}`
     case 'signature':
       return [block.name, block.team].filter(Boolean).join(', ') || 'No name yet'
+    case 'heading':
+      return block.title || 'No heading yet'
+    case 'details':
+      return [block.title, `${block.rows.length} row${block.rows.length === 1 ? '' : 's'}`].filter(Boolean).join(' · ')
     default:
       return ''
   }
@@ -598,6 +616,7 @@ export function BlockEditor({
               onChange={(text) => onChange({ ...block, text })}
             />
           </Cols>
+          <OptionalColor label="Border" value={block.border ?? ''} fallback="#C7E0F4" onChange={(border) => onChange({ ...block, border })} />
           <CalloutSample block={block} accent={accent} />
           <RichTextEditor
             compact
@@ -898,6 +917,107 @@ export function BlockEditor({
             maxWidth={192}
             onChange={(photo) => onChange({ ...block, photo })}
           />
+        </div>
+      )
+    case 'heading':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <Field label="Heading" value={block.title} onChange={(title) => onChange({ ...block, title })} />
+          <Segmented
+            label="Size"
+            value={String(block.size)}
+            options={[
+              ['16', '16'],
+              ['18', '18'],
+              ['20', '20'],
+              ['24', '24'],
+              ['28', '28'],
+            ]}
+            onChange={(size) => onChange({ ...block, size: Number(size) })}
+          />
+          <Cols className="gap-3 @[22rem]:grid-cols-2">
+            <AutoColor
+              label="Heading colour"
+              autoLabel="Accent"
+              autoSwatch={accent}
+              value={block.color}
+              fallback={accent}
+              onChange={(color) => onChange({ ...block, color })}
+            />
+            <OptionalColor label="Line under it" value={block.rule} fallback="#0078D4" onChange={(rule) => onChange({ ...block, rule })} />
+          </Cols>
+        </div>
+      )
+    case 'details':
+      return (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+          <Field label="Box title" hint="e.g. Your Login Credentials. Leave empty for none." value={block.title} onChange={(title) => onChange({ ...block, title })} />
+          <div className="grid gap-2" role="group" aria-label={`${name} rows`}>
+            {block.rows.map((row, rowIndex) => {
+              const setRow = (patch: Partial<typeof row>) =>
+                onChange({ ...block, rows: block.rows.map((item) => (item.id === row.id ? { ...item, ...patch } : item)) })
+              return (
+                <div key={row.id} className="grid min-w-0 gap-1.5 rounded-[var(--r-md)] border border-line bg-panel p-2">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <input
+                      value={row.label}
+                      aria-label={`Row ${rowIndex + 1} label`}
+                      placeholder="Label"
+                      onChange={(event) => setRow({ label: event.target.value })}
+                      className="ui-field ui-field-sm w-[36%] min-w-0 font-semibold"
+                    />
+                    <input
+                      value={row.value}
+                      aria-label={`Row ${rowIndex + 1} value`}
+                      placeholder="Value or [placeholder]"
+                      onChange={(event) => setRow({ value: event.target.value })}
+                      className="ui-field ui-field-sm min-w-0 flex-1"
+                    />
+                    <IconButton
+                      label={`Remove row ${rowIndex + 1}`}
+                      danger
+                      onClick={() => onChange({ ...block, rows: block.rows.filter((item) => item.id !== row.id) })}
+                    >
+                      <IconTrash />
+                    </IconButton>
+                  </div>
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                    <input
+                      value={row.note}
+                      aria-label={`Row ${rowIndex + 1} note`}
+                      placeholder="Note (optional), e.g. (Temporary password)"
+                      onChange={(event) => setRow({ note: event.target.value })}
+                      className="ui-field ui-field-sm min-w-0 flex-1 basis-40"
+                    />
+                    <Toggle label="Bold value" checked={row.strong} onChange={(strong) => setRow({ strong })} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <button
+            type="button"
+            className="ui-btn ui-btn-ghost min-h-8 gap-1.5 justify-self-start px-3 py-1 text-[13px]"
+            onClick={() => onChange({ ...block, rows: [...block.rows, newDetailRow()] })}
+          >
+            <span className="text-forest">
+              <IconPlus />
+            </span>
+            Add a row
+          </button>
+          <p className="-mt-1 text-[11px] text-muted">Email addresses and web addresses become links automatically.</p>
+          <Cols className="gap-3 @[24rem]:grid-cols-3">
+            <ColorField label="Label colour" value={block.labelColor} onChange={(labelColor) => onChange({ ...block, labelColor })} />
+            <ColorField label="Box colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <AutoColor
+              label="Left bar"
+              autoLabel="Link colour"
+              autoSwatch="#0078D4"
+              value={block.accent}
+              fallback="#0078D4"
+              onChange={(value) => onChange({ ...block, accent: value })}
+            />
+          </Cols>
         </div>
       )
     default:

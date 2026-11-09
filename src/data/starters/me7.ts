@@ -35,7 +35,7 @@ const newItem = (title: string, url: string) => `<p>${NEW_TAG} ${title}<br><a hr
 export function me7Starter(): CampaignBundle {
   const design: NewsletterDesign = {
     version: 1,
-    style: { accent: GREEN, canvas: '#FFFFFF', paper: '#F4F3F5', link: '#4AA647', font: 'Aptos', size: 15, width: 640 },
+    style: { accent: GREEN, canvas: '#FFFFFF', paper: '#F4F3F5', link: '#4AA647', font: 'Aptos', size: 15, frame: '', width: 640 },
     banner: {
       layout: 'image',
       align: 'left',
@@ -44,6 +44,7 @@ export function me7Starter(): CampaignBundle {
       // The hero artwork carries the Microsoft logo itself.
       showMark: false,
       logo: '',
+      rightLogo: '',
       dateLabel: '',
       imageAlt: 'Banner: ME7 + Copilot and AI Consumption Skilling - Find the learning path that is right for you',
     },
