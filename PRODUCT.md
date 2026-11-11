@@ -18,7 +18,7 @@ A template studio, not a general CMS and not a Copilot chat. Left side is the Po
 
 ## Operating Context
 
-Used on a laptop during daylight production work. Templates: Partner Template, with four campaigns (Regional Template event invite, Partner Skilling Update Template, Weekly Project Snapshot, and Custom, a free-form newsletter in the ME7 + Copilot learning paths format); Custom 2 (block by block); and Hackathons, with its campaigns.
+Used on a laptop during daylight production work. Templates: Partner Templates, with four campaigns (Regional Template event invite, Partner Skilling Update Template, Weekly Project Snapshot, and Custom, a free-form newsletter in the ME7 + Copilot learning paths format); Custom 2 (block by block); and Hackathons, with its campaigns.
 
 ## Brand Commitments
 

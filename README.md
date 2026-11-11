@@ -4,9 +4,9 @@ Template studio for Microsoft Partner Skilling Outlook emails. Pick a master, fi
 
 ## Starting an email
 
-The left panel opens on **What email are we building?** with three choices: **Partner Template**, **Custom 2**, and **Hackathons**. Partner Template and Hackathons expand to list their campaigns (one group open at a time).
+The left panel opens on **What email are we building?** with three choices: **Partner Templates**, **Hackathons**, and **Custom 2**. Partner Templates and Hackathons expand to list their campaigns (one group open at a time).
 
-- **Partner Template**: the Partner Skilling emails. Expand it to pick a campaign:
+- **Partner Templates**: the Partner Skilling emails. Expand it to pick a campaign:
   - **Regional Template**: regional event invite (banner, event details, agenda, signature).
   - **Partner Skilling Update Template**: monthly newsletter with spotlight cards and skilling tables.
   - **Weekly Project Snapshot**: status email with request, progress, and delivery tables.

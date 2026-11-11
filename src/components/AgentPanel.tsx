@@ -49,7 +49,7 @@ interface GroupCampaign {
   hint?: string
 }
 
-/** Campaigns under Partner Template: the four classic Partner Skilling emails. */
+/** Campaigns under Partner Templates: the four classic Partner Skilling emails. */
 const PARTNER_CAMPAIGNS: GroupCampaign[] = [
   { id: 'event_invite', label: 'Regional Template', hint: 'Event invite with banner, event details, agenda, and signature' },
   { id: 'monthly_update', label: 'Partner Skilling Update Template', hint: 'Monthly newsletter with spotlight cards and skilling tables' },
@@ -272,12 +272,22 @@ export function AgentPanel({
               <div className="mt-5 grid gap-2" role="group" aria-label="Start a new email">
                 <TemplateGroup
                   id="partner-campaigns"
-                  title="Partner Template"
+                  title="Partner Templates"
                   hint="Partner Skilling emails. Pick a campaign:"
                   icon={<IconPartner />}
                   campaigns={PARTNER_CAMPAIGNS}
                   open={openGroup === 'partner'}
                   onToggle={() => toggleGroup('partner')}
+                  onPick={onNew}
+                />
+                <TemplateGroup
+                  id="hackathon-campaigns"
+                  title="Hackathons"
+                  hint="Hackathon emails, block by block. Pick a campaign:"
+                  icon={<IconTrophy />}
+                  campaigns={HACKATHON_CAMPAIGNS}
+                  open={openGroup === 'hackathons'}
+                  onToggle={() => toggleGroup('hackathons')}
                   onPick={onNew}
                 />
                 <button
@@ -295,16 +305,6 @@ export function AgentPanel({
                     </span>
                   </span>
                 </button>
-                <TemplateGroup
-                  id="hackathon-campaigns"
-                  title="Hackathons"
-                  hint="Hackathon emails, block by block. Pick a campaign:"
-                  icon={<IconTrophy />}
-                  campaigns={HACKATHON_CAMPAIGNS}
-                  open={openGroup === 'hackathons'}
-                  onToggle={() => toggleGroup('hackathons')}
-                  onPick={onNew}
-                />
               </div>
 
               {templates.length ? (
@@ -662,7 +662,7 @@ function TemplateGroup({
   )
 }
 
-/** Two overlapping cards: the Partner Template group. */
+/** Two overlapping cards: the Partner Templates group. */
 function IconPartner() {
   return (
     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">

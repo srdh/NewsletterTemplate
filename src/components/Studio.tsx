@@ -486,12 +486,12 @@ export function Studio() {
               <div className="mt-4 grid gap-2">
                 {(
                   [
-                    ['event_invite', 'Partner Template: Regional Template'],
-                    ['monthly_update', 'Partner Template: Partner Skilling Update Template'],
-                    ['weekly_snapshot', 'Partner Template: Weekly Project Snapshot'],
-                    ['custom', 'Partner Template: Custom'],
-                    ['custom2', 'Custom 2'],
+                    ['event_invite', 'Partner Templates: Regional Template'],
+                    ['monthly_update', 'Partner Templates: Partner Skilling Update Template'],
+                    ['weekly_snapshot', 'Partner Templates: Weekly Project Snapshot'],
+                    ['custom', 'Partner Templates: Custom'],
                     ['hackathon-registration', 'Hackathons: Registration Confirmation'],
+                    ['custom2', 'Custom 2'],
                   ] as [NewEmailChoice, string][]
                 ).map(([choice, label]) => (
                   <button key={choice} type="button" className="ui-btn ui-btn-ghost w-full" onClick={() => onNew(choice)}>
