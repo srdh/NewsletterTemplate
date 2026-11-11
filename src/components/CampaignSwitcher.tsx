@@ -3,6 +3,8 @@ import { moveMenuFocus, usePopover } from '../hooks/usePopover'
 import type { Campaign, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
 import { IconCheck, IconChevron, IconDuplicate, IconMore, IconSearch, IconTrash } from './Icons'
+import { t } from '../lib/i18n'
+import { uiLang } from '../lib/i18n'
 
 const MASTERS: MasterType[] = ['event_invite', 'monthly_update', 'weekly_snapshot', 'newsletter', 'custom2', 'hackathon']
 
@@ -92,20 +94,20 @@ export function CampaignSwitcher({
         className="ui-btn ui-btn-subtle h-8 w-full min-w-0 max-w-[22rem] justify-between gap-2 px-2.5 font-semibold"
         onClick={toggle}
       >
-        <span className="sr-only">Campaign: </span>
-        <span className="min-w-0 truncate">{current?.name ?? 'Choose a campaign'}</span>
+        <span className="sr-only">{t("Campaign:")}{' '}</span>
+        <span className="min-w-0 truncate">{current?.name ?? t("Choose a campaign")}</span>
         <IconChevron className={'shrink-0 text-muted transition-transform ' + (open ? 'rotate-180' : '')} />
       </button>
 
       {open ? (
         <div
           role="dialog"
-          aria-label="Campaigns"
+          aria-label={t("Campaigns")}
           className="ui-popover popover-in absolute top-full left-0 z-40 mt-1 flex max-h-[min(70vh,34rem)] w-[min(92vw,24rem)] flex-col overflow-hidden"
         >
           <div className="shrink-0 border-b border-line p-2">
             <label className="relative block">
-              <span className="sr-only">Find a campaign</span>
+              <span className="sr-only">{t("Find a campaign")}</span>
               <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-muted">
                 <IconSearch />
               </span>
@@ -121,15 +123,15 @@ export function CampaignSwitcher({
                 aria-expanded="true"
                 aria-controls={listId}
                 aria-activedescendant={filtered[activeIndex] ? `${listId}-${filtered[activeIndex].id}` : undefined}
-                placeholder="Find a campaign"
+                placeholder={t("Find a campaign")}
                 className="ui-field pl-8"
               />
             </label>
           </div>
 
-          <ul id={listId} role="listbox" aria-label="Campaigns" className="app-scroll min-h-0 flex-1 overflow-auto p-1">
+          <ul id={listId} role="listbox" aria-label={t("Campaigns")} className="app-scroll min-h-0 flex-1 overflow-auto p-1">
             {filtered.length === 0 ? (
-              <li className="px-3 py-6 text-center text-muted">No campaign matches “{query.trim()}”.</li>
+              <li className="px-3 py-6 text-center text-muted">{t('No campaign matches “{query}”.', { query: query.trim() })}</li>
             ) : null}
             {filtered.map((campaign, index) => {
               const heading =
@@ -193,8 +195,8 @@ export function CampaignActions({
       <button
         ref={trigger}
         type="button"
-        aria-label="Campaign actions"
-        title="Campaign actions"
+        aria-label={t("Campaign actions")}
+        title={t("Campaign actions")}
         aria-haspopup="menu"
         aria-expanded={open}
         className="ui-icon-btn"
@@ -205,7 +207,7 @@ export function CampaignActions({
       {open ? (
         <div
           role="menu"
-          aria-label="Campaign actions"
+          aria-label={t("Campaign actions")}
           onKeyDown={moveMenuFocus}
           className="ui-popover popover-in absolute top-full left-0 z-40 mt-1 w-56 p-1"
         >
@@ -220,8 +222,7 @@ export function CampaignActions({
             }}
           >
             <IconDuplicate />
-            Duplicate campaign
-          </button>
+            {t("Duplicate campaign")}</button>
           <div role="separator" className="my-1 h-px bg-line" />
           <button
             type="button"
@@ -233,23 +234,28 @@ export function CampaignActions({
             }}
           >
             <IconTrash />
-            Delete campaign
-          </button>
+            {t("Delete campaign")}</button>
         </div>
       ) : null}
     </div>
   )
 }
 
-export function edited(iso: string): string {
+/** How long ago, in the studio language: "5 min ago", "just now", or a date. */
+export function ago(iso: string): string {
   const then = new Date(iso).getTime()
-  if (!Number.isFinite(then)) return 'Edited earlier'
+  if (!Number.isFinite(then)) return t('earlier')
   const minutes = Math.round((Date.now() - then) / 60000)
-  if (minutes < 1) return 'Edited just now'
-  if (minutes < 60) return `Edited ${minutes} min ago`
+  if (minutes < 1) return t('just now')
+  if (minutes < 60) return t('{n} min ago', { n: minutes })
   const hours = Math.round(minutes / 60)
-  if (hours < 24) return `Edited ${hours} hr ago`
+  if (hours < 24) return t('{n} hr ago', { n: hours })
   const days = Math.round(hours / 24)
-  if (days < 7) return `Edited ${days} day${days === 1 ? '' : 's'} ago`
-  return `Edited ${new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`
+  if (days < 7) return t(days === 1 ? '{n} day ago' : '{n} days ago', { n: days })
+  const date = new Date(iso).toLocaleDateString(uiLang() === 'fr' ? 'fr-FR' : undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  return t('on {date}', { date })
+}
+
+export function edited(iso: string): string {
+  return t('Edited {when}', { when: ago(iso) })
 }

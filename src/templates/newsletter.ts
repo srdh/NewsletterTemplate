@@ -1,6 +1,7 @@
 import type { CampaignBundle } from '../types'
 import { usesBlockList } from '../types'
 import { emailDocument, escapeHtml, msSquares, sectionAttr } from '../lib/html'
+import { emailLang, emailT, langTag, type EmailT } from '../lib/emailText'
 import { readDesign, readableOn, type BodyBlock, type InnerBlock, type NewsletterDesign } from '../lib/newsletter'
 import { emailRichHtml, isRichEmpty, type RichTextLook } from '../lib/richText'
 
@@ -11,6 +12,8 @@ import { fontStack } from '../lib/fonts'
  * (rendering is synchronous, so one render never sees another's font).
  */
 let FONT = fontStack('Segoe UI')
+/** Fixed email wording in this email's language, set per render. */
+let T: EmailT = emailT('en')
 const INK = '#242424'
 /** Left and right padding of the email body. */
 const GUTTER = 32
@@ -265,9 +268,9 @@ function eventHtml(block: Block<'event'>, design: NewsletterDesign, look: RichTe
   const accent = block.accent || design.style.accent
   const details = (
     [
-      ['Date', block.date],
-      ['Time', block.time],
-      ['Where', block.location],
+      [T('Date'), block.date],
+      [T('Time'), block.time],
+      [T('Where'), block.location],
     ] as const
   )
     .filter(([, value]) => value.trim())
@@ -613,6 +616,7 @@ function bodyHtml(design: NewsletterDesign, preview: boolean): { body: string; e
 export function renderNewsletter(bundle: CampaignBundle, preview = false): string {
   const design = readDesign(bundle.campaign)
   FONT = fontStack(design.style.font)
+  T = emailT(emailLang(bundle.campaign))
   blockAnchor = usesBlockList(bundle.campaign.master_type) ? (block) => `block:${block.id}` : () => 'body'
   const { width, paper, canvas, frame } = design.style
   const { body, endsWithBand } = bodyHtml(design, preview)
@@ -634,5 +638,5 @@ export function renderNewsletter(bundle: CampaignBundle, preview = false): strin
     </tr>
   </table>`
 
-  return emailDocument(bundle.campaign.subject || bundle.campaign.title, inner)
+  return emailDocument(bundle.campaign.subject || bundle.campaign.title, inner, langTag(emailLang(bundle.campaign)))
 }

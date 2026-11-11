@@ -9,36 +9,93 @@ import type {
 import { usesDesign } from '../../types'
 import { MASTER_LABEL } from '../../types'
 import type { AgentFill, CampaignKey } from './schema'
+import { t } from '../i18n'
 
 const FIELD_LABEL: Record<CampaignKey, string> = {
-  name: 'Studio name',
-  subject: 'Email subject',
-  region: 'Region',
-  kicker: 'Region kicker',
-  title: 'Title',
-  greeting: 'Greeting',
-  intro: 'Intro',
-  event_name: 'Event name',
-  event_url: 'Event link',
-  event_date_label: 'Date',
-  event_time_label: 'Time',
-  language_note: 'Language note',
-  overview_body: 'Overview',
-  action_heading: 'Action heading',
-  action_body: 'Action body',
-  register_label: 'Register label',
-  register_url: 'Register link',
-  secondary_cta_label: 'Second button label',
-  secondary_cta_url: 'Second button link',
-  signoff_thanks: 'Sign-off',
-  signer_name: 'Signer name',
-  signer_title: 'Signer title',
-  signer_email: 'Signer email',
-  month_label: 'Month',
-  subtitle: 'Subtitle',
-  contents_intro: 'Contents intro',
-  snapshot_date: 'Snapshot date',
-  callouts: 'Callouts',
+  get name() {
+    return t("Studio name")
+  },
+  get subject() {
+    return t("Email subject")
+  },
+  get region() {
+    return t("Region")
+  },
+  get kicker() {
+    return t("Region kicker")
+  },
+  get title() {
+    return t("Title")
+  },
+  get greeting() {
+    return t("Greeting")
+  },
+  get intro() {
+    return t("Intro")
+  },
+  get event_name() {
+    return t("Event name")
+  },
+  get event_url() {
+    return t("Event link")
+  },
+  get event_date_label() {
+    return t("Date")
+  },
+  get event_time_label() {
+    return t("Time")
+  },
+  get language_note() {
+    return t("Language note")
+  },
+  get overview_body() {
+    return t("Overview")
+  },
+  get action_heading() {
+    return t("Action heading")
+  },
+  get action_body() {
+    return t("Action body")
+  },
+  get register_label() {
+    return t("Register label")
+  },
+  get register_url() {
+    return t("Register link")
+  },
+  get secondary_cta_label() {
+    return t("Second button label")
+  },
+  get secondary_cta_url() {
+    return t("Second button link")
+  },
+  get signoff_thanks() {
+    return t("Sign-off")
+  },
+  get signer_name() {
+    return t("Signer name")
+  },
+  get signer_title() {
+    return t("Signer title")
+  },
+  get signer_email() {
+    return t("Signer email")
+  },
+  get month_label() {
+    return t("Month")
+  },
+  get subtitle() {
+    return t("Subtitle")
+  },
+  get contents_intro() {
+    return t("Contents intro")
+  },
+  get snapshot_date() {
+    return t("Snapshot date")
+  },
+  get callouts() {
+    return t("Callouts")
+  },
 }
 
 export type FieldChange = {
@@ -252,7 +309,7 @@ export function changesFor(current: CampaignBundle, fill: AgentFill): FieldChang
   const next = switchesTemplate(current, fill)
   if (next) {
     changes.push({
-      label: 'Template',
+      label: t("Template"),
       before: MASTER_LABEL[current.campaign.master_type],
       after: MASTER_LABEL[next],
     })
@@ -265,16 +322,16 @@ export function changesFor(current: CampaignBundle, fill: AgentFill): FieldChang
   if (next) {
     const leftovers = leftoverFields(current, next, fill)
     const lists = [
-      next !== 'event_invite' && !usesDesign(next) && current.campaign.banner_image ? 'Banner art' : '',
-      next !== 'event_invite' && current.campaign.section_image ? 'Section-1 image' : '',
-      !fill.agenda && !USES_AGENDA[next] && current.agenda.length ? 'Agenda' : '',
-      !fill.spotlights && !USES_SPOTLIGHTS[next] && current.spotlights.length ? 'Spotlight cards' : '',
-      current.rows.some((row) => !SECTIONS_BY_MASTER[next].includes(row.section)) ? 'Old table rows' : '',
+      next !== 'event_invite' && !usesDesign(next) && current.campaign.banner_image ? t("Banner art") : '',
+      next !== 'event_invite' && current.campaign.section_image ? t("Section-1 image") : '',
+      !fill.agenda && !USES_AGENDA[next] && current.agenda.length ? t("Agenda") : '',
+      !fill.spotlights && !USES_SPOTLIGHTS[next] && current.spotlights.length ? t("Spotlight cards") : '',
+      current.rows.some((row) => !SECTIONS_BY_MASTER[next].includes(row.section)) ? t("Old table rows") : '',
     ].filter(Boolean)
     const removed = [...leftovers.map((key) => FIELD_LABEL[key]), ...lists]
     if (removed.length) {
       changes.push({
-        label: 'Cleared from the previous template',
+        label: t("Cleared from the previous template"),
         before: removed.join(', '),
         after: '',
       })
@@ -283,7 +340,7 @@ export function changesFor(current: CampaignBundle, fill: AgentFill): FieldChang
   if (fill.agenda) {
     const before = sorted(current.agenda).map((item) => item.text).join('\n')
     const after = fill.agenda.map((item) => item.text).join('\n')
-    if (before !== after) changes.push({ label: 'Agenda', before, after })
+    if (before !== after) changes.push({ label: t("Agenda"), before, after })
   }
   if (fill.spotlights) {
     const key = (card: { headline: string; body: string; bullets: string; cta_label: string; cta_url: string }) =>
@@ -292,9 +349,9 @@ export function changesFor(current: CampaignBundle, fill: AgentFill): FieldChang
     const after = fill.spotlights.map(key).join('\n')
     if (before !== after) {
       changes.push({
-        label: 'Spotlight cards',
-        before: sorted(current.spotlights).map((card) => card.headline).join('\n') || '(none)',
-        after: fill.spotlights.map((card) => card.headline).join('\n') || '(none)',
+        label: t("Spotlight cards"),
+        before: sorted(current.spotlights).map((card) => card.headline).join('\n') || t("(none)"),
+        after: fill.spotlights.map((card) => card.headline).join('\n') || t("(none)"),
       })
     }
   }
@@ -306,9 +363,9 @@ export function changesFor(current: CampaignBundle, fill: AgentFill): FieldChang
       const afterRows = fill.rows.filter((row) => row.section === section)
       if (beforeRows.map(rowKey).join('\n') === afterRows.map(rowKey).join('\n')) continue
       changes.push({
-        label: `Table: ${SECTION_LABEL[section] ?? section}`,
-        before: beforeRows.map((row) => row.title).filter(Boolean).join('\n') || '(none)',
-        after: afterRows.map((row) => row.title).filter(Boolean).join('\n') || '(none)',
+        label: t("Table: {name}", { name: SECTION_LABEL[section] ?? section }),
+        before: beforeRows.map((row) => row.title).filter(Boolean).join('\n') || t("(none)"),
+        after: afterRows.map((row) => row.title).filter(Boolean).join('\n') || t("(none)"),
       })
     }
   }
@@ -316,9 +373,19 @@ export function changesFor(current: CampaignBundle, fill: AgentFill): FieldChang
 }
 
 const SECTION_LABEL: Record<string, string> = {
-  virtual_skilling: 'Virtual Skilling',
-  on_demand: 'On-Demand Skilling',
-  new_requests: 'New requests',
-  work_in_progress: 'Work in progress',
-  completed: 'Completed projects',
+  get virtual_skilling() {
+    return t("Virtual Skilling")
+  },
+  get on_demand() {
+    return t("On-Demand Skilling")
+  },
+  get new_requests() {
+    return t("New requests")
+  },
+  get work_in_progress() {
+    return t("Work in progress")
+  },
+  get completed() {
+    return t("Completed projects")
+  },
 }

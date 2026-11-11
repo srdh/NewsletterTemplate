@@ -7,6 +7,8 @@ import type {
   SpotlightCard,
 } from '../types'
 import { defaultDesign, PRIVACY_URL, THEMES, writeDesign, type NewsletterDesign } from '../lib/newsletter'
+import { emailT } from '../lib/emailText'
+import type { Lang } from '../lib/i18n'
 
 function id(): string {
   return crypto.randomUUID()
@@ -23,16 +25,18 @@ function campaign(
   return { created_at: stamp, updated_at: stamp, newsletter: '', ...partial }
 }
 
-export function emptyCampaign(master: MasterType): Campaign {
+/** A new, empty campaign; its default text is in the given email language. */
+export function emptyCampaign(master: MasterType, lang: Lang = 'en'): Campaign {
+  const T = emailT(lang)
   const base = campaign({
     id: id(),
     master_type: master,
-    name: 'Untitled campaign',
+    name: T('Untitled campaign'),
     subject: '',
     region: '',
     kicker: '',
     title: '',
-    greeting: 'Hi all,',
+    greeting: T('Hi all,'),
     intro: '',
     event_name: '',
     event_url: '',
@@ -57,15 +61,16 @@ export function emptyCampaign(master: MasterType): Campaign {
     callouts: '',
     banner_image: '',
     section_image: '',
+    language: lang,
   })
 
   if (master === 'newsletter') {
-    const design = defaultDesign()
+    const design = defaultDesign(lang)
     return {
       ...base,
-      name: 'New newsletter',
+      name: T('New newsletter'),
       kicker: 'Microsoft Partner Skilling',
-      title: 'Partner Skilling Newsletter',
+      title: T('Partner Skilling Newsletter'),
       subtitle: '',
       newsletter: writeDesign(design),
     }
@@ -73,27 +78,27 @@ export function emptyCampaign(master: MasterType): Campaign {
   if (master === 'event_invite') {
     return {
       ...base,
-      name: 'New event invite',
-      title: 'Build What’s Next with Partner Skilling',
-      kicker: 'REGION- MONTH YEAR',
-      action_heading: 'ACTION: Invite your partners to this event',
+      name: T('New event invite'),
+      title: T('Build What’s Next with Partner Skilling'),
+      kicker: T('REGION- MONTH YEAR'),
+      action_heading: T('ACTION: Invite your partners to this event'),
       signer_name: 'Priya Menon',
-      signer_title: 'Asia Partner Skilling Strategy Lead',
+      signer_title: T('Asia Partner Skilling Strategy Lead'),
     }
   }
   if (master === 'monthly_update') {
     return {
       ...base,
-      name: 'New monthly update',
-      title: 'Partner Skilling Update',
-      subtitle: 'AI Workforce',
+      name: T('New monthly update'),
+      title: T('Partner Skilling Update'),
+      subtitle: T('AI Workforce'),
     }
   }
   return {
     ...base,
-    name: 'New weekly snapshot',
-    title: 'Weekly project snapshot',
-    greeting: 'Hi team,',
+    name: T('New weekly snapshot'),
+    title: T('Weekly project snapshot'),
+    greeting: T('Hi team,'),
   }
 }
 

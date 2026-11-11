@@ -1,5 +1,7 @@
 import type { Campaign } from '../types'
 import { DEFAULT_FONT, DEFAULT_SIZE, FONTS, FONT_SIZES } from './fonts'
+import { editingEmailLang, emailT } from './emailText'
+import type { Lang } from './i18n'
 
 /*
  * The Newsletter studio master. Banner text lives in the ordinary campaign
@@ -250,7 +252,9 @@ function id(): string {
   return crypto.randomUUID()
 }
 
-export function defaultDesign(): NewsletterDesign {
+/** A new design; its sample text is in the given email language. */
+export function defaultDesign(lang: Lang = 'en'): NewsletterDesign {
+  const T = emailT(lang)
   const forest = THEMES[0]
   return {
     version: 1,
@@ -271,20 +275,23 @@ export function defaultDesign(): NewsletterDesign {
       {
         id: id(),
         kind: 'text',
-        html: '<p>Hi all,</p><p>Start writing your newsletter here. Use the toolbar for <strong>bold</strong>, headings, lists, colours, and links.</p>',
+        html: T('<p>Hi all,</p><p>Start writing your newsletter here. Use the toolbar for <strong>bold</strong>, headings, lists, colours, and links.</p>'),
       },
     ],
     footer: {
       background: forest.footer,
       text: forest.footerText,
-      html: '<p>Questions? Reply to this email and the Partner Skilling team will get back to you.</p>',
-      links: [{ id: id(), label: 'Privacy Statement', url: PRIVACY_URL }],
+      html: T('<p>Questions? Reply to this email and the Partner Skilling team will get back to you.</p>'),
+      links: [{ id: id(), label: T('Privacy Statement'), url: PRIVACY_URL }],
       showMark: true,
       logo: '',
-      legal: `© ${new Date().getFullYear()} Microsoft Corporation. All rights reserved.\nMicrosoft Corporation, One Microsoft Way, Redmond, WA 98052 USA`,
+      legal: T('© {year} Microsoft Corporation. All rights reserved.\nMicrosoft Corporation, One Microsoft Way, Redmond, WA 98052 USA', { year: new Date().getFullYear() }),
     },
   }
 }
+
+/** Default text for new blocks, in the language of the email being edited. */
+const E = (english: string) => emailT(editingEmailLang())(english)
 
 export function newBlock(kind: BlockKind): BodyBlock {
   switch (kind) {
@@ -298,12 +305,12 @@ export function newBlock(kind: BlockKind): BodyBlock {
       return {
         id: id(),
         kind,
-        title: 'Event overview',
+        title: E('Event overview'),
         date: '',
         time: '',
         location: '',
         html: '',
-        buttonLabel: 'Register now',
+        buttonLabel: E('Register now'),
         buttonUrl: '',
         background: '#EBF3EF',
         accent: '',
@@ -315,7 +322,7 @@ export function newBlock(kind: BlockKind): BodyBlock {
         title: '',
         header: true,
         rows: [
-          ['Session', 'Date', 'Audience'],
+          [E('Session'), E('Date'), E('Audience')],
           ['', '', ''],
           ['', '', ''],
         ],
@@ -327,9 +334,9 @@ export function newBlock(kind: BlockKind): BodyBlock {
     case 'spotlights':
       return { id: id(), kind, cards: [newSpotlight(), newSpotlight()], background: '#FFFFFF', border: '#E0E0E0' }
     case 'signature':
-      return { id: id(), kind, signoff: 'Thanks,', name: 'Your name', role: '', team: 'Partner Skilling', email: '', photo: '' }
+      return { id: id(), kind, signoff: E('Thanks,'), name: E('Your name'), role: '', team: E('Partner Skilling'), email: '', photo: '' }
     case 'heading':
-      return { id: id(), kind, title: 'Section heading', color: '', rule: '#0078D4', size: 18, fill: '', outline: '' }
+      return { id: id(), kind, title: E('Section heading'), color: '', rule: '#0078D4', size: 18, fill: '', outline: '' }
     case 'stats':
       return {
         id: id(),
@@ -337,7 +344,7 @@ export function newBlock(kind: BlockKind): BodyBlock {
         leadTitle: '',
         leadCaption: '',
         leadBackground: '#FCFC92',
-        tiles: [newStatTile('[0]', 'Label', '#02AE68', '#FFFFFF'), newStatTile('[0]', 'Label'), newStatTile('[0]', 'Label')],
+        tiles: [newStatTile('[0]', E('Label'), '#02AE68', '#FFFFFF'), newStatTile('[0]', E('Label')), newStatTile('[0]', E('Label'))],
       }
     case 'columns':
       return { id: id(), kind, columns: [newTextColumn(), newTextColumn(), newTextColumn()] }
@@ -349,8 +356,8 @@ export function newBlock(kind: BlockKind): BodyBlock {
       return {
         id: id(),
         kind,
-        title: 'Details',
-        rows: [newDetailRow('Email'), newDetailRow('Team name')],
+        title: E('Details'),
+        rows: [newDetailRow(E('Email')), newDetailRow(E('Team name'))],
         labelColor: '#77206D',
         accent: '',
         background: '#FFFFFF',
@@ -360,11 +367,11 @@ export function newBlock(kind: BlockKind): BodyBlock {
   }
 }
 
-export function newStatTile(value = '[0]', label = 'Label', background = '#E2EFD9', text = '#1B1B1B'): StatTile {
+export function newStatTile(value = '[0]', label = E('Label'), background = '#E2EFD9', text = '#1B1B1B'): StatTile {
   return { id: id(), value, label, background, text }
 }
 
-export function newTextColumn(title = 'Column title'): TextColumn {
+export function newTextColumn(title = E('Column title')): TextColumn {
   return { id: id(), title, html: '', headerBackground: '', headerText: '#1B1B1B' }
 }
 
@@ -373,7 +380,7 @@ export function newGalleryImage(): GalleryImage {
 }
 
 export function newPerson(): Person {
-  return { id: id(), photo: '', name: '[Name]', role: '[Role]', detail: '' }
+  return { id: id(), photo: '', name: E('[Name]'), role: E('[Role]'), detail: '' }
 }
 
 export function newDetailRow(label = ''): DetailRow {
@@ -381,7 +388,7 @@ export function newDetailRow(label = ''): DetailRow {
 }
 
 export function newSpotlight(): SpotlightItem {
-  return { id: id(), image: '', title: '', html: '', linkLabel: 'Learn more', linkUrl: '' }
+  return { id: id(), image: '', title: '', html: '', linkLabel: E('Learn more'), linkUrl: '' }
 }
 
 export function newInnerBlock(kind: InnerKind): InnerBlock {
@@ -393,7 +400,7 @@ export function newInnerBlock(kind: InnerKind): InnerBlock {
     case 'image':
       return { id: id(), kind, src: '', alt: '', href: '', caption: '' }
     case 'button':
-      return { id: id(), kind, label: 'Learn more', url: '', align: 'left', color: '' }
+      return { id: id(), kind, label: E('Learn more'), url: '', align: 'left', color: '' }
     default:
       return { id: id(), kind: 'divider' }
   }

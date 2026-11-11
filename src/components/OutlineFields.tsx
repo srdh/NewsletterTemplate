@@ -17,6 +17,8 @@ import {
   type Patch,
 } from './NewsletterFields'
 import { EditorLookContext } from './RichTextEditor'
+import { t } from '../lib/i18n'
+import { EmailLanguageField } from './EmailLanguageField'
 
 /*
  * Custom 2: the email as a list of blocks. Open a block to edit it on its own
@@ -48,27 +50,65 @@ const ADD_KINDS: BlockKind[] = [
 
 /** Custom 2 calls the button block "Call to action". */
 const LABEL: Record<BlockKind, string> = {
-  text: 'Text',
-  event: 'Event card',
-  table: 'Table',
-  spotlights: 'Spotlight cards',
-  button: 'Call to action',
-  signature: 'Signature',
-  image: 'Image',
-  card: 'Card',
-  callout: 'Callout',
-  media: 'Image + text',
-  section: 'Colour band',
-  divider: 'Divider',
-  heading: 'Heading',
-  details: 'Details',
-  stats: 'Number tiles',
-  columns: 'Columns',
-  gallery: 'Photo gallery',
-  people: 'People',
+  get text() {
+    return t("Text")
+  },
+  get event() {
+    return t("Event card")
+  },
+  get table() {
+    return t("Table")
+  },
+  get spotlights() {
+    return t("Spotlight cards")
+  },
+  get button() {
+    return t("Call to action")
+  },
+  get signature() {
+    return t("Signature")
+  },
+  get image() {
+    return t("Image")
+  },
+  get card() {
+    return t("Card")
+  },
+  get callout() {
+    return t("Callout")
+  },
+  get media() {
+    return t("Image + text")
+  },
+  get section() {
+    return t("Colour band")
+  },
+  get divider() {
+    return t("Divider")
+  },
+  get heading() {
+    return t("Heading")
+  },
+  get details() {
+    return t("Details")
+  },
+  get stats() {
+    return t("Number tiles")
+  },
+  get columns() {
+    return t("Columns")
+  },
+  get gallery() {
+    return t("Photo gallery")
+  },
+  get people() {
+    return t("People")
+  },
 }
 
-const HINT: Record<BlockKind, string> = { ...KIND_HINT, button: 'A button that links to registration or a page' }
+const HINT: Record<BlockKind, string> = { ...KIND_HINT, get button() {
+    return t("A button that links to registration or a page")
+  } }
 
 type View = { kind: 'list' } | { kind: 'settings' } | { kind: 'banner' } | { kind: 'footer' } | { kind: 'block'; id: string }
 
@@ -146,11 +186,11 @@ export function OutlineFields({
           <DetailView
             title={
               view.kind === 'settings'
-                ? 'Email settings'
+                ? t("Email settings")
                 : view.kind === 'banner'
-                  ? 'Banner'
+                  ? t("Banner")
                   : view.kind === 'footer'
-                    ? 'Footer'
+                    ? t("Footer")
                     : openBlock
                       ? LABEL[openBlock.kind]
                       : ''
@@ -169,7 +209,8 @@ export function OutlineFields({
           >
             {view.kind === 'settings' ? (
               <div className="grid grid-cols-[minmax(0,1fr)] gap-3.5">
-                <Field label="Email subject" value={c.subject} onChange={(subject) => set({ subject })} />
+                <Field label={t("Email subject")} value={c.subject} onChange={(subject) => set({ subject })} />
+                <EmailLanguageField value={c.language} onChange={(language) => set({ language })} />
                 <StyleSection design={design} save={save} patch={patch} />
               </div>
             ) : null}
@@ -188,7 +229,7 @@ export function OutlineFields({
             {openBlock && openBlock.kind !== 'section' ? (
               <div className="mt-5 grid gap-1.5 border-t border-line pt-4">
                 <OptionalColor
-                  label="Background band"
+                  label={t("Background band")}
                   value={openBlock.shade ?? ''}
                   fallback="#EDF6F3"
                   onChange={(shade) =>
@@ -196,8 +237,7 @@ export function OutlineFields({
                   }
                 />
                 <p className="text-[12px] leading-4 text-muted">
-                  Colours the full width behind this block. Blocks next to each other with the same colour join into one band.
-                </p>
+                  {t("Colours the full width behind this block. Blocks next to each other with the same colour join into one band.")}</p>
               </div>
             ) : null}
           </DetailView>
@@ -221,9 +261,9 @@ function ListView({
   onShowCampaigns: () => void
   onOpen: (view: View) => void
 }) {
-  const bannerSummary = [campaign.kicker, campaign.title].filter((part) => part.trim()).join(', ') || 'No headline yet'
+  const bannerSummary = [campaign.kicker, campaign.title].filter((part) => part.trim()).join(', ') || t("No headline yet")
   const footerSummary = isRichEmpty(design.footer.html)
-    ? design.footer.legal.split('\n')[0] || 'Small print'
+    ? design.footer.legal.split('\n')[0] || t("Small print")
     : design.footer.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 
   return (
@@ -234,8 +274,7 @@ function ListView({
         className="-ml-1 flex items-center gap-1 rounded-[var(--r-sm)] px-1 py-0.5 text-[13px] font-semibold text-forest hover:bg-forest-soft"
       >
         <IconChevron className="rotate-90" />
-        All campaigns
-      </button>
+        {t("All campaigns")}</button>
 
       <CampaignName value={campaign.name} onChange={(name) => set({ name })} />
 
@@ -243,12 +282,11 @@ function ListView({
         <span className="mt-px shrink-0 text-[#0F6CBD]">
           <IconSpark />
         </span>
-        Ask Copilot to fill or change the subject and banner, or open any block to edit it yourself.
-      </p>
+        {t("Ask Copilot to fill or change the subject and banner, or open any block to edit it yourself.")}</p>
 
-      <ul className="mt-3 overflow-hidden rounded-[var(--r-md)] border border-line bg-surface" aria-label="Blocks in this email">
-        <Row thumb={<Thumb kind="settings" />} title="Email settings" summary={campaign.subject || 'Subject, theme, font, width'} onClick={() => onOpen({ kind: 'settings' })} />
-        <Row thumb={<Thumb kind="banner" />} title="Banner" summary={bannerSummary} onClick={() => onOpen({ kind: 'banner' })} />
+      <ul className="mt-3 overflow-hidden rounded-[var(--r-md)] border border-line bg-surface" aria-label={t("Blocks in this email")}>
+        <Row thumb={<Thumb kind="settings" />} title={t("Email settings")} summary={campaign.subject || t("Subject, theme, font, width")} onClick={() => onOpen({ kind: 'settings' })} />
+        <Row thumb={<Thumb kind="banner" />} title={t("Banner")} summary={bannerSummary} onClick={() => onOpen({ kind: 'banner' })} />
         {design.blocks.map((block) => (
           <Row
             key={block.id}
@@ -259,10 +297,10 @@ function ListView({
             onClick={() => onOpen({ kind: 'block', id: block.id })}
           />
         ))}
-        <Row thumb={<Thumb kind="footer" />} title="Footer" summary={footerSummary} onClick={() => onOpen({ kind: 'footer' })} />
+        <Row thumb={<Thumb kind="footer" />} title={t("Footer")} summary={footerSummary} onClick={() => onOpen({ kind: 'footer' })} />
       </ul>
       {design.blocks.length === 0 ? (
-        <p className="mt-3 text-center text-[13px] text-muted">No blocks between the banner and footer yet. Use Add block below.</p>
+        <p className="mt-3 text-center text-[13px] text-muted">{t("No blocks between the banner and footer yet. Use Add block below.")}</p>
       ) : null}
     </div>
   )
@@ -288,7 +326,7 @@ function CampaignName({ value, onChange }: { value: string; onChange: (value: st
         <input
           ref={input}
           value={draft}
-          aria-label="Campaign name"
+          aria-label={t("Campaign name")}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={commit}
           onKeyDown={(event) => {
@@ -307,13 +345,13 @@ function CampaignName({ value, onChange }: { value: string; onChange: (value: st
             setDraft(value)
             setEditing(true)
           }}
-          title="Rename"
+          title={t("Rename")}
           className="-mx-1 block max-w-full truncate rounded-[var(--r-sm)] px-1 text-left text-[20px] font-semibold leading-7 text-ink hover:bg-fill"
         >
-          {value || 'Untitled campaign'}
+          {value || t("Untitled campaign")}
         </button>
       )}
-      <p className="mt-0.5 text-[12px] text-muted">Click the name to rename. Only shown in this app.</p>
+      <p className="mt-0.5 text-[12px] text-muted">{t("Click the name to rename. Only shown in this app.")}</p>
     </div>
   )
 }
@@ -365,8 +403,7 @@ function DetailView({
         className="-ml-1 flex items-center gap-1 rounded-[var(--r-sm)] px-1 py-0.5 text-[13px] font-semibold text-forest hover:bg-forest-soft"
       >
         <IconChevron className="rotate-90" />
-        All blocks
-      </button>
+        {t("All blocks")}</button>
       <div className="mt-3 mb-3 flex items-center gap-2">
         <h3 className="min-w-0 flex-1 truncate text-[18px] font-semibold leading-6 text-ink">{title}</h3>
         {actions}
@@ -398,16 +435,16 @@ function BlockActions({
   return (
     <div className="flex shrink-0 items-center gap-0.5">
       <span className="mr-1 text-[12px] text-muted">
-        {index + 1} of {blocks.length}
+        {t('{n} of {total}', { n: index + 1, total: blocks.length })}
       </span>
-      <IconButton label="Move up" disabled={index === 0} onClick={() => move(-1)}>
+      <IconButton label={t("Move up")} disabled={index === 0} onClick={() => move(-1)}>
         <IconChevron className="rotate-180" />
       </IconButton>
-      <IconButton label="Move down" disabled={index === blocks.length - 1} onClick={() => move(1)}>
+      <IconButton label={t("Move down")} disabled={index === blocks.length - 1} onClick={() => move(1)}>
         <IconChevron />
       </IconButton>
       <IconButton
-        label="Duplicate block"
+        label={t("Duplicate block")}
         onClick={() => {
           const copy = cloneBlock(block)
           onChange([...blocks.slice(0, index + 1), copy, ...blocks.slice(index + 1)])
@@ -416,7 +453,7 @@ function BlockActions({
       >
         <IconDuplicate />
       </IconButton>
-      <IconButton label="Delete block" danger onClick={() => onChange(blocks.filter((item) => item.id !== block.id))}>
+      <IconButton label={t("Delete block")} danger onClick={() => onChange(blocks.filter((item) => item.id !== block.id))}>
         <IconTrash />
       </IconButton>
     </div>
@@ -455,19 +492,17 @@ function BottomBar({
             ref={nameInput}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            aria-label="Template name"
-            placeholder="Template name"
+            aria-label={t("Template name")}
+            placeholder={t("Template name")}
             className="ui-field ui-field-sm min-w-0 flex-1 basis-40"
             onKeyDown={(event) => {
               if (event.key === 'Escape') setNaming(false)
             }}
           />
           <button type="submit" className="ui-btn ui-btn-primary min-h-8 px-3 py-1 text-[13px]">
-            Save template
-          </button>
+            {t("Save template")}</button>
           <button type="button" className="ui-btn ui-btn-ghost min-h-8 px-3 py-1 text-[13px]" onClick={() => setNaming(false)}>
-            Cancel
-          </button>
+            {t("Cancel")}</button>
         </form>
       ) : (
         <div className="grid grid-cols-2 gap-2.5">
@@ -481,12 +516,11 @@ function BottomBar({
               className="ui-btn w-full gap-1.5 border border-forest bg-surface font-semibold text-forest hover:bg-forest-soft"
             >
               <IconPlus />
-              Add block
-            </button>
+              {t("Add block")}</button>
             {add.open ? (
               <div
                 role="menu"
-                aria-label="Add a block"
+                aria-label={t("Add a block")}
                 className="ui-popover absolute bottom-[calc(100%+8px)] left-0 z-30 max-h-[60vh] w-[min(320px,calc(100vw-32px))] overflow-auto p-1"
               >
                 {ADD_KINDS.map((kind) => (
@@ -519,8 +553,7 @@ function BottomBar({
             }}
           >
             <IconTemplate />
-            Save as template
-          </button>
+            {t("Save as template")}</button>
         </div>
       )}
     </div>

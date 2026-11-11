@@ -3,6 +3,11 @@ import { PRIVACY_URL, defaultDesign, writeDesign, type BodyBlock, type Newslette
 import { emptyCampaign } from '../seed'
 import { FY_MS_LOGO } from './hackathonFyImages'
 import { RT_BANNER_ART, RT_MS_LOGO_WHITE, RT_PARTNER_LOGO } from './registerTodayImages'
+import type { Lang } from '../../lib/i18n'
+import { starterT, type StarterT } from './lang'
+
+/** Starter text in the new email's language, set when a starter is built. */
+let T: StarterT = starterT('en')
 
 /*
  * Hackathons "Register Today": an invitation to a partner hackathon,
@@ -28,7 +33,7 @@ const REGISTER_URL = 'https://[registration-link]'
 
 const heading = (title: string, shade?: string): BodyBlock => ({ id: id(), kind: 'heading', title, color: DARK_TEAL, rule: '', size: 20, fill: '', outline: '', shade })
 const text = (html: string, shade?: string): BodyBlock => ({ id: id(), kind: 'text', html, shade })
-const register = (shade?: string): BodyBlock => ({ id: id(), kind: 'button', label: 'Register now', url: REGISTER_URL, align: 'left', color: DARK_TEAL, shade })
+const register = (shade?: string): BodyBlock => ({ id: id(), kind: 'button', label: T('Register now'), url: REGISTER_URL, align: 'left', color: DARK_TEAL, shade })
 const table = (rows: string[][], shade: string): BodyBlock => ({
   id: id(),
   kind: 'table',
@@ -43,8 +48,9 @@ const table = (rows: string[][], shade: string): BodyBlock => ({
   shade,
 })
 
-export function registerTodayStarter(): CampaignBundle {
-  const base = defaultDesign()
+export function registerTodayStarter(lang: Lang = 'en'): CampaignBundle {
+  T = starterT(lang)
+  const base = defaultDesign(lang)
   const design: NewsletterDesign = {
     ...base,
     style: {
@@ -72,14 +78,14 @@ export function registerTodayStarter(): CampaignBundle {
       logoBar: true,
     },
     blocks: [
-      heading('Join us for the Microsoft [Partner] Global Hackathon!'),
+      heading(T('Join us for the Microsoft [Partner] Global Hackathon!')),
       text(
-        '<p>We’re excited to invite you to explore the upcoming <strong>Microsoft [Partner] Global Hackathon</strong> event. These immersive experiences are designed to spark innovation, giving you the chance to build, experiment, and create impactful solutions. Hackathon themes cover <strong>[themes, e.g. Building AI Agents using Microsoft AI Foundry &amp; Fabric solutions]</strong>. Take part in this transformative experience and empower yourself to drive innovation with AI.</p>',
+        T('<p>We’re excited to invite you to explore the upcoming <strong>Microsoft [Partner] Global Hackathon</strong> event. These immersive experiences are designed to spark innovation, giving you the chance to build, experiment, and create impactful solutions. Hackathon themes cover <strong>[themes, e.g. Building AI Agents using Microsoft AI Foundry &amp; Fabric solutions]</strong>. Take part in this transformative experience and empower yourself to drive innovation with AI.</p>'),
       ),
       {
         id: id(),
         kind: 'callout',
-        html: `<p style="text-align:center"><span style="font-size:20px;color:${DARK_TEAL}">[Start date] – [End date], [Year]</span><br>[Start time] [Time zone]</p>`,
+        html: `<p style="text-align:center"><span style="font-size:20px;color:${DARK_TEAL}">${T('[Start date] – [End date], [Year]')}</span><br>${T('[Start time] [Time zone]')}</p>`,
         background: '#FFFFFF',
         showRule: false,
         rule: '',
@@ -87,59 +93,59 @@ export function registerTodayStarter(): CampaignBundle {
         border: TEAL,
       },
       text(
-        '<p>Bring your best ideas to the challenge—<strong>our top teams will earn [prizes, e.g. major prizes, including an exclusive celebration experience with standout gifts]</strong>. This is your chance to innovate, compete, and shine on a global stage.</p>',
+        T('<p>Bring your best ideas to the challenge—<strong>our top teams will earn [prizes, e.g. major prizes, including an exclusive celebration experience with standout gifts]</strong>. This is your chance to innovate, compete, and shine on a global stage.</p>'),
       ),
       register(),
 
-      heading('Gain technical expertise from Hack Prep Workshops', LIGHT_TEAL),
+      heading(T('Gain technical expertise from Hack Prep Workshops'), LIGHT_TEAL),
       text(
-        '<p>Delivered by Microsoft Subject Matter Experts (SMEs), these preparatory sessions empower attendees to showcase the potential of each technology and demonstrate how it can be applied to build real-world solutions.</p>',
+        T('<p>Delivered by Microsoft Subject Matter Experts (SMEs), these preparatory sessions empower attendees to showcase the potential of each technology and demonstrate how it can be applied to build real-world solutions.</p>'),
         LIGHT_TEAL,
       ),
       table(
         [
-          ['Date', 'Live Workshops'],
-          ['[DD-Mon-YYYY]', '[Workshop topic]'],
-          ['[DD-Mon-YYYY]', '[Workshop topic]'],
-          ['[DD-Mon-YYYY]', '[Workshop topic]'],
+          [T('Date'), T('Live Workshops')],
+          [T('[DD-Mon-YYYY]'), T('[Workshop topic]')],
+          [T('[DD-Mon-YYYY]'), T('[Workshop topic]')],
+          [T('[DD-Mon-YYYY]'), T('[Workshop topic]')],
         ],
         LIGHT_TEAL,
       ),
       text(
-        '<p>Attendees can <strong>also leverage self-paced courses</strong> to develop comprehensive expertise, enabling them to master advanced concepts at their own pace and reinforce hands-on learning from the workshops.</p>',
+        T('<p>Attendees can <strong>also leverage self-paced courses</strong> to develop comprehensive expertise, enabling them to master advanced concepts at their own pace and reinforce hands-on learning from the workshops.</p>'),
         LIGHT_TEAL,
       ),
       table(
         [
-          ['Format', 'Self-Paced Course Titles'],
-          ['Self-Paced', '[Course title](https://course-link)'],
-          ['Self-Paced', '[Course title](https://course-link)'],
-          ['Self-Paced', '[Course title](https://course-link)'],
+          [T('Format'), T('Self-Paced Course Titles')],
+          [T('Self-Paced'), T('[Course title](https://course-link)')],
+          [T('Self-Paced'), T('[Course title](https://course-link)')],
+          [T('Self-Paced'), T('[Course title](https://course-link)')],
         ],
         LIGHT_TEAL,
       ),
 
-      heading('Bring your ideas to life at the Hackathon!', WARM_WHITE),
+      heading(T('Bring your ideas to life at the Hackathon!'), WARM_WHITE),
       text(
-        '<p>You’ll work in a dynamic, team-based environment—gaining not only technical experience but also valuable mentorship and guidance from dedicated Microsoft subject matter experts. It’s a great opportunity to learn, create, and make a real impact.</p>',
+        T('<p>You’ll work in a dynamic, team-based environment—gaining not only technical experience but also valuable mentorship and guidance from dedicated Microsoft subject matter experts. It’s a great opportunity to learn, create, and make a real impact.</p>'),
         WARM_WHITE,
       ),
       table(
         [
-          ['Date', 'Stages'],
-          ['[DD-Mon-YYYY]', 'Hackathon – Ideation & Submission'],
-          ['[DD-Mon-YYYY]', 'Hackathon – Build & Submission'],
-          ['[DD-Mon-YYYY]', 'Hackathon – Evaluation'],
-          ['[DD-Mon-YYYY]', 'Hackathon Conclusion & Recognition'],
+          [T('Date'), T('Stages')],
+          [T('[DD-Mon-YYYY]'), T('Hackathon – Ideation & Submission')],
+          [T('[DD-Mon-YYYY]'), T('Hackathon – Build & Submission')],
+          [T('[DD-Mon-YYYY]'), T('Hackathon – Evaluation')],
+          [T('[DD-Mon-YYYY]'), T('Hackathon Conclusion & Recognition')],
         ],
         WARM_WHITE,
       ),
       text(
-        '<p>Participants will gain practical experience in [what they will learn, e.g. orchestrating AI agents and integrating advanced capabilities into real-world applications].</p>',
+        T('<p>Participants will gain practical experience in [what they will learn, e.g. orchestrating AI agents and integrating advanced capabilities into real-world applications].</p>'),
         WARM_WHITE,
       ),
       text(
-        '<p><strong>Looking to complete your year-end CRT requirements?</strong><br>This hackathon is the perfect springboard. The live workshops and self-paced courses included in the program map directly to the foundational learning behind several key certifications. While exams are still required, you’ll walk away with the knowledge, practice, and confidence to fast-track your CRT requirements and finish the year strong.</p>',
+        T('<p><strong>Looking to complete your year-end CRT requirements?</strong><br>This hackathon is the perfect springboard. The live workshops and self-paced courses included in the program map directly to the foundational learning behind several key certifications. While exams are still required, you’ll walk away with the knowledge, practice, and confidence to fast-track your CRT requirements and finish the year strong.</p>'),
         WARM_WHITE,
       ),
       register(WARM_WHITE),
@@ -148,22 +154,22 @@ export function registerTodayStarter(): CampaignBundle {
       ...base.footer,
       background: DARK_TEAL,
       text: '#FFFFFF',
-      html: `<p><span style="font-size:11px">Let me know if you’d prefer I not forward you these communications. To learn how to manage your contact preferences for other parts of Microsoft, please read our <a href="${PRIVACY_URL}">Privacy Statement</a>.</span></p>`,
+      html: `<p><span style="font-size:11px">${T('Let me know if you’d prefer I not forward you these communications. To learn how to manage your contact preferences for other parts of Microsoft, please read our <a href="{privacy}">Privacy Statement</a>.', { privacy: PRIVACY_URL })}</span></p>`,
       links: [],
       showMark: true,
       logo: RT_MS_LOGO_WHITE,
-      legal: 'Microsoft Corporation\nOne Microsoft Way\nRedmond, WA 98052 USA\n© [Year] Microsoft Corporation. All rights reserved.',
+      legal: T('Microsoft Corporation\nOne Microsoft Way\nRedmond, WA 98052 USA\n© [Year] Microsoft Corporation. All rights reserved.'),
     },
   }
 
-  const campaign = emptyCampaign('hackathon')
+  const campaign = emptyCampaign('hackathon', lang)
   return {
     campaign: {
       ...campaign,
-      name: 'Register Today',
-      subject: 'Invitation for the [Partner] Microsoft [Event name] Hackathon event | [Start date] - [End date], [Year]',
+      name: T('Register Today'),
+      subject: T('Invitation for the [Partner] Microsoft [Event name] Hackathon event | [Start date] - [End date], [Year]'),
       kicker: '',
-      title: 'Microsoft [Event name] Hackathon',
+      title: T('Microsoft [Event name] Hackathon'),
       subtitle: '',
       register_label: '',
       register_url: '',

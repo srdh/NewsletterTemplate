@@ -30,47 +30,120 @@ import { Field, ImageField, Section, Subheading } from './FieldForm'
 import { IconChevron, IconDuplicate, IconPlus, IconTrash } from './Icons'
 import { EditorLookContext, RichTextEditor } from './RichTextEditor'
 import { FONTS, FONT_SIZES, fontStack } from '../lib/fonts'
+import { t } from '../lib/i18n'
 
 export const KIND_LABEL: Record<BlockKind, string> = {
-  text: 'Text',
-  callout: 'Callout',
-  image: 'Image',
-  button: 'Button',
-  divider: 'Divider',
-  card: 'Card',
-  media: 'Image + text',
-  section: 'Colour band',
-  event: 'Event card',
-  table: 'Table',
-  spotlights: 'Spotlight cards',
-  signature: 'Signature',
-  heading: 'Heading',
-  details: 'Details',
-  stats: 'Number tiles',
-  columns: 'Columns',
-  gallery: 'Photo gallery',
-  people: 'People',
+  get text() {
+    return t("Text")
+  },
+  get callout() {
+    return t("Callout")
+  },
+  get image() {
+    return t("Image")
+  },
+  get button() {
+    return t("Button")
+  },
+  get divider() {
+    return t("Divider")
+  },
+  get card() {
+    return t("Card")
+  },
+  get media() {
+    return t("Image + text")
+  },
+  get section() {
+    return t("Colour band")
+  },
+  get event() {
+    return t("Event card")
+  },
+  get table() {
+    return t("Table")
+  },
+  get spotlights() {
+    return t("Spotlight cards")
+  },
+  get signature() {
+    return t("Signature")
+  },
+  get heading() {
+    return t("Heading")
+  },
+  get details() {
+    return t("Details")
+  },
+  get stats() {
+    return t("Number tiles")
+  },
+  get columns() {
+    return t("Columns")
+  },
+  get gallery() {
+    return t("Photo gallery")
+  },
+  get people() {
+    return t("People")
+  },
 }
 
 export const KIND_HINT: Record<BlockKind, string> = {
-  text: 'Paragraphs, headings, lists, links',
-  callout: 'Shaded box for an action or note',
-  image: 'Full-width picture, optional link',
-  button: 'Call-to-action button',
-  divider: 'Thin line between sections',
-  card: 'Bordered box that holds its own text, buttons, and images',
-  media: 'Picture beside rich text, e.g. a badge and its list',
-  section: 'Full-width coloured band with its own text colour',
-  event: 'Date, time, place, details, and a button',
-  table: 'Rows and columns, with an optional header row',
-  spotlights: 'Two or three cards side by side',
-  signature: 'Sign-off with name, role, team, and email',
-  heading: 'A section heading with an optional line under it',
-  details: 'Label : value rows in a box, e.g. login details',
-  stats: 'Big numbers with labels, e.g. 28 Hackathons',
-  columns: 'Two or three columns of text, each with a title',
-  gallery: 'Photos in a grid of two or three',
-  people: 'Names, roles, and round photos, e.g. sponsors',
+  get text() {
+    return t("Paragraphs, headings, lists, links")
+  },
+  get callout() {
+    return t("Shaded box for an action or note")
+  },
+  get image() {
+    return t("Full-width picture, optional link")
+  },
+  get button() {
+    return t("Call-to-action button")
+  },
+  get divider() {
+    return t("Thin line between sections")
+  },
+  get card() {
+    return t("Bordered box that holds its own text, buttons, and images")
+  },
+  get media() {
+    return t("Picture beside rich text, e.g. a badge and its list")
+  },
+  get section() {
+    return t("Full-width coloured band with its own text colour")
+  },
+  get event() {
+    return t("Date, time, place, details, and a button")
+  },
+  get table() {
+    return t("Rows and columns, with an optional header row")
+  },
+  get spotlights() {
+    return t("Two or three cards side by side")
+  },
+  get signature() {
+    return t("Sign-off with name, role, team, and email")
+  },
+  get heading() {
+    return t("A section heading with an optional line under it")
+  },
+  get details() {
+    return t("Label : value rows in a box, e.g. login details")
+  },
+  get stats() {
+    return t("Big numbers with labels, e.g. 28 Hackathons")
+  },
+  get columns() {
+    return t("Two or three columns of text, each with a title")
+  },
+  get gallery() {
+    return t("Photos in a grid of two or three")
+  },
+  get people() {
+    return t("Names, roles, and round photos, e.g. sponsors")
+  },
 }
 
 /** What can go in the email body, and what can go inside a card. */
@@ -140,9 +213,9 @@ export function StyleSection({
   patch: Patch
 }) {
   return (
-    <Section title="Style" anchor="style" noCopilot>
+    <Section title={t("Style")} anchor="style" noCopilot>
       <div>
-        <span className="mb-1.5 block text-[12px] font-medium text-muted">Theme</span>
+        <span className="mb-1.5 block text-[12px] font-medium text-muted">{t("Theme")}</span>
         <Cols className="gap-1.5 @[22rem]:grid-cols-2 @[30rem]:grid-cols-3">
           {THEMES.map((theme) => {
             const on =
@@ -180,21 +253,21 @@ export function StyleSection({
       </div>
       <Cols className="gap-3.5 @[22rem]:grid-cols-2">
         <ColorField
-          label="Accent colour"
-          hint="Headings, buttons, and the callout rule."
+          label={t("Accent colour")}
+          hint={t("Headings, buttons, and the callout rule.")}
           value={design.style.accent}
           onChange={(accent) => patch('style', { accent })}
         />
         <ColorField
-          label="Link colour"
-          hint="Links in the body and cards."
+          label={t("Link colour")}
+          hint={t("Links in the body and cards.")}
           value={design.style.link}
           onChange={(link) => patch('style', { link })}
         />
       </Cols>
       <Cols className="gap-3.5 @[22rem]:grid-cols-[1fr_auto]">
         <label className="block">
-          <span className="mb-1 block text-[12px] font-medium text-muted">Font</span>
+          <span className="mb-1 block text-[12px] font-medium text-muted">{t("Font")}</span>
           <select
             value={design.style.font}
             onChange={(event) => patch('style', { font: event.target.value })}
@@ -207,10 +280,10 @@ export function StyleSection({
               </option>
             ))}
           </select>
-          <span className="mt-1 block text-[11px] text-muted">For the whole email. Change single words with the toolbar.</span>
+          <span className="mt-1 block text-[11px] text-muted">{t("For the whole email. Change single words with the toolbar.")}</span>
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12px] font-medium text-muted">Text size</span>
+          <span className="mb-1 block text-[12px] font-medium text-muted">{t("Text size")}</span>
           <select
             value={String(design.style.size)}
             onChange={(event) => patch('style', { size: Number(event.target.value) })}
@@ -225,24 +298,24 @@ export function StyleSection({
         </label>
       </Cols>
       <Segmented
-        label="Email width"
+        label={t("Email width")}
         value={String(design.style.width)}
         options={WIDTHS.map((w) => [String(w), `${w}px`])}
         onChange={(width) => patch('style', { width: Number(width) })}
       />
       <Cols className="gap-3.5 @[22rem]:grid-cols-2">
         <ColorField
-          label="Email body colour"
+          label={t("Email body colour")}
           value={design.style.paper}
           onChange={(paper) => patch('style', { paper })}
         />
         <ColorField
-          label="Around the email"
+          label={t("Around the email")}
           value={design.style.canvas}
           onChange={(canvas) => patch('style', { canvas })}
         />
       </Cols>
-      <OptionalColor label="Border around the email" value={design.style.frame} fallback="#D1D1D1" onChange={(frame) => patch('style', { frame })} />
+      <OptionalColor label={t("Border around the email")} value={design.style.frame} fallback="#D1D1D1" onChange={(frame) => patch('style', { frame })} />
     </Section>
   )
 }
@@ -262,92 +335,92 @@ export function BannerSection({
   const b = design.banner
   const needsImage = b.layout !== 'band'
   return (
-    <Section title="Banner" anchor="banner">
+    <Section title={t("Banner")} anchor="banner">
       <Segmented
-        label="Layout"
+        label={t("Layout")}
         value={b.layout}
         options={LAYOUTS}
         onChange={(layout) => patch('banner', { layout: layout as BannerLayout })}
       />
       {needsImage ? (
         <ImageField
-          label={b.layout === 'image' ? 'Banner image' : 'Banner art'}
+          label={b.layout === 'image' ? t("Banner image") : t("Banner art")}
           hint={
             b.layout === 'image'
-              ? 'Shown edge to edge at the top. A wide image with the headline in it works well (about 1280 × 720).'
-              : 'Shown to the right of the headline. Transparent PNGs work best.'
+              ? t("Shown edge to edge at the top. A wide image with the headline in it works well (about 1280 × 720).")
+              : t("Shown to the right of the headline. Transparent PNGs work best.")
           }
           value={campaign.banner_image ?? ''}
-          fallbackLabel="No image yet. The banner shows as a colour band until you add one."
+          fallbackLabel={t("No image yet. The banner shows as a colour band until you add one.")}
           maxWidth={b.layout === 'image' ? 1440 : 400}
           onChange={(banner_image) => set({ banner_image })}
         />
       ) : null}
       {b.layout === 'image' ? (
         <Field
-          label="Banner image alt text"
-          hint="Say what the picture says, for screen readers and blocked images."
+          label={t("Banner image alt text")}
+          hint={t("Say what the picture says, for screen readers and blocked images.")}
           value={b.imageAlt}
           onChange={(imageAlt) => patch('banner', { imageAlt })}
         />
       ) : null}
-      <Field label="Eyebrow" hint="Small line above the headline." value={campaign.kicker} onChange={(kicker) => set({ kicker })} />
+      <Field label={t("Eyebrow")} hint={t("Small line above the headline.")} value={campaign.kicker} onChange={(kicker) => set({ kicker })} />
       <Field
-        label="Headline"
-        hint={b.layout === 'image' ? 'Optional with a full image: leave empty when the image carries the headline.' : undefined}
+        label={t("Headline")}
+        hint={b.layout === 'image' ? t("Optional with a full image: leave empty when the image carries the headline.") : undefined}
         value={campaign.title}
         onChange={(title) => set({ title })}
       />
-      <Field label="Subheadline" value={campaign.subtitle} onChange={(subtitle) => set({ subtitle })} />
+      <Field label={t("Subheadline")} value={campaign.subtitle} onChange={(subtitle) => set({ subtitle })} />
       <Segmented
-        label="Text alignment"
+        label={t("Text alignment")}
         value={b.align}
         options={ALIGNS}
         onChange={(align) => patch('banner', { align: align as Align })}
       />
-      <Subheading>Logo row</Subheading>
+      <Subheading>{t("Logo row")}</Subheading>
       <Cols className="gap-3.5 @[22rem]:grid-cols-[1fr_auto]">
         <Field
-          label="Date label"
-          hint="Right side of the logo row, e.g. November 2026."
+          label={t("Date label")}
+          hint={t("Right side of the logo row, e.g. November 2026.")}
           value={b.dateLabel}
           onChange={(dateLabel) => patch('banner', { dateLabel })}
         />
-        <Toggle label="Microsoft logo" checked={b.showMark} onChange={(showMark) => patch('banner', { showMark })} />
+        <Toggle label={t("Microsoft logo")} checked={b.showMark} onChange={(showMark) => patch('banner', { showMark })} />
       </Cols>
       {b.layout !== 'image' ? (
         <Toggle
-          label="Logo row on a white strip above the banner"
+          label={t("Logo row on a white strip above the banner")}
           checked={b.logoBar}
           onChange={(logoBar) => patch('banner', { logoBar })}
         />
       ) : null}
       {b.showMark ? (
         <ImageField
-          label="Logo image (optional)"
-          hint="Replaces the four-square mark, e.g. the full Microsoft logo. Shown 30px tall."
+          label={t("Logo image (optional)")}
+          hint={t("Replaces the four-square mark, e.g. the full Microsoft logo. Shown 30px tall.")}
           value={b.logo}
-          fallbackLabel="Four-square mark"
+          fallbackLabel={t("Four-square mark")}
           maxWidth={480}
           onChange={(logo) => patch('banner', { logo })}
         />
       ) : null}
       <ImageField
-        label="Right-side logo (optional)"
-        hint="A partner or event logo on the right of the logo row. Replaces the date label. Shown 30px tall."
+        label={t("Right-side logo (optional)")}
+        hint={t("A partner or event logo on the right of the logo row. Replaces the date label. Shown 30px tall.")}
         value={b.rightLogo}
-        fallbackLabel="None"
+        fallbackLabel={t("None")}
         maxWidth={480}
         onChange={(rightLogo) => patch('banner', { rightLogo })}
       />
       <Cols className="gap-3.5 @[22rem]:grid-cols-2">
-        <ColorField label="Banner colour" value={b.background} onChange={(background) => patch('banner', { background })} />
-        <ColorField label="Banner text" value={b.text} onChange={(text) => patch('banner', { text })} />
+        <ColorField label={t("Banner colour")} value={b.background} onChange={(background) => patch('banner', { background })} />
+        <ColorField label={t("Banner text")} value={b.text} onChange={(text) => patch('banner', { text })} />
       </Cols>
-      <Subheading>Banner button (optional)</Subheading>
+      <Subheading>{t("Banner button (optional)")}</Subheading>
       <Cols className="gap-3.5 @[22rem]:grid-cols-2">
-        <Field label="Button label" value={campaign.register_label} onChange={(register_label) => set({ register_label })} />
-        <Field label="Button link" value={campaign.register_url} onChange={(register_url) => set({ register_url })} />
+        <Field label={t("Button label")} value={campaign.register_label} onChange={(register_label) => set({ register_label })} />
+        <Field label={t("Button link")} value={campaign.register_url} onChange={(register_url) => set({ register_url })} />
       </Cols>
     </Section>
   )
@@ -355,11 +428,9 @@ export function BannerSection({
 
 function BodySection({ design, save }: { design: NewsletterDesign; save: (next: NewsletterDesign) => void }) {
   return (
-    <Section title="Body" anchor="body" noCopilot>
+    <Section title={t("Body")} anchor="body" noCopilot>
       <p className="-mt-2 text-[12px] leading-4 text-muted">
-        The newsletter body is a stack of blocks. Write in text blocks with the toolbar (headings, bold, colour, lists,
-        links). Cards group text and buttons in a bordered box; colour bands span the full width.
-      </p>
+        {t("The newsletter body is a stack of blocks. Write in text blocks with the toolbar (headings, bold, colour, lists, links). Cards group text and buttons in a bordered box; colour bands span the full width.")}</p>
       <BlockList
         blocks={design.blocks}
         kinds={BODY_KINDS}
@@ -435,14 +506,14 @@ function BlockList({
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2.5">
       {blocks.length === 0 ? (
         <p className="rounded-[var(--r-md)] border border-dashed border-line-strong px-3 py-4 text-center text-[13px] text-muted">
-          {nested ? 'This card is empty. Add a text block or a button.' : 'No blocks yet. Add a text block to start writing.'}
+          {nested ? t("This card is empty. Add a text block or a button.") : t("No blocks yet. Add a text block to start writing.")}
         </p>
       ) : null}
       <ol className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
         {blocks.map((block, index) => {
           const open = !closedIds.has(block.id)
           const update = (next: BodyBlock) => onChange(blocks.map((item) => (item.id === block.id ? next : item)))
-          const name = nested ? `${owner} · ${KIND_LABEL[block.kind].toLowerCase()} ${index + 1}` : `${KIND_LABEL[block.kind]} block ${index + 1}`
+          const name = nested ? `${owner} · ${KIND_LABEL[block.kind].toLowerCase()} ${index + 1}` : t('{kind} block {n}', { kind: KIND_LABEL[block.kind], n: index + 1 })
           return (
             <li
               key={block.id}
@@ -466,20 +537,20 @@ function BlockList({
                   </span>
                   <span className="min-w-0 truncate text-[12px] leading-4 text-muted">{blockSummary(block)}</span>
                 </button>
-                <IconButton label="Move up" disabled={index === 0} onClick={() => move(index, -1)}>
+                <IconButton label={t("Move up")} disabled={index === 0} onClick={() => move(index, -1)}>
                   <IconChevron className="rotate-180" />
                 </IconButton>
-                <IconButton label="Move down" disabled={index === blocks.length - 1} onClick={() => move(index, 1)}>
+                <IconButton label={t("Move down")} disabled={index === blocks.length - 1} onClick={() => move(index, 1)}>
                   <IconChevron />
                 </IconButton>
                 <IconButton
-                  label="Duplicate block"
+                  label={t("Duplicate block")}
                   onClick={() => onChange([...blocks.slice(0, index + 1), cloneBlock(block), ...blocks.slice(index + 1)])}
                 >
                   <IconDuplicate />
                 </IconButton>
                 <IconButton
-                  label="Delete block"
+                  label={t("Delete block")}
                   danger
                   onClick={() => onChange(blocks.filter((item) => item.id !== block.id))}
                 >
@@ -503,7 +574,7 @@ function BlockList({
         })}
       </ol>
       <div className={'rounded-[var(--r-md)] p-2 ' + (nested ? 'border border-dashed border-line-strong' : 'bg-fill')}>
-        <p className="px-1 pb-1.5 text-[12px] font-semibold leading-4 text-ink-2">{nested ? `Add to ${owner}` : 'Add a block'}</p>
+        <p className="px-1 pb-1.5 text-[12px] font-semibold leading-4 text-ink-2">{nested ? t('Add to {owner}', { owner: owner ?? '' }) : t("Add a block")}</p>
         <Cols className="gap-1.5 @[14rem]:grid-cols-2 @[24rem]:grid-cols-3 @[30rem]:grid-cols-4">
           {kinds.map((kind) => (
             <button
@@ -534,39 +605,39 @@ export function blockSummary(block: BodyBlock): string {
     case 'text':
     case 'callout':
     case 'section':
-      return isRichEmpty(block.html) ? 'Empty' : plain(block.html)
+      return isRichEmpty(block.html) ? t("Empty") : plain(block.html)
     case 'media':
-      return isRichEmpty(block.html) ? (block.src ? 'Image, no text yet' : 'Empty') : plain(block.html)
+      return isRichEmpty(block.html) ? (block.src ? t("Image, no text yet") : t("Empty")) : plain(block.html)
     case 'card': {
       const first = block.items.find((item) => item.kind === 'text' && !isRichEmpty(item.html))
-      const count = `${block.items.length} item${block.items.length === 1 ? '' : 's'}`
+      const count = t(block.items.length === 1 ? '{n} item' : '{n} items', { n: block.items.length })
       return first && first.kind === 'text' ? `${plain(first.html)} · ${count}` : count
     }
     case 'image':
-      return block.src ? block.alt || block.caption || 'Image added' : 'No image yet'
+      return block.src ? block.alt || block.caption || t("Image added") : t("No image yet")
     case 'button':
-      return block.label || 'No label'
+      return block.label || t("No label")
     case 'event':
-      return block.title || [block.date, block.time].filter(Boolean).join(' · ') || 'Event details'
+      return block.title || [block.date, block.time].filter(Boolean).join(' · ') || t("Event details")
     case 'table': {
       const rows = block.rows.length - (block.header ? 1 : 0)
-      return `${rows} row${rows === 1 ? '' : 's'}${block.title ? ` · ${block.title}` : ''}`
+      return t(rows === 1 ? '{n} row' : '{n} rows', { n: rows }) + (block.title ? ` · ${block.title}` : '')
     }
     case 'spotlights':
-      return `${block.cards.length} card${block.cards.length === 1 ? '' : 's'}`
+      return t(block.cards.length === 1 ? '{n} card' : '{n} cards', { n: block.cards.length })
     case 'signature':
-      return [block.name, block.team].filter(Boolean).join(', ') || 'No name yet'
+      return [block.name, block.team].filter(Boolean).join(', ') || t("No name yet")
     case 'heading':
-      return block.title || 'No heading yet'
+      return block.title || t("No heading yet")
     case 'details':
-      return [block.title, `${block.rows.length} row${block.rows.length === 1 ? '' : 's'}`].filter(Boolean).join(' · ')
+      return [block.title, t(block.rows.length === 1 ? '{n} row' : '{n} rows', { n: block.rows.length })].filter(Boolean).join(' · ')
     case 'stats':
-      return block.tiles.map((tile) => `${tile.value} ${tile.label}`.trim()).join(' · ') || 'No tiles yet'
+      return block.tiles.map((tile) => `${tile.value} ${tile.label}`.trim()).join(' · ') || t("No tiles yet")
     case 'columns':
-      return block.columns.map((column) => column.title).filter(Boolean).join(' · ') || `${block.columns.length} columns`
+      return block.columns.map((column) => column.title).filter(Boolean).join(' · ') || t('{n} columns', { n: block.columns.length })
     case 'gallery': {
       const added = block.images.filter((image) => image.src).length
-      return `${added} of ${block.images.length} photo${block.images.length === 1 ? '' : 's'} added`
+      return t(block.images.length === 1 ? '{added} of {n} photo added' : '{added} of {n} photos added', { added, n: block.images.length })
     }
     case 'people':
       return [block.title, `${block.people.length} ${block.people.length === 1 ? 'person' : 'people'}`].filter(Boolean).join(' · ')
@@ -596,7 +667,7 @@ export function BlockEditor({
       return (
         <RichTextEditor
           label={name}
-          placeholder="Write a paragraph, add a heading, or paste from Word…"
+          placeholder={t("Write a paragraph, add a heading, or paste from Word…")}
           value={block.html}
           onChange={(html) => onChange({ ...block, html })}
         />
@@ -605,13 +676,13 @@ export function BlockEditor({
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
           <div>
-            <span className="mb-1 block text-[12px] font-medium text-muted">Shade</span>
+            <span className="mb-1 block text-[12px] font-medium text-muted">{t("Shade")}</span>
             <div className="flex flex-wrap items-center gap-1.5">
               {[...CALLOUT_COLORS, ...CALLOUT_DARK].map((color) => (
                 <button
                   key={color}
                   type="button"
-                  aria-label={`Shade ${color}`}
+                  aria-label={t('Shade {color}', { color })}
                   aria-pressed={block.background === color}
                   onClick={() => onChange({ ...block, background: color })}
                   className={
@@ -623,14 +694,14 @@ export function BlockEditor({
               ))}
             </div>
           </div>
-          <ColorField label="Shade colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+          <ColorField label={t("Shade colour")} value={block.background} onChange={(background) => onChange({ ...block, background })} />
           <Cols className="gap-3 @[22rem]:grid-cols-2">
             <div className="grid gap-1.5">
-              <Toggle label="Left rule" checked={block.showRule} onChange={(showRule) => onChange({ ...block, showRule })} />
+              <Toggle label={t("Left rule")} checked={block.showRule} onChange={(showRule) => onChange({ ...block, showRule })} />
               {block.showRule ? (
                 <AutoColor
-                  label="Rule colour"
-                  autoLabel="Accent"
+                  label={t("Rule colour")}
+                  autoLabel={t("Accent")}
                   autoSwatch={accent}
                   value={block.rule}
                   fallback={accent}
@@ -639,20 +710,20 @@ export function BlockEditor({
               ) : null}
             </div>
             <AutoColor
-              label="Text colour"
-              autoLabel="Automatic"
+              label={t("Text colour")}
+              autoLabel={t("Automatic")}
               autoSwatch={readableOn(block.background) === '#FFFFFF' ? '#FFFFFF' : '#242424'}
               value={block.text}
               fallback="#242424"
               onChange={(text) => onChange({ ...block, text })}
             />
           </Cols>
-          <OptionalColor label="Border" value={block.border ?? ''} fallback="#C7E0F4" onChange={(border) => onChange({ ...block, border })} />
+          <OptionalColor label={t("Border")} value={block.border ?? ''} fallback="#C7E0F4" onChange={(border) => onChange({ ...block, border })} />
           <CalloutSample block={block} accent={accent} />
           <RichTextEditor
             compact
             label={name}
-            placeholder="e.g. Action: invite your partners to register before Friday."
+            placeholder={t("e.g. Action: invite your partners to register before Friday.")}
             value={block.html}
             onChange={(html) => onChange({ ...block, html })}
             minHeight={72}
@@ -663,32 +734,32 @@ export function BlockEditor({
       return (
         <div className="grid gap-3">
           <ImageField
-            label="Image"
-            hint="Shown at full width. PNG, JPG, GIF, or WebP."
+            label={t("Image")}
+            hint={t("Shown at full width. PNG, JPG, GIF, or WebP.")}
             value={block.src}
-            fallbackLabel="No image yet"
+            fallbackLabel={t("No image yet")}
             maxWidth={1200}
             onChange={(src) => onChange({ ...block, src })}
           />
           <Field
-            label="Alt text"
-            hint="Read aloud by screen readers and shown when images are blocked."
+            label={t("Alt text")}
+            hint={t("Read aloud by screen readers and shown when images are blocked.")}
             value={block.alt}
             onChange={(alt) => onChange({ ...block, alt })}
           />
-          <Field label="Link (optional)" value={block.href} onChange={(href) => onChange({ ...block, href })} />
-          <Field label="Caption (optional)" value={block.caption} onChange={(caption) => onChange({ ...block, caption })} />
+          <Field label={t("Link (optional)")} value={block.href} onChange={(href) => onChange({ ...block, href })} />
+          <Field label={t("Caption (optional)")} value={block.caption} onChange={(caption) => onChange({ ...block, caption })} />
         </div>
       )
     case 'button':
       return (
         <div className="grid gap-3">
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <Field label="Button label" value={block.label} onChange={(label) => onChange({ ...block, label })} />
-            <Field label="Button link" value={block.url} onChange={(url) => onChange({ ...block, url })} />
+            <Field label={t("Button label")} value={block.label} onChange={(label) => onChange({ ...block, label })} />
+            <Field label={t("Button link")} value={block.url} onChange={(url) => onChange({ ...block, url })} />
           </Cols>
           <div>
-            <span className="mb-1 block text-[12px] font-medium text-muted">Button colour</span>
+            <span className="mb-1 block text-[12px] font-medium text-muted">{t("Button colour")}</span>
             <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
@@ -700,14 +771,13 @@ export function BlockEditor({
                 }
               >
                 <span className="h-3.5 w-3.5 rounded-full" style={{ background: accent }} />
-                Accent
-              </button>
+                {t("Accent")}</button>
               {BUTTON_COLORS.map(([color, label]) => (
                 <button
                   key={color}
                   type="button"
-                  title={label}
-                  aria-label={`${label} button`}
+                  title={t(label)}
+                  aria-label={t('{label} button', { label: t(label) })}
                   aria-pressed={block.color === color}
                   onClick={() => onChange({ ...block, color })}
                   className={
@@ -720,10 +790,10 @@ export function BlockEditor({
             </div>
           </div>
           {block.color ? (
-            <ColorField label="Custom colour" value={block.color} onChange={(color) => onChange({ ...block, color })} />
+            <ColorField label={t("Custom colour")} value={block.color} onChange={(color) => onChange({ ...block, color })} />
           ) : null}
           <Segmented
-            label="Position"
+            label={t("Position")}
             value={block.align}
             options={ALIGNS}
             onChange={(align) => onChange({ ...block, align: align as Align })}
@@ -734,9 +804,9 @@ export function BlockEditor({
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <ColorField label="Card colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <ColorField label={t("Card colour")} value={block.background} onChange={(background) => onChange({ ...block, background })} />
             <OptionalColor
-              label="Border"
+              label={t("Border")}
               value={block.border}
               fallback="#D4EC8E"
               onChange={(border) => onChange({ ...block, border })}
@@ -746,7 +816,7 @@ export function BlockEditor({
             blocks={block.items}
             kinds={CARD_KINDS}
             accent={accent}
-            owner={`Card ${index + 1}`}
+            owner={t('Card {n}', { n: index + 1 })}
             onChange={(items) => onChange({ ...block, items: items as InnerBlock[] })}
           />
           {cardActions ? (
@@ -755,16 +825,15 @@ export function BlockEditor({
                 <span className="text-forest">
                   <IconPlus />
                 </span>
-                Add a card like this
-              </button>
+                {t("Add a card like this")}</button>
               {cardActions.cardCount > 1 ? (
                 <button
                   type="button"
                   className="text-[12px] font-semibold text-forest hover:text-forest-deep hover:underline"
                   onClick={cardActions.styleAll}
-                  title="Give every card in this email this card colour and border"
+                  title={t("Give every card in this email this card colour and border")}
                 >
-                  Use this style for all {cardActions.cardCount} cards
+                  {t('Use this style for all {n} cards', { n: cardActions.cardCount })}
                 </button>
               ) : null}
             </div>
@@ -775,17 +844,17 @@ export function BlockEditor({
       return (
         <div className="grid gap-3">
           <ImageField
-            label="Picture"
-            hint="Shown on the left, e.g. a badge or logo."
+            label={t("Picture")}
+            hint={t("Shown on the left, e.g. a badge or logo.")}
             value={block.src}
-            fallbackLabel="No picture yet"
+            fallbackLabel={t("No picture yet")}
             maxWidth={400}
             onChange={(src) => onChange({ ...block, src })}
           />
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <Field label="Picture alt text" value={block.alt} onChange={(alt) => onChange({ ...block, alt })} />
+            <Field label={t("Picture alt text")} value={block.alt} onChange={(alt) => onChange({ ...block, alt })} />
             <Segmented
-              label="Picture width"
+              label={t("Picture width")}
               value={String(block.imageWidth)}
               options={[
                 ['120', 'S'],
@@ -797,14 +866,14 @@ export function BlockEditor({
           </Cols>
           <RichTextEditor
             label={name}
-            placeholder="Text beside the picture, e.g. a short intro and a list."
+            placeholder={t("Text beside the picture, e.g. a short intro and a list.")}
             value={block.html}
             onChange={(html) => onChange({ ...block, html })}
             minHeight={88}
           />
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <ColorField label="Row colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
-            <OptionalColor label="Border" value={block.border} fallback="#07641D" onChange={(border) => onChange({ ...block, border })} />
+            <ColorField label={t("Row colour")} value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <OptionalColor label={t("Border")} value={block.border} fallback="#07641D" onChange={(border) => onChange({ ...block, border })} />
           </Cols>
         </div>
       )
@@ -813,45 +882,45 @@ export function BlockEditor({
         <div className="grid gap-3">
           <RichTextEditor
             label={name}
-            placeholder="e.g. What’s coming next, with a heading and a list."
+            placeholder={t("e.g. What’s coming next, with a heading and a list.")}
             value={block.html}
             onChange={(html) => onChange({ ...block, html })}
           />
           <Cols className="gap-3 @[24rem]:grid-cols-3">
-            <ColorField label="Band colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
-            <ColorField label="Text" value={block.text} onChange={(text) => onChange({ ...block, text })} />
-            <ColorField label="Links" value={block.link} onChange={(link) => onChange({ ...block, link })} />
+            <ColorField label={t("Band colour")} value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <ColorField label={t("Text")} value={block.text} onChange={(text) => onChange({ ...block, text })} />
+            <ColorField label={t("Links")} value={block.link} onChange={(link) => onChange({ ...block, link })} />
           </Cols>
         </div>
       )
     case 'event':
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
-          <Field label="Title" value={block.title} onChange={(title) => onChange({ ...block, title })} />
+          <Field label={t("Title")} value={block.title} onChange={(title) => onChange({ ...block, title })} />
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <Field label="Date" value={block.date} onChange={(date) => onChange({ ...block, date })} />
-            <Field label="Time" value={block.time} onChange={(time) => onChange({ ...block, time })} />
+            <Field label={t("Date")} value={block.date} onChange={(date) => onChange({ ...block, date })} />
+            <Field label={t("Time")} value={block.time} onChange={(time) => onChange({ ...block, time })} />
           </Cols>
-          <Field label="Where" hint="A venue, city, or “Microsoft Teams (online)”." value={block.location} onChange={(location) => onChange({ ...block, location })} />
+          <Field label={t("Where")} hint={t("A venue, city, or “Microsoft Teams (online)”.")} value={block.location} onChange={(location) => onChange({ ...block, location })} />
           <div>
-            <span className="mb-1 block text-[12px] font-medium text-muted">Details</span>
+            <span className="mb-1 block text-[12px] font-medium text-muted">{t("Details")}</span>
             <RichTextEditor
-              label={`${name} details`}
-              placeholder="What the event covers, who should attend…"
+              label={t('{name} details', { name })}
+              placeholder={t("What the event covers, who should attend…")}
               value={block.html}
               onChange={(html) => onChange({ ...block, html })}
               minHeight={72}
             />
           </div>
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <Field label="Button label" value={block.buttonLabel} onChange={(buttonLabel) => onChange({ ...block, buttonLabel })} />
-            <Field label="Button link" value={block.buttonUrl} onChange={(buttonUrl) => onChange({ ...block, buttonUrl })} />
+            <Field label={t("Button label")} value={block.buttonLabel} onChange={(buttonLabel) => onChange({ ...block, buttonLabel })} />
+            <Field label={t("Button link")} value={block.buttonUrl} onChange={(buttonUrl) => onChange({ ...block, buttonUrl })} />
           </Cols>
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <ColorField label="Card colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <ColorField label={t("Card colour")} value={block.background} onChange={(background) => onChange({ ...block, background })} />
             <AutoColor
-              label="Title and button colour"
-              autoLabel="Accent"
+              label={t("Title and button colour")}
+              autoLabel={t("Accent")}
               autoSwatch={accent}
               value={block.accent}
               fallback={accent}
@@ -872,10 +941,10 @@ export function BlockEditor({
               return (
                 <li key={card.id} className="grid min-w-0 gap-3 rounded-[var(--r-md)] border border-line bg-panel p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-semibold text-ink-2">Card {cardIndex + 1}</span>
+                    <span className="text-[12px] font-semibold text-ink-2">{t('Card {n}', { n: cardIndex + 1 })}</span>
                     {block.cards.length > 1 ? (
                       <IconButton
-                        label={`Remove card ${cardIndex + 1}`}
+                        label={t('Remove card {n}', { n: cardIndex + 1 })}
                         danger
                         onClick={() => onChange({ ...block, cards: block.cards.filter((item) => item.id !== card.id) })}
                       >
@@ -884,25 +953,25 @@ export function BlockEditor({
                     ) : null}
                   </div>
                   <ImageField
-                    label="Image (optional)"
-                    hint="Shown at the top of the card."
+                    label={t("Image (optional)")}
+                    hint={t("Shown at the top of the card.")}
                     value={card.image}
-                    fallbackLabel="No image"
+                    fallbackLabel={t("No image")}
                     maxWidth={600}
                     onChange={(image) => setCard({ image })}
                   />
-                  <Field label="Title" value={card.title} onChange={(title) => setCard({ title })} />
+                  <Field label={t("Title")} value={card.title} onChange={(title) => setCard({ title })} />
                   <RichTextEditor
                     compact
-                    label={`${name} card ${cardIndex + 1} text`}
-                    placeholder="A sentence or two about this item."
+                    label={t('{name} card {n} text', { name, n: cardIndex + 1 })}
+                    placeholder={t("A sentence or two about this item.")}
                     value={card.html}
                     onChange={(html) => setCard({ html })}
                     minHeight={64}
                   />
                   <Cols className="gap-3 @[22rem]:grid-cols-2">
-                    <Field label="Link label" value={card.linkLabel} onChange={(linkLabel) => setCard({ linkLabel })} />
-                    <Field label="Link" value={card.linkUrl} onChange={(linkUrl) => setCard({ linkUrl })} />
+                    <Field label={t("Link label")} value={card.linkLabel} onChange={(linkLabel) => setCard({ linkLabel })} />
+                    <Field label={t("Link")} value={card.linkUrl} onChange={(linkUrl) => setCard({ linkUrl })} />
                   </Cols>
                 </li>
               )
@@ -917,34 +986,33 @@ export function BlockEditor({
               <span className="text-forest">
                 <IconPlus />
               </span>
-              Add a card
-            </button>
+              {t("Add a card")}</button>
           ) : (
-            <p className="text-[12px] text-muted">Up to three cards fit side by side.</p>
+            <p className="text-[12px] text-muted">{t("Up to three cards fit side by side.")}</p>
           )}
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <ColorField label="Card colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
-            <OptionalColor label="Border" value={block.border} fallback="#E0E0E0" onChange={(border) => onChange({ ...block, border })} />
+            <ColorField label={t("Card colour")} value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <OptionalColor label={t("Border")} value={block.border} fallback="#E0E0E0" onChange={(border) => onChange({ ...block, border })} />
           </Cols>
         </div>
       )
     case 'signature':
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
-          <Field label="Sign-off" hint="e.g. Thanks, or Best regards," value={block.signoff} onChange={(signoff) => onChange({ ...block, signoff })} />
+          <Field label={t("Sign-off")} hint={t("e.g. Thanks, or Best regards,")} value={block.signoff} onChange={(signoff) => onChange({ ...block, signoff })} />
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <Field label="Name" value={block.name} onChange={(value) => onChange({ ...block, name: value })} />
-            <Field label="Role" value={block.role} onChange={(role) => onChange({ ...block, role })} />
+            <Field label={t("Name")} value={block.name} onChange={(value) => onChange({ ...block, name: value })} />
+            <Field label={t("Role")} value={block.role} onChange={(role) => onChange({ ...block, role })} />
           </Cols>
           <Cols className="gap-3 @[22rem]:grid-cols-2">
-            <Field label="Team" value={block.team} onChange={(team) => onChange({ ...block, team })} />
-            <Field label="Email" value={block.email} onChange={(email) => onChange({ ...block, email })} />
+            <Field label={t("Team")} value={block.team} onChange={(team) => onChange({ ...block, team })} />
+            <Field label={t("Email")} value={block.email} onChange={(email) => onChange({ ...block, email })} />
           </Cols>
           <ImageField
-            label="Photo (optional)"
-            hint="A square headshot works best. Shown round, 64px."
+            label={t("Photo (optional)")}
+            hint={t("A square headshot works best. Shown round, 64px.")}
             value={block.photo}
-            fallbackLabel="No photo"
+            fallbackLabel={t("No photo")}
             maxWidth={192}
             onChange={(photo) => onChange({ ...block, photo })}
           />
@@ -953,9 +1021,9 @@ export function BlockEditor({
     case 'heading':
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
-          <Field label="Heading" value={block.title} onChange={(title) => onChange({ ...block, title })} />
+          <Field label={t("Heading")} value={block.title} onChange={(title) => onChange({ ...block, title })} />
           <Segmented
-            label="Size"
+            label={t("Size")}
             value={String(block.size)}
             options={[
               ['16', '16'],
@@ -967,12 +1035,12 @@ export function BlockEditor({
             onChange={(size) => onChange({ ...block, size: Number(size) })}
           />
           <Segmented
-            label="Style"
+            label={t("Style")}
             value={block.fill ? 'bar' : block.outline ? 'outline' : 'plain'}
             options={[
-              ['plain', 'Plain'],
-              ['bar', 'Filled bar'],
-              ['outline', 'Outlined'],
+              ['plain', t("Plain")],
+              ['bar', t("Filled bar")],
+              ['outline', t("Outlined")],
             ]}
             onChange={(style) =>
               onChange({
@@ -984,19 +1052,19 @@ export function BlockEditor({
           />
           <Cols className="gap-3 @[22rem]:grid-cols-2">
             <AutoColor
-              label="Heading colour"
-              autoLabel="Automatic"
+              label={t("Heading colour")}
+              autoLabel={t("Automatic")}
               autoSwatch={block.fill ? readableOn(block.fill) : accent}
               value={block.color}
               fallback={accent}
               onChange={(color) => onChange({ ...block, color })}
             />
             {block.fill ? (
-              <ColorField label="Bar colour" value={block.fill} onChange={(fill) => onChange({ ...block, fill })} />
+              <ColorField label={t("Bar colour")} value={block.fill} onChange={(fill) => onChange({ ...block, fill })} />
             ) : block.outline ? (
-              <ColorField label="Outline colour" value={block.outline} onChange={(outline) => onChange({ ...block, outline })} />
+              <ColorField label={t("Outline colour")} value={block.outline} onChange={(outline) => onChange({ ...block, outline })} />
             ) : (
-              <OptionalColor label="Line under it" value={block.rule} fallback="#0078D4" onChange={(rule) => onChange({ ...block, rule })} />
+              <OptionalColor label={t("Line under it")} value={block.rule} fallback="#0078D4" onChange={(rule) => onChange({ ...block, rule })} />
             )}
           </Cols>
         </div>
@@ -1015,23 +1083,23 @@ export function BlockEditor({
             make={() => newTextColumn()}
             render={(column, set, i) => (
               <>
-                <Field label="Title" value={column.title} onChange={(title) => set({ title })} />
+                <Field label={t("Title")} value={column.title} onChange={(title) => set({ title })} />
                 <RichTextEditor
                   compact
-                  label={`${name} column ${i + 1} text`}
-                  placeholder="Bullets or a short paragraph."
+                  label={t('{name} column {n} text', { name, n: i + 1 })}
+                  placeholder={t("Bullets or a short paragraph.")}
                   value={column.html}
                   onChange={(html) => set({ html })}
                   minHeight={72}
                 />
                 <Cols className="gap-3 @[22rem]:grid-cols-2">
                   <OptionalColor
-                    label="Title bar"
+                    label={t("Title bar")}
                     value={column.headerBackground}
                     fallback="#E2EFD9"
                     onChange={(headerBackground) => set({ headerBackground })}
                   />
-                  <ColorField label="Title colour" value={column.headerText} onChange={(headerText) => set({ headerText })} />
+                  <ColorField label={t("Title colour")} value={column.headerText} onChange={(headerText) => set({ headerText })} />
                 </Cols>
               </>
             )}
@@ -1042,7 +1110,7 @@ export function BlockEditor({
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
           <Segmented
-            label="Photos per row"
+            label={t("Photos per row")}
             value={String(block.columns)}
             options={[
               ['2', '2'],
@@ -1059,8 +1127,8 @@ export function BlockEditor({
             make={() => newGalleryImage()}
             render={(image, set) => (
               <>
-                <ImageField label="Photo" hint="JPG or PNG. Landscape photos line up best." value={image.src} fallbackLabel="No photo yet" maxWidth={800} onChange={(src) => set({ src })} />
-                <Field label="Alt text" value={image.alt} onChange={(alt) => set({ alt })} />
+                <ImageField label={t("Photo")} hint={t("JPG or PNG. Landscape photos line up best.")} value={image.src} fallbackLabel={t("No photo yet")} maxWidth={800} onChange={(src) => set({ src })} />
+                <Field label={t("Alt text")} value={image.alt} onChange={(alt) => set({ alt })} />
               </>
             )}
           />
@@ -1070,9 +1138,9 @@ export function BlockEditor({
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
           <Cols className="gap-3 @[22rem]:grid-cols-[1fr_auto]">
-            <Field label="Group title (optional)" hint="e.g. Microsoft Sponsors" value={block.title} onChange={(title) => onChange({ ...block, title })} />
+            <Field label={t("Group title (optional)")} hint={t("e.g. Microsoft Sponsors")} value={block.title} onChange={(title) => onChange({ ...block, title })} />
             <Segmented
-              label="Per row"
+              label={t("Per row")}
               value={String(block.columns)}
               options={[
                 ['2', '2'],
@@ -1081,7 +1149,7 @@ export function BlockEditor({
               onChange={(columns) => onChange({ ...block, columns: Number(columns) })}
             />
           </Cols>
-          <OptionalColor label="Title bar" value={block.headerBackground} fallback="#E2EFD9" onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
+          <OptionalColor label={t("Title bar")} value={block.headerBackground} fallback="#E2EFD9" onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
           <ItemList
             items={block.people}
             noun="person"
@@ -1092,11 +1160,11 @@ export function BlockEditor({
             render={(person, set) => (
               <>
                 <Cols className="gap-3 @[22rem]:grid-cols-2">
-                  <Field label="Name" value={person.name} onChange={(value) => set({ name: value })} />
-                  <Field label="Role" value={person.role} onChange={(role) => set({ role })} />
+                  <Field label={t("Name")} value={person.name} onChange={(value) => set({ name: value })} />
+                  <Field label={t("Role")} value={person.role} onChange={(role) => set({ role })} />
                 </Cols>
-                <Field label="Detail (optional)" hint="e.g. the accounts they cover" value={person.detail} onChange={(detail) => set({ detail })} />
-                <ImageField label="Photo (optional)" hint="Square headshot, shown round. Without one, initials show." value={person.photo} fallbackLabel="Initials" maxWidth={144} onChange={(photo) => set({ photo })} />
+                <Field label={t("Detail (optional)")} hint={t("e.g. the accounts they cover")} value={person.detail} onChange={(detail) => set({ detail })} />
+                <ImageField label={t("Photo (optional)")} hint={t("Square headshot, shown round. Without one, initials show.")} value={person.photo} fallbackLabel={t("Initials")} maxWidth={144} onChange={(photo) => set({ photo })} />
               </>
             )}
           />
@@ -1105,8 +1173,8 @@ export function BlockEditor({
     case 'details':
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
-          <Field label="Box title" hint="e.g. Your Login Credentials. Leave empty for none." value={block.title} onChange={(title) => onChange({ ...block, title })} />
-          <div className="grid gap-2" role="group" aria-label={`${name} rows`}>
+          <Field label={t("Box title")} hint={t("e.g. Your Login Credentials. Leave empty for none.")} value={block.title} onChange={(title) => onChange({ ...block, title })} />
+          <div className="grid gap-2" role="group" aria-label={t('{name} rows', { name })}>
             {block.rows.map((row, rowIndex) => {
               const setRow = (patch: Partial<typeof row>) =>
                 onChange({ ...block, rows: block.rows.map((item) => (item.id === row.id ? { ...item, ...patch } : item)) })
@@ -1115,20 +1183,20 @@ export function BlockEditor({
                   <div className="flex min-w-0 items-center gap-1.5">
                     <input
                       value={row.label}
-                      aria-label={`Row ${rowIndex + 1} label`}
-                      placeholder="Label"
+                      aria-label={t('Row {n} label', { n: rowIndex + 1 })}
+                      placeholder={t("Label")}
                       onChange={(event) => setRow({ label: event.target.value })}
                       className="ui-field ui-field-sm w-[36%] min-w-0 font-semibold"
                     />
                     <input
                       value={row.value}
-                      aria-label={`Row ${rowIndex + 1} value`}
-                      placeholder="Value or [placeholder]"
+                      aria-label={t('Row {n} value', { n: rowIndex + 1 })}
+                      placeholder={t("Value or [placeholder]")}
                       onChange={(event) => setRow({ value: event.target.value })}
                       className="ui-field ui-field-sm min-w-0 flex-1"
                     />
                     <IconButton
-                      label={`Remove row ${rowIndex + 1}`}
+                      label={t('Remove row {n}', { n: rowIndex + 1 })}
                       danger
                       onClick={() => onChange({ ...block, rows: block.rows.filter((item) => item.id !== row.id) })}
                     >
@@ -1138,12 +1206,12 @@ export function BlockEditor({
                   <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                     <input
                       value={row.note}
-                      aria-label={`Row ${rowIndex + 1} note`}
-                      placeholder="Note (optional), e.g. (Temporary password)"
+                      aria-label={t('Row {n} note', { n: rowIndex + 1 })}
+                      placeholder={t("Note (optional), e.g. (Temporary password)")}
                       onChange={(event) => setRow({ note: event.target.value })}
                       className="ui-field ui-field-sm min-w-0 flex-1 basis-40"
                     />
-                    <Toggle label="Bold value" checked={row.strong} onChange={(strong) => setRow({ strong })} />
+                    <Toggle label={t("Bold value")} checked={row.strong} onChange={(strong) => setRow({ strong })} />
                   </div>
                 </div>
               )
@@ -1157,15 +1225,14 @@ export function BlockEditor({
             <span className="text-forest">
               <IconPlus />
             </span>
-            Add a row
-          </button>
-          <p className="-mt-1 text-[11px] text-muted">Email addresses and web addresses become links automatically.</p>
+            {t("Add a row")}</button>
+          <p className="-mt-1 text-[11px] text-muted">{t("Email addresses and web addresses become links automatically.")}</p>
           <Cols className="gap-3 @[24rem]:grid-cols-3">
-            <ColorField label="Label colour" value={block.labelColor} onChange={(labelColor) => onChange({ ...block, labelColor })} />
-            <ColorField label="Box colour" value={block.background} onChange={(background) => onChange({ ...block, background })} />
+            <ColorField label={t("Label colour")} value={block.labelColor} onChange={(labelColor) => onChange({ ...block, labelColor })} />
+            <ColorField label={t("Box colour")} value={block.background} onChange={(background) => onChange({ ...block, background })} />
             <AutoColor
-              label="Left bar"
-              autoLabel="Link colour"
+              label={t("Left bar")}
+              autoLabel={t("Link colour")}
               autoSwatch="#0078D4"
               value={block.accent}
               fallback="#0078D4"
@@ -1175,7 +1242,7 @@ export function BlockEditor({
         </div>
       )
     default:
-      return <p className="text-[12px] text-muted">A thin grey line that separates two parts of the newsletter.</p>
+      return <p className="text-[12px] text-muted">{t("A thin grey line that separates two parts of the newsletter.")}</p>
   }
 }
 
@@ -1197,10 +1264,10 @@ function TableEditor({
     setRows(block.rows.map((row) => Array.from({ length: count }, (_, i) => row[i] ?? '')))
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
-      <Field label="Title (optional)" hint="Shown above the table, e.g. Agenda." value={block.title} onChange={(title) => onChange({ ...block, title })} />
+      <Field label={t("Title (optional)")} hint={t("Shown above the table, e.g. Agenda.")} value={block.title} onChange={(title) => onChange({ ...block, title })} />
       <Cols className="gap-3 @[22rem]:grid-cols-[auto_1fr]">
         <Segmented
-          label="Columns"
+          label={t("Columns")}
           value={String(columns)}
           options={[
             ['2', '2'],
@@ -1212,17 +1279,16 @@ function TableEditor({
           onChange={(count) => setColumns(Number(count))}
         />
         <div className="flex flex-wrap items-end gap-x-4">
-          <Toggle label="Header row" checked={block.header} onChange={(header) => onChange({ ...block, header })} />
+          <Toggle label={t("Header row")} checked={block.header} onChange={(header) => onChange({ ...block, header })} />
           {block.plain ? null : (
-            <Toggle label="Striped rows" checked={block.striped} onChange={(striped) => onChange({ ...block, striped })} />
+            <Toggle label={t("Striped rows")} checked={block.striped} onChange={(striped) => onChange({ ...block, striped })} />
           )}
-          <Toggle label="Open style (no lines)" checked={Boolean(block.plain)} onChange={(plain) => onChange({ ...block, plain })} />
+          <Toggle label={t("Open style (no lines)")} checked={Boolean(block.plain)} onChange={(plain) => onChange({ ...block, plain })} />
         </div>
       </Cols>
       <p className="-mt-1 text-[12px] leading-4 text-muted">
-        To link a cell, write [link text](https://…). Web addresses become links on their own.
-      </p>
-      <div className="grid gap-1.5" role="group" aria-label={`${name} cells`}>
+        {t("To link a cell, write [link text](https://…). Web addresses become links on their own.")}</p>
+      <div className="grid gap-1.5" role="group" aria-label={t('{name} cells', { name })}>
         {block.rows.map((row, r) => (
           <div key={r} className="flex min-w-0 items-center gap-1.5">
             <div className="grid min-w-0 flex-1 gap-1.5" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
@@ -1230,15 +1296,15 @@ function TableEditor({
                 <input
                   key={c}
                   value={cell}
-                  aria-label={`${block.header && r === 0 ? 'Header' : `Row ${block.header ? r : r + 1}`}, column ${c + 1}`}
-                  placeholder={block.header && r === 0 ? 'Heading' : ''}
+                  aria-label={block.header && r === 0 ? t('Header, column {c}', { c: c + 1 }) : t('Row {n}, column {c}', { n: block.header ? r : r + 1, c: c + 1 })}
+                  placeholder={block.header && r === 0 ? t("Heading") : ''}
                   onChange={(event) => setCell(r, c, event.target.value)}
                   className={'ui-field ui-field-sm min-w-0 ' + (block.header && r === 0 ? 'font-semibold' : '')}
                 />
               ))}
             </div>
             <IconButton
-              label={`Remove ${block.header && r === 0 ? 'header row' : `row ${block.header ? r : r + 1}`}`}
+              label={block.header && r === 0 ? t('Remove header row') : t('Remove row {n}', { n: block.header ? r : r + 1 })}
               danger
               disabled={block.rows.length <= 1}
               onClick={() => setRows(block.rows.filter((_, ri) => ri !== r))}
@@ -1256,15 +1322,14 @@ function TableEditor({
         <span className="text-forest">
           <IconPlus />
         </span>
-        Add a row
-      </button>
+        {t("Add a row")}</button>
       {block.plain ? (
-        <ColorField label="Header text" value={block.headerText} onChange={(headerText) => onChange({ ...block, headerText })} />
+        <ColorField label={t("Header text")} value={block.headerText} onChange={(headerText) => onChange({ ...block, headerText })} />
       ) : (
         <Cols className="gap-3 @[24rem]:grid-cols-3">
-          <ColorField label="Header colour" value={block.headerBackground} onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
-          <ColorField label="Header text" value={block.headerText} onChange={(headerText) => onChange({ ...block, headerText })} />
-          <ColorField label="Lines" value={block.border} onChange={(border) => onChange({ ...block, border })} />
+          <ColorField label={t("Header colour")} value={block.headerBackground} onChange={(headerBackground) => onChange({ ...block, headerBackground })} />
+          <ColorField label={t("Header text")} value={block.headerText} onChange={(headerText) => onChange({ ...block, headerText })} />
+          <ColorField label={t("Lines")} value={block.border} onChange={(border) => onChange({ ...block, border })} />
         </Cols>
       )}
     </div>
@@ -1315,10 +1380,9 @@ function AutoColor({
             (value ? 'font-semibold ring-2 ring-forest' : 'ring-1 ring-line-strong hover:bg-fill')
           }
         >
-          Custom
-        </button>
+          {t("Custom")}</button>
       </div>
-      {value ? <ColorField label={`${label} (custom)`} value={value} onChange={onChange} /> : null}
+      {value ? <ColorField label={t('{label} (custom)', { label })} value={value} onChange={onChange} /> : null}
     </div>
   )
 }
@@ -1330,8 +1394,7 @@ function CalloutSample({ block, accent }: { block: Extract<BodyBlock, { kind: 'c
     <div aria-hidden="true" className="flex overflow-hidden rounded-[var(--r-sm)] ring-1 ring-line">
       {block.showRule ? <span className="w-1 shrink-0" style={{ background: block.rule || accent }} /> : null}
       <span className="min-w-0 flex-1 px-3 py-2 text-[13px] leading-5" style={{ background: block.background, color: ink }}>
-        <strong>Preview:</strong> how the callout text reads on this shade.
-      </span>
+        <strong>{t("Preview:")}</strong> {' '}{t("how the callout text reads on this shade.")}</span>
     </div>
   )
 }
@@ -1351,7 +1414,7 @@ export function OptionalColor({
   return (
     <div className="grid gap-1.5">
       <Toggle label={label} checked={Boolean(value)} onChange={(on) => onChange(on ? fallback : '')} />
-      {value ? <ColorField label={`${label} colour`} value={value} onChange={onChange} /> : null}
+      {value ? <ColorField label={t('{label} colour', { label })} value={value} onChange={onChange} /> : null}
     </div>
   )
 }
@@ -1359,13 +1422,13 @@ export function OptionalColor({
 export function FooterSection({ design, patch }: { design: NewsletterDesign; patch: Patch }) {
   const f = design.footer
   return (
-    <Section title="Footer" anchor="footer" noCopilot>
+    <Section title={t("Footer")} anchor="footer" noCopilot>
       <div>
-        <span className="mb-1 block text-[12px] font-medium text-muted">Footer message</span>
+        <span className="mb-1 block text-[12px] font-medium text-muted">{t("Footer message")}</span>
         <RichTextEditor
           compact
-          label="Footer message"
-          placeholder="A sign-off, contact line, or why the reader receives this email."
+          label={t("Footer message")}
+          placeholder={t("A sign-off, contact line, or why the reader receives this email.")}
           value={f.html}
           onChange={(html) => patch('footer', { html })}
           minHeight={72}
@@ -1373,23 +1436,22 @@ export function FooterSection({ design, patch }: { design: NewsletterDesign; pat
       </div>
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-[12px] font-semibold">Footer links</span>
+          <span className="text-[12px] font-semibold">{t("Footer links")}</span>
           <button
             type="button"
             onClick={() => patch('footer', { links: [...f.links, newFooterLink()] })}
             className="text-[12px] font-semibold text-forest hover:text-forest-deep hover:underline"
           >
-            Add footer link
-          </button>
+            {t("Add footer link")}</button>
         </div>
-        {f.links.length === 0 ? <p className="text-[12px] text-muted">No links. Privacy and unsubscribe links usually go here.</p> : null}
+        {f.links.length === 0 ? <p className="text-[12px] text-muted">{t("No links. Privacy and unsubscribe links usually go here.")}</p> : null}
         <ul className="grid gap-2">
           {f.links.map((link, index) => (
             <li key={link.id} className="flex items-start gap-1.5">
               <input
                 value={link.label}
-                aria-label={`Link ${index + 1} label`}
-                placeholder="Label"
+                aria-label={t('Link {n} label', { n: index + 1 })}
+                placeholder={t("Label")}
                 onChange={(event) =>
                   patch('footer', { links: f.links.map((item) => (item.id === link.id ? { ...item, label: event.target.value } : item)) })
                 }
@@ -1397,15 +1459,15 @@ export function FooterSection({ design, patch }: { design: NewsletterDesign; pat
               />
               <input
                 value={link.url}
-                aria-label={`Link ${index + 1} address`}
-                placeholder="https://"
+                aria-label={t('Link {n} address', { n: index + 1 })}
+                placeholder={t("https://")}
                 onChange={(event) =>
                   patch('footer', { links: f.links.map((item) => (item.id === link.id ? { ...item, url: event.target.value } : item)) })
                 }
                 className="ui-field ui-field-sm min-w-0 flex-1"
               />
               <IconButton
-                label={`Remove link ${index + 1}`}
+                label={t('Remove link {n}', { n: index + 1 })}
                 danger
                 onClick={() => patch('footer', { links: f.links.filter((item) => item.id !== link.id) })}
               >
@@ -1415,27 +1477,27 @@ export function FooterSection({ design, patch }: { design: NewsletterDesign; pat
           ))}
         </ul>
       </div>
-      <Toggle label="Show Microsoft logo" checked={f.showMark} onChange={(showMark) => patch('footer', { showMark })} />
+      <Toggle label={t("Show Microsoft logo")} checked={f.showMark} onChange={(showMark) => patch('footer', { showMark })} />
       {f.showMark ? (
         <ImageField
-          label="Footer logo image (optional)"
-          hint="Replaces the four-square mark and wordmark. Shown 18px tall."
+          label={t("Footer logo image (optional)")}
+          hint={t("Replaces the four-square mark and wordmark. Shown 18px tall.")}
           value={f.logo}
-          fallbackLabel="Four-square mark and “Microsoft”"
+          fallbackLabel={t("Four-square mark and “Microsoft”")}
           maxWidth={300}
           onChange={(logo) => patch('footer', { logo })}
         />
       ) : null}
       <Field
-        label="Small print"
-        hint="Copyright and address. One line per line."
+        label={t("Small print")}
+        hint={t("Copyright and address. One line per line.")}
         multiline
         value={f.legal}
         onChange={(legal) => patch('footer', { legal })}
       />
       <Cols className="gap-3.5 @[22rem]:grid-cols-2">
-        <ColorField label="Footer colour" value={f.background} onChange={(background) => patch('footer', { background })} />
-        <ColorField label="Footer text" value={f.text} onChange={(text) => patch('footer', { text })} />
+        <ColorField label={t("Footer colour")} value={f.background} onChange={(background) => patch('footer', { background })} />
+        <ColorField label={t("Footer text")} value={f.text} onChange={(text) => patch('footer', { text })} />
       </Cols>
     </Section>
   )
@@ -1495,7 +1557,7 @@ export function Segmented({
               (value === key ? 'bg-surface font-semibold text-ink shadow-[var(--elev-xs)]' : 'text-ink-2 hover:text-ink')
             }
           >
-            {name}
+            {t(name)}
           </button>
         ))}
       </div>
@@ -1550,7 +1612,7 @@ export function ColorField({
           <input
             type="color"
             value={value}
-            aria-label={`${label} picker`}
+            aria-label={t('{label} picker', { label })}
             onChange={(event) => onChange(event.target.value.toUpperCase())}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
@@ -1572,9 +1634,9 @@ export function ColorField({
         <button
           ref={palette.trigger}
           type="button"
-          aria-label={`${label}: Microsoft palette`}
+          aria-label={t('{label}: Microsoft palette', { label })}
           aria-expanded={palette.open}
-          title="Microsoft palette"
+          title={t("Microsoft palette")}
           onClick={() => palette.setOpen(!palette.open)}
           className={
             'grid h-[34px] w-[34px] shrink-0 place-items-center rounded-[var(--r-sm)] ring-1 ring-inset transition-colors hover:bg-fill ' +
@@ -1590,13 +1652,13 @@ export function ColorField({
       </div>
       {palette.open ? (
         // Opens in place under the field, so it fits however narrow the column is.
-        <div role="dialog" aria-label="Microsoft palette" className="mt-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2.5">
-          <PaletteGroup title="Primary" colors={MS_PRIMARY} value={value} columns={5} onPick={(hex) => { onChange(hex); palette.close(true) }} />
-          <PaletteGroup title="Secondary" colors={MS_SECONDARY} value={value} columns={4} onPick={(hex) => { onChange(hex); palette.close(true) }} />
+        <div role="dialog" aria-label={t("Microsoft palette")} className="mt-1.5 rounded-[var(--r-md)] border border-line bg-surface p-2.5">
+          <PaletteGroup title={t("Primary")} colors={MS_PRIMARY} value={value} columns={5} onPick={(hex) => { onChange(hex); palette.close(true) }} />
+          <PaletteGroup title={t("Secondary")} colors={MS_SECONDARY} value={value} columns={4} onPick={(hex) => { onChange(hex); palette.close(true) }} />
         </div>
       ) : null}
       {hint || named ? (
-        <span className="mt-1 block text-[11px] text-muted">{[named ? `Microsoft ${named}` : '', hint].filter(Boolean).join(' · ')}</span>
+        <span className="mt-1 block text-[11px] text-muted">{[named ? t('Microsoft {name}', { name: t(named) }) : '', hint].filter(Boolean).join(' · ')}</span>
       ) : null}
     </div>
   )
@@ -1685,14 +1747,14 @@ function ItemList<T extends { id: string }>({
                 <span className="min-w-0 flex-1 text-[12px] font-semibold text-ink-2">
                   {Noun} {index + 1}
                 </span>
-                <IconButton label={`Move ${noun} ${index + 1} up`} disabled={index === 0} onClick={() => move(index, -1)}>
+                <IconButton label={t(`Move ${noun} {n} up`, { n: index + 1 })} disabled={index === 0} onClick={() => move(index, -1)}>
                   <IconChevron className="rotate-180" />
                 </IconButton>
-                <IconButton label={`Move ${noun} ${index + 1} down`} disabled={index === items.length - 1} onClick={() => move(index, 1)}>
+                <IconButton label={t(`Move ${noun} {n} down`, { n: index + 1 })} disabled={index === items.length - 1} onClick={() => move(index, 1)}>
                   <IconChevron />
                 </IconButton>
                 <IconButton
-                  label={`Remove ${noun} ${index + 1}`}
+                  label={t(`Remove ${noun} {n}`, { n: index + 1 })}
                   danger
                   disabled={items.length <= min}
                   onClick={() => onChange(items.filter((other) => other.id !== item.id))}
@@ -1714,7 +1776,7 @@ function ItemList<T extends { id: string }>({
           <span className="text-forest">
             <IconPlus />
           </span>
-          Add a {noun}
+          {t(`Add a ${noun}`)}
         </button>
       ) : null}
     </div>
@@ -1726,13 +1788,13 @@ function StatsEditor({ block, onChange }: { block: Extract<BodyBlock, { kind: 's
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
       <div className="grid min-w-0 gap-3 rounded-[var(--r-md)] border border-line bg-panel p-3">
-        <span className="text-[12px] font-semibold text-ink-2">Label tile (optional, shown first)</span>
+        <span className="text-[12px] font-semibold text-ink-2">{t("Label tile (optional, shown first)")}</span>
         <Cols className="gap-3 @[22rem]:grid-cols-2">
-          <Field label="Title" hint="e.g. Partner Mix" value={block.leadTitle} onChange={(leadTitle) => onChange({ ...block, leadTitle })} />
-          <Field label="Caption" hint="e.g. (Private 1:1 Events)" value={block.leadCaption} onChange={(leadCaption) => onChange({ ...block, leadCaption })} />
+          <Field label={t("Title")} hint={t("e.g. Partner Mix")} value={block.leadTitle} onChange={(leadTitle) => onChange({ ...block, leadTitle })} />
+          <Field label={t("Caption")} hint={t("e.g. (Private 1:1 Events)")} value={block.leadCaption} onChange={(leadCaption) => onChange({ ...block, leadCaption })} />
         </Cols>
         {block.leadTitle.trim() ? (
-          <ColorField label="Label tile colour" value={block.leadBackground} onChange={(leadBackground) => onChange({ ...block, leadBackground })} />
+          <ColorField label={t("Label tile colour")} value={block.leadBackground} onChange={(leadBackground) => onChange({ ...block, leadBackground })} />
         ) : null}
       </div>
       <ItemList
@@ -1745,11 +1807,11 @@ function StatsEditor({ block, onChange }: { block: Extract<BodyBlock, { kind: 's
         render={(tile, set) => (
           <>
             <Cols className="gap-3 @[22rem]:grid-cols-[1fr_2fr]">
-              <Field label="Number" value={tile.value} onChange={(value) => set({ value })} />
-              <Field label="Label" value={tile.label} onChange={(label) => set({ label })} />
+              <Field label={t("Number")} value={tile.value} onChange={(value) => set({ value })} />
+              <Field label={t("Label")} value={tile.label} onChange={(label) => set({ label })} />
             </Cols>
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-[12px] font-medium text-muted">Tile colour</span>
+              <span className="mr-1 text-[12px] font-medium text-muted">{t("Tile colour")}</span>
               {[
                 ['#02AE68', '#FFFFFF'],
                 ['#FCFC92', '#1B1B1B'],
@@ -1761,7 +1823,7 @@ function StatsEditor({ block, onChange }: { block: Extract<BodyBlock, { kind: 's
                 <button
                   key={background}
                   type="button"
-                  aria-label={`Tile colour ${background}`}
+                  aria-label={t('Tile colour {color}', { color: background })}
                   aria-pressed={tile.background === background}
                   onClick={() => set({ background, text })}
                   className={'h-6 w-6 rounded-full ring-inset ' + (tile.background === background ? 'ring-2 ring-forest' : 'ring-1 ring-line-strong')}
@@ -1770,8 +1832,8 @@ function StatsEditor({ block, onChange }: { block: Extract<BodyBlock, { kind: 's
               ))}
             </div>
             <Cols className="gap-3 @[22rem]:grid-cols-2">
-              <ColorField label="Tile colour (custom)" value={tile.background} onChange={(background) => set({ background })} />
-              <ColorField label="Number colour" value={tile.text} onChange={(text) => set({ text })} />
+              <ColorField label={t("Tile colour (custom)")} value={tile.background} onChange={(background) => set({ background })} />
+              <ColorField label={t("Number colour")} value={tile.text} onChange={(text) => set({ text })} />
             </Cols>
           </>
         )}

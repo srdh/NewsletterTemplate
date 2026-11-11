@@ -13,9 +13,13 @@ import { SECTION_TABS } from '../lib/sections'
 import { IconChevron, IconSpark, IconTrash } from './Icons'
 import { NewsletterFields } from './NewsletterFields'
 import { OutlineFields } from './OutlineFields'
+import { t } from '../lib/i18n'
+import { emailLang, emailT, setEditingEmailLang } from '../lib/emailText'
+import { EmailLanguageField } from './EmailLanguageField'
 
 /** Shown under text boxes that accept links. */
 const LINK_HINT = 'To add a link, write [link text](https://…)'
+const linkHint = () => t(LINK_HINT)
 
 export function Field({
   label,
@@ -84,7 +88,7 @@ export function ImageField({
     try {
       onChange(await prepareImage(file, maxWidth))
     } catch (caught) {
-      setProblem(caught instanceof ImageProblem ? caught.message : 'That image could not be added.')
+      setProblem(caught instanceof ImageProblem ? caught.message : t("That image could not be added."))
     } finally {
       setBusy(false)
       if (input.current) input.current.value = ''
@@ -99,12 +103,12 @@ export function ImageField({
           {shown ? (
             <img src={shown} alt="" className="max-h-full max-w-full object-contain" />
           ) : (
-            <span className="text-[11px] text-muted">No image</span>
+            <span className="text-[11px] text-muted">{t("No image")}</span>
           )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[12px] leading-4 text-muted">
-            {busy ? 'Preparing image…' : value ? 'Your image' : fallbackLabel}
+            {busy ? t("Preparing image…") : value ? t("Your image") : fallbackLabel}
           </p>
           <div className="mt-2 flex items-center gap-3">
             <button
@@ -113,7 +117,7 @@ export function ImageField({
               className="ui-btn ui-btn-ghost min-h-7 px-3 py-1 text-[12px]"
               onClick={() => input.current?.click()}
             >
-              {value ? 'Replace' : 'Add image'}
+              {value ? t("Replace") : t("Add image")}
             </button>
             {value ? (
               <button
@@ -121,8 +125,7 @@ export function ImageField({
                 className="ui-btn ui-btn-ghost ui-btn-ghost-danger min-h-7 px-3 py-1 text-[12px]"
                 onClick={() => onChange('')}
               >
-                Remove
-              </button>
+                {t("Remove")}</button>
             ) : null}
           </div>
         </div>
@@ -173,8 +176,7 @@ export function Section({
             className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold leading-4 text-forest opacity-0 transition-[opacity,background-color] group-hover/section:opacity-100 group-focus-within/section:opacity-100 hover:bg-forest-soft focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
           >
             <IconSpark className="scale-90" />
-            Fill with Copilot
-          </button>
+            {t("Fill with Copilot")}</button>
         ) : null}
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3.5">{children}</div>
@@ -199,6 +201,8 @@ export function FieldForm({
   onSaveTemplate?: (name: string) => void
 }) {
   const campaign = bundle.campaign
+  // New blocks, rows, and cards start in this email's language.
+  setEditingEmailLang(emailLang(campaign))
   const set = (patch: Partial<Campaign>) =>
     onChange({ ...bundle, campaign: { ...campaign, ...patch } })
 
@@ -266,9 +270,9 @@ export function FieldForm({
     return (
       <>
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
-          <h2 className="hidden text-[16px] font-semibold leading-[22px] text-ink lg:block">Blocks</h2>
+          <h2 className="hidden text-[16px] font-semibold leading-[22px] text-ink lg:block">{t("Blocks")}</h2>
           <span
-            title="Set when the campaign is created. For a different email type, start a new campaign."
+            title={t("Set when the campaign is created. For a different email type, start a new campaign.")}
             className="truncate rounded-full bg-forest-soft px-2.5 py-0.5 text-[12px] font-semibold leading-4 text-forest"
           >
             {MASTER_LABEL[campaign.master_type]}
@@ -290,17 +294,17 @@ export function FieldForm({
     <>
       <div className="shrink-0 border-b border-line">
         <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-1 sm:px-6">
-          <h2 className="hidden text-[16px] font-semibold leading-[22px] text-ink lg:block">Fields</h2>
+          <h2 className="hidden text-[16px] font-semibold leading-[22px] text-ink lg:block">{t("Fields")}</h2>
           {/* The email type is fixed when the campaign is created, so it is
               shown here as a label rather than a field. */}
           <span
-            title="Set when the campaign is created. For a different email type, start a new campaign."
+            title={t("Set when the campaign is created. For a different email type, start a new campaign.")}
             className="truncate rounded-full bg-forest-soft px-2.5 py-0.5 text-[12px] font-semibold leading-4 text-forest"
           >
             {MASTER_LABEL[campaign.master_type]}
           </span>
         </div>
-        <nav aria-label="Form sections" className="tab-strip flex overflow-x-auto px-2.5 sm:px-4">
+        <nav aria-label={t("Form sections")} className="tab-strip flex overflow-x-auto px-2.5 sm:px-4">
           {tabs.map(([anchor, label]) => (
             <button
               key={anchor}
@@ -314,7 +318,7 @@ export function FieldForm({
                   : 'text-muted hover:text-ink')
               }
             >
-              {label}
+              {t(label)}
             </button>
           ))}
         </nav>
@@ -324,14 +328,15 @@ export function FieldForm({
       onScroll={syncActive}
       className="app-scroll relative min-h-0 flex-1 overflow-auto px-4 pb-16 sm:px-6"
     >
-      <Section title="Campaign" anchor="campaign">
+      <Section title={t("Campaign")} anchor="campaign">
         <Field
-          label="Campaign name"
-          hint="Only shown in this app, in the campaign list."
+          label={t("Campaign name")}
+          hint={t("Only shown in this app, in the campaign list.")}
           value={campaign.name}
           onChange={(name) => set({ name })}
         />
-        <Field label="Email subject" value={campaign.subject} onChange={(subject) => set({ subject })} />
+        <Field label={t("Email subject")} value={campaign.subject} onChange={(subject) => set({ subject })} />
+        <EmailLanguageField value={campaign.language} onChange={(language) => set({ language })} />
       </Section>
 
       {campaign.master_type === 'newsletter' ? <NewsletterFields key={campaign.id} bundle={bundle} set={set} /> : null}
@@ -362,68 +367,68 @@ function EventInviteFields({
   const c = bundle.campaign
   return (
     <>
-      <Section title="Banner" anchor="banner">
-        <Field label="Region kicker" value={c.kicker} onChange={(kicker) => set({ kicker })} />
-        <Field label="Title" value={c.title} onChange={(title) => set({ title })} />
-        <Field label="Region" value={c.region} onChange={(region) => set({ region })} />
+      <Section title={t("Banner")} anchor="banner">
+        <Field label={t("Region kicker")} value={c.kicker} onChange={(kicker) => set({ kicker })} />
+        <Field label={t("Title")} value={c.title} onChange={(title) => set({ title })} />
+        <Field label={t("Region")} value={c.region} onChange={(region) => set({ region })} />
         <ImageField
-          label="Banner art"
-          hint="Shown to the right of the title. PNG or JPG; transparent PNGs work best."
+          label={t("Banner art")}
+          hint={t("Shown to the right of the title. PNG or JPG; transparent PNGs work best.")}
           value={c.banner_image ?? ''}
           fallback={GLOBE_PNG}
-          fallbackLabel="Default globe"
+          fallbackLabel={t("Default globe")}
           maxWidth={336}
           onChange={(banner_image) => set({ banner_image })}
         />
       </Section>
-      <Section title="Body" anchor="body">
-        <Field label="Greeting" value={c.greeting} onChange={(greeting) => set({ greeting })} />
+      <Section title={t("Body")} anchor="body">
+        <Field label={t("Greeting")} value={c.greeting} onChange={(greeting) => set({ greeting })} />
         <Field
-          label="Intro"
+          label={t("Intro")}
           value={c.intro}
           multiline
-          hint={LINK_HINT}
+          hint={linkHint()}
           onChange={(intro) => set({ intro })}
         />
       </Section>
-      <Section title="Event details" anchor="section1">
+      <Section title={t("Event details")} anchor="section1">
         <ImageField
-          label="Event image (optional)"
-          hint="A wide image above the event overview, like an event graphic or speaker lineup."
+          label={t("Event image (optional)")}
+          hint={t("A wide image above the event overview, like an event graphic or speaker lineup.")}
           value={c.section_image ?? ''}
-          fallbackLabel="No image"
+          fallbackLabel={t("No image")}
           maxWidth={1200}
           onChange={(section_image) => set({ section_image })}
         />
-        <Subheading>Event overview</Subheading>
-        <Field label="Event name" value={c.event_name} onChange={(event_name) => set({ event_name })} />
-        <Field label="Event URL" value={c.event_url} onChange={(event_url) => set({ event_url })} />
+        <Subheading>{t("Event overview")}</Subheading>
+        <Field label={t("Event name")} value={c.event_name} onChange={(event_name) => set({ event_name })} />
+        <Field label={t("Event URL")} value={c.event_url} onChange={(event_url) => set({ event_url })} />
         <Field
-          label="Date"
+          label={t("Date")}
           value={c.event_date_label}
           onChange={(event_date_label) => set({ event_date_label })}
         />
         <Field
-          label="Time"
+          label={t("Time")}
           value={c.event_time_label}
           onChange={(event_time_label) => set({ event_time_label })}
         />
         <Field
-          label="Language note"
+          label={t("Language note")}
           value={c.language_note}
           multiline
           onChange={(language_note) => set({ language_note })}
         />
         <Field
-          label="Overview copy"
+          label={t("Overview copy")}
           value={c.overview_body}
           multiline
-          hint={LINK_HINT}
+          hint={linkHint()}
           onChange={(overview_body) => set({ overview_body })}
         />
         <Repeatable
-          title="Agenda"
-          addLabel="Add agenda item"
+          title={t("Agenda")}
+          addLabel={t("Add agenda item")}
           items={bundle.agenda}
           onChange={(agenda) => onChange({ ...bundle, agenda })}
           make={() => ({
@@ -435,28 +440,28 @@ function EventInviteFields({
           render={(item, update) => (
             <input
               value={item.text}
-              aria-label="Agenda item"
-              placeholder="Agenda item"
+              aria-label={t("Agenda item")}
+              placeholder={t("Agenda item")}
               onChange={(event) => update({ ...item, text: event.target.value })}
               className="ui-field"
             />
           )}
         />
-        <Subheading>Action block</Subheading>
+        <Subheading>{t("Action block")}</Subheading>
         <Field
-          label="Action heading"
+          label={t("Action heading")}
           value={c.action_heading}
           onChange={(action_heading) => set({ action_heading })}
         />
         <Field
-          label="Action body"
+          label={t("Action body")}
           value={c.action_body}
           multiline
-          hint={LINK_HINT}
+          hint={linkHint()}
           onChange={(action_body) => set({ action_body })}
         />
       </Section>
-      <SignatureFields campaign={c} set={set} title="Footer (MS Signature)" anchor="footer" />
+      <SignatureFields campaign={c} set={set} title={t("Footer (MS Signature)")} anchor="footer" />
     </>
   )
 }
@@ -473,35 +478,35 @@ function MonthlyFields({
   const c = bundle.campaign
   return (
     <>
-      <Section title="Banner" anchor="banner">
-        <Field label="Month" value={c.month_label} onChange={(month_label) => set({ month_label })} />
-        <Field label="Subtitle" value={c.subtitle} onChange={(subtitle) => set({ subtitle })} />
+      <Section title={t("Banner")} anchor="banner">
+        <Field label={t("Month")} value={c.month_label} onChange={(month_label) => set({ month_label })} />
+        <Field label={t("Subtitle")} value={c.subtitle} onChange={(subtitle) => set({ subtitle })} />
       </Section>
-      <Section title="Body" anchor="body">
+      <Section title={t("Body")} anchor="body">
         <Field
-          label="Intro"
+          label={t("Intro")}
           value={c.intro}
           multiline
-          hint={LINK_HINT}
+          hint={linkHint()}
           onChange={(intro) => set({ intro })}
         />
         <Field
-          label="Call to action"
+          label={t("Call to action")}
           value={c.action_body}
           multiline
-          hint={LINK_HINT}
+          hint={linkHint()}
           onChange={(action_body) => set({ action_body })}
         />
       </Section>
-      <Section title="Spotlight" anchor="spotlight">
+      <Section title={t("Spotlight")} anchor="spotlight">
         <Repeatable
-          title="Spotlight cards"
-          addLabel="Add card"
+          title={t("Spotlight cards")}
+          addLabel={t("Add card")}
           itemName={(item, index) => {
             const headline = item.headline.trim()
-            return headline ? `Card ${index + 1}: ${headline}` : `Card ${index + 1}`
+            return headline ? t('Card {n}: {headline}', { n: index + 1, headline }) : t('Card {n}', { n: index + 1 })
           }}
-          summary={(item) => item.body.trim() || 'Empty card'}
+          summary={(item) => item.body.trim() || t("Empty card")}
           items={bundle.spotlights}
           onChange={(spotlights) => onChange({ ...bundle, spotlights })}
           make={() =>
@@ -513,31 +518,31 @@ function MonthlyFields({
               image_url: '',
               body: '',
               bullets: '',
-              cta_label: 'Register now!',
+              cta_label: emailT(emailLang(c))('Register now!'),
               cta_url: '',
             }) satisfies SpotlightCard
           }
           render={(item, update) => (
             <div className="grid gap-2">
               <RowInput
-                label="Headline"
+                label={t("Headline")}
                 value={item.headline}
                 onChange={(headline) => update({ ...item, headline })}
               />
               <RowInput
-                label="Body"
+                label={t("Body")}
                 multiline
                 value={item.body}
                 onChange={(body) => update({ ...item, body })}
               />
               <RowInput
-                label="Bullets, one per line"
+                label={t("Bullets, one per line")}
                 multiline
                 value={item.bullets}
                 onChange={(bullets) => update({ ...item, bullets })}
               />
               <RowInput
-                label="Register URL"
+                label={t("Register URL")}
                 value={item.cta_url}
                 onChange={(cta_url) => update({ ...item, cta_url })}
               />
@@ -545,18 +550,18 @@ function MonthlyFields({
           )}
         />
       </Section>
-      <Section title="Upcoming events" anchor="events">
+      <Section title={t("Upcoming events")} anchor="events">
         <RowEditor
           bundle={bundle}
           section="virtual_skilling"
-          labels={['Event', 'Focus', 'Date and time']}
+          labels={[t("Event"), t("Focus"), t("Date and time")]}
           titleFirst
           onChange={onChange}
         />
         <RowEditor
           bundle={bundle}
           section="on_demand"
-          labels={['Journey', 'Focus', 'Link']}
+          labels={[t("Journey"), t("Focus"), t("Link")]}
           titleFirst
           onChange={onChange}
         />
@@ -564,7 +569,7 @@ function MonthlyFields({
       <SignatureFields
         campaign={c}
         set={set}
-        title="Footer · Microsoft signature"
+        title={t("Footer · Microsoft signature")}
         anchor="signature"
       />
     </>
@@ -583,64 +588,64 @@ function WeeklyFields({
   const c = bundle.campaign
   return (
     <>
-      <Section title="Header" anchor="header">
+      <Section title={t("Header")} anchor="header">
         <Field
-          label="Snapshot date"
+          label={t("Snapshot date")}
           value={c.snapshot_date}
           onChange={(snapshot_date) => set({ snapshot_date })}
         />
-        <Field label="Greeting" value={c.greeting} onChange={(greeting) => set({ greeting })} />
+        <Field label={t("Greeting")} value={c.greeting} onChange={(greeting) => set({ greeting })} />
         <Field
-          label="Intro"
+          label={t("Intro")}
           value={c.intro}
           multiline
-          hint={LINK_HINT}
+          hint={linkHint()}
           onChange={(intro) => set({ intro })}
         />
         <Field
-          label="Weekly call outs"
+          label={t("Weekly call outs")}
           value={c.callouts}
           multiline
           onChange={(callouts) => set({ callouts })}
         />
       </Section>
-      <Section title="Tables" anchor="tables">
+      <Section title={t("Tables")} anchor="tables">
         <RowEditor
           bundle={bundle}
           section="new_requests"
-          labels={['Owner', 'Initiative', 'Request date', 'Target due date', 'Current status']}
+          labels={[t("Owner"), t("Initiative"), t("Request date"), t("Target due date"), t("Current status")]}
           extra
           onChange={onChange}
         />
         <RowEditor
           bundle={bundle}
           section="work_in_progress"
-          labels={['Owner', 'Initiative', 'Planned delivery', 'Current status', 'Project quote']}
+          labels={[t("Owner"), t("Initiative"), t("Planned delivery"), t("Current status"), t("Project quote")]}
           extra
           onChange={onChange}
         />
         <RowEditor
           bundle={bundle}
           section="completed"
-          labels={['Owner', 'Initiative', 'Delivered date', 'Notes on scope changes', 'Final price']}
+          labels={[t("Owner"), t("Initiative"), t("Delivered date"), t("Notes on scope changes"), t("Final price")]}
           extra
           onChange={onChange}
         />
       </Section>
-      <Section title="Footer" anchor="footer">
+      <Section title={t("Footer")} anchor="footer">
         <Field
-          label="Closing note"
-          hint={LINK_HINT}
+          label={t("Closing note")}
+          hint={linkHint()}
           value={c.action_body}
           multiline
           onChange={(action_body) => set({ action_body })}
         />
         <Field
-          label="Primary button"
+          label={t("Primary button")}
           value={c.register_label}
           onChange={(register_label) => set({ register_label })}
         />
-        <Field label="Primary URL" value={c.register_url} onChange={(register_url) => set({ register_url })} />
+        <Field label={t("Primary URL")} value={c.register_url} onChange={(register_url) => set({ register_url })} />
       </Section>
     </>
   )
@@ -660,22 +665,22 @@ function SignatureFields({
   return (
     <Section title={title} anchor={anchor}>
       <Field
-        label="Thanks line"
+        label={t("Thanks line")}
         value={campaign.signoff_thanks}
         onChange={(signoff_thanks) => set({ signoff_thanks })}
       />
       <Field
-        label="Signer name"
+        label={t("Signer name")}
         value={campaign.signer_name}
         onChange={(signer_name) => set({ signer_name })}
       />
       <Field
-        label="Signer title"
+        label={t("Signer title")}
         value={campaign.signer_title}
         onChange={(signer_title) => set({ signer_title })}
       />
       <Field
-        label="Signer email"
+        label={t("Signer email")}
         value={campaign.signer_email}
         onChange={(signer_email) => set({ signer_email })}
       />
@@ -744,8 +749,8 @@ function Repeatable<T extends { id: string }>({
           const remove = (
             <button
               type="button"
-              aria-label={`Remove ${name}`}
-              title={`Remove ${name}`}
+              aria-label={t('Remove {name}', { name })}
+              title={t('Remove {name}', { name })}
               className={`ui-icon-btn ui-icon-btn-danger self-start ${itemName && !summary ? '-my-1.5' : itemName ? '' : 'mt-[2px]'}`}
               onClick={() => onChange(items.filter((row) => row.id !== item.id))}
             >
@@ -807,11 +812,21 @@ function Repeatable<T extends { id: string }>({
 
 /** What each table is called in the email, instead of its storage key. */
 const ROW_SECTION_TITLE: Record<string, string> = {
-  virtual_skilling: 'Virtual skilling events',
-  on_demand: 'On-demand journeys',
-  new_requests: 'New requests',
-  work_in_progress: 'Work in progress',
-  completed: 'Completed',
+  get virtual_skilling() {
+    return t("Virtual skilling events")
+  },
+  get on_demand() {
+    return t("On-demand journeys")
+  },
+  get new_requests() {
+    return t("New requests")
+  },
+  get work_in_progress() {
+    return t("Work in progress")
+  },
+  get completed() {
+    return t("Completed")
+  },
 }
 
 type RowTextKey = 'title' | 'title_url' | 'col_a' | 'col_b' | 'col_c' | 'col_d' | 'col_e' | 'col_f' | 'col_g'
@@ -864,6 +879,8 @@ function RowEditor({
   titleFirst?: boolean
   onChange: (bundle: CampaignBundle) => void
 }) {
+  // Column names come from the email's template, in English: show them in the studio language.
+  labels = labels.map((label) => (label ? t(label) : label))
   const items = bundle.rows.filter((row) => row.section === section)
   const others = bundle.rows.filter((row) => row.section !== section)
   const update = (next: EventRow[]) => onChange({ ...bundle, rows: [...others, ...next] })
@@ -871,25 +888,25 @@ function RowEditor({
   // Same columns and order as before, now with visible labels.
   const fields: [RowTextKey, string][] = titleFirst
     ? [
-        ['title', labels[0] || 'Title'],
-        ['col_a', labels[1] || 'Focus'],
-        ['col_b', labels[2] || 'Date'],
-        ['title_url', 'Title link'],
+        ['title', labels[0] || t("Title")],
+        ['col_a', labels[1] || t("Focus")],
+        ['col_b', labels[2] || t("Date")],
+        ['title_url', t("Title link")],
       ]
     : [
-        ['col_a', labels[0] || 'Owner'],
-        ['title', labels[1] || 'Title'],
-        ['col_b', labels[2] || 'Column'],
+        ['col_a', labels[0] || t("Owner")],
+        ['title', labels[1] || t("Title")],
+        ['col_b', labels[2] || t("Column")],
         ...(labels[3] ? ([['col_c', labels[3]]] as [RowTextKey, string][]) : []),
         ...(labels[4] ? ([['col_d', labels[4]]] as [RowTextKey, string][]) : []),
         ...(extra && section === 'new_requests'
           ? ([
-              ['col_e', 'Project quote'],
-              ['col_f', 'Project approval'],
-              ['col_g', 'Budget tracking'],
+              ['col_e', t("Project quote")],
+              ['col_f', t("Project approval")],
+              ['col_g', t("Budget tracking")],
             ] as [RowTextKey, string][])
           : []),
-        ...(extra && section !== 'new_requests' ? ([['col_g', 'Budget tracking']] as [RowTextKey, string][]) : []),
+        ...(extra && section !== 'new_requests' ? ([['col_g', t("Budget tracking")]] as [RowTextKey, string][]) : []),
       ]
   // The card header names the row by what identifies it in the table.
   const nameKey: RowTextKey = titleFirst ? 'title' : 'col_a'
@@ -897,15 +914,15 @@ function RowEditor({
   return (
     <Repeatable
       title={ROW_SECTION_TITLE[section] ?? section.replaceAll('_', ' ')}
-      addLabel="Add row"
-      emptyText="No rows yet. This table is left out of the email until you add one."
+      addLabel={t("Add row")}
+      emptyText={t("No rows yet. This table is left out of the email until you add one.")}
       itemName={(item, index) => {
         const name = item[nameKey].trim()
-        return name ? `Row ${index + 1}: ${name}` : `Row ${index + 1}`
+        return name ? t('Row {n}: {name}', { n: index + 1, name }) : t('Row {n}', { n: index + 1 })
       }}
       summary={(item) => {
         const line = (titleFirst ? item.col_a : item.title).trim()
-        return line || 'Empty row'
+        return line || t("Empty row")
       }}
       items={items}
       onChange={update}
@@ -933,21 +950,21 @@ function RowEditor({
               label={label}
               value={item[key]}
               onChange={(value) => setItem({ ...item, [key]: value })}
-              multiline={LONG_COLUMNS.has(label)}
+              multiline={[...LONG_COLUMNS].some((column) => t(column) === label)}
             />
           ))}
           {extra ? (
             <label className="block min-w-0">
-              <span className="mb-0.5 block text-[12px] leading-4 text-muted">Row highlight</span>
+              <span className="mb-0.5 block text-[12px] leading-4 text-muted">{t("Row highlight")}</span>
               <select
                 value={item.highlight}
                 onChange={(event) => setItem({ ...item, highlight: event.target.value })}
                 className="ui-field ui-field-sm"
               >
-                <option value="">None</option>
-                <option value="yellow">Yellow</option>
-                <option value="green">Green</option>
-                <option value="orange">Orange</option>
+                <option value="">{t("None")}</option>
+                <option value="yellow">{t("Yellow")}</option>
+                <option value="green">{t("Green")}</option>
+                <option value="orange">{t("Orange")}</option>
               </select>
             </label>
           ) : null}

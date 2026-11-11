@@ -39,6 +39,7 @@ create table if not exists public.campaigns (
   banner_image text not null default '',
   section_image text not null default '',
   newsletter text not null default '',
+  language text not null default 'en',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -52,6 +53,9 @@ alter table public.campaigns add column if not exists newsletter text not null d
 alter table public.campaigns drop constraint if exists campaigns_master_type_check;
 alter table public.campaigns add constraint campaigns_master_type_check
   check (master_type in ('newsletter', 'custom2', 'hackathon', 'event_invite', 'monthly_update', 'weekly_snapshot'));
+
+-- Email language (en, fr): the email's fixed wording and Copilot's writing language; safe to re-run.
+alter table public.campaigns add column if not exists language text not null default 'en';
 
 -- Dataverse: AgendaItem
 create table if not exists public.agenda_items (

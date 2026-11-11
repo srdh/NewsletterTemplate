@@ -3,6 +3,7 @@ import type { MouseEvent as ReactMouseEvent } from 'react'
 import { renderMaster } from '../templates'
 import type { CampaignBundle } from '../types'
 import { sectionLabel } from '../lib/sections'
+import { t } from '../lib/i18n'
 
 /** Narrowest frame; wider emails (like the 720px weekly snapshot) widen it. */
 const EMAIL_WIDTH = 640
@@ -135,9 +136,9 @@ export function PreviewPane({
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-surface">
       {/* Reading pane header: what the recipient sees above the message. */}
       <div className="shrink-0 border-b border-line px-4 pt-4 pb-3.5 sm:px-6">
-        <p className="text-[12px] font-medium leading-4 text-muted">Preview</p>
+        <p className="text-[12px] font-medium leading-4 text-muted">{t("Preview")}</p>
         <h2 className="mt-1 line-clamp-2 text-[18px] font-semibold leading-6 tracking-[-0.01em] text-ink">
-          {campaign.subject || campaign.title || 'No subject'}
+          {campaign.subject || campaign.title || t("No subject")}
         </h2>
         {sender ? (
           <div className="mt-3 flex min-w-0 items-center gap-2.5">
@@ -161,7 +162,7 @@ export function PreviewPane({
         >
           <iframe
             ref={frame}
-            title="Email preview"
+            title={t("Email preview")}
             srcDoc={html}
             onLoad={measure}
             className="block origin-top-left border border-line bg-white"
@@ -199,7 +200,7 @@ export function PreviewPane({
               }}
             >
               <span className="absolute -top-px left-0 -translate-y-full rounded-t-[4px] bg-forest px-2 py-0.5 text-[11px] font-semibold leading-4 text-white">
-                Edit {sectionLabel(master, hover.anchor)}
+                {t('Edit {section}', { section: t(sectionLabel(master, hover.anchor)) })}
               </span>
             </div>
           ) : null}

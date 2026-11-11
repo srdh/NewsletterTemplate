@@ -27,3 +27,5 @@ Microsoft Partner Skilling chrome in the email canvas (forest green, Segoe, four
 ## Evidence on Hand
 
 Strat1 task note (OFT Template Maker, C-Panel/CMS input, Banner / Body / Section-1 / Footer). Screenshots of ASIA Build What’s Next, Partner Skilling Update, and Weekly project snapshot.
+
+Languages: the studio interface switches between English and French (header En / Fr), and each email has its own language (English or French) for its fixed wording, starter text, and Copilot's writing.

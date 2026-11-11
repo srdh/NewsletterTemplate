@@ -8,15 +8,19 @@ import {
   richHtml,
   sectionAttr,
 } from '../lib/html'
+import { emailLang, emailT, langTag, type EmailT } from '../lib/emailText'
 
 const GREEN = '#0B4F38'
 const LINK = '#0067C0'
 
+/** Fixed email wording in this email's language, set per render. */
+let T: EmailT = emailT('en')
+
 function contentsList(bundle: CampaignBundle): string {
   const items = [
     ...bundle.spotlights.map((s) => s.headline),
-    'Upcoming Virtual Skilling',
-    'On-Demand Skilling',
+    T('Upcoming Virtual Skilling'),
+    T('On-Demand Skilling'),
   ].filter(Boolean)
   return items
     .map(
@@ -47,7 +51,7 @@ function spotlightBlock(card: SpotlightCard, preview: boolean): string {
       ${art}
       <div style="padding-top:12px;">${richHtml(card.body)}</div>
       ${bullets ? `<ul style="margin:0 0 10px;padding:0 0 0 18px;">${bullets}</ul>` : ''}
-      <p style="margin:0;">${linkHtml(card.cta_label || 'Register now!', card.cta_url)}</p>
+      <p style="margin:0;">${linkHtml(card.cta_label || T('Register now!'), card.cta_url)}</p>
     </td>
   </tr>`
 }
@@ -87,6 +91,7 @@ function tableSection(
 
 export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): string {
   const c = bundle.campaign
+  T = emailT(emailLang(c))
   const sec = (anchor: string) => sectionAttr(preview, anchor)
   const virtual = bundle.rows.filter((r) => r.section === 'virtual_skilling')
   const onDemand = bundle.rows.filter((r) => r.section === 'on_demand')
@@ -105,7 +110,7 @@ export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): st
                   <td align="right" style="color:#ffffff;font-size:12px;">${escapeHtml(c.month_label)}</td>
                 </tr>
               </table>
-              <p style="margin:14px 0 0;font-size:22px;font-weight:700;color:#ffffff;">Partner Skilling Update</p>
+              <p style="margin:14px 0 0;font-size:22px;font-weight:700;color:#ffffff;">${T('Partner Skilling Update')}</p>
               <p style="margin:4px 0 0;font-size:16px;color:#d7eadf;">${escapeHtml(c.subtitle)}</p>
             </td>
           </tr>
@@ -115,12 +120,12 @@ export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): st
                 <tr>
                   <td valign="top" style="padding-right:16px;">
                     ${richHtml(c.intro)}
-                    <p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1b1b1b;">Call to Action</p>
+                    <p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1b1b1b;">${T('Call to Action')}</p>
                     ${richHtml(c.action_body)}
                     <p style="margin:16px 0 0;font-size:14px;color:#242424;"><strong>${escapeHtml(c.signer_name)}</strong><br>${escapeHtml(c.signer_title)}</p>
                   </td>
                   <td valign="top" width="200" bgcolor="#f4f4f4" style="background:#f4f4f4;padding:14px;">
-                    <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#1b1b1b;">Contents</p>
+                    <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#1b1b1b;">${T('Contents')}</p>
                     ${contentsList(bundle)}
                   </td>
                 </tr>
@@ -129,14 +134,14 @@ export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): st
           </tr>
           <tr>
             <td style="padding:8px 24px 8px;">
-              <h2 id="spotlight"${sec('spotlight')} style="margin:12px 0 16px;font-size:20px;color:${GREEN};">In the Spotlight. Upcoming events you can take</h2>
+              <h2 id="spotlight"${sec('spotlight')} style="margin:12px 0 16px;font-size:20px;color:${GREEN};">${T('In the Spotlight. Upcoming events you can take')}</h2>
               <table role="presentation" width="100%">${spotlights.map((card) => spotlightBlock(card, preview)).join('')}</table>
               ${markedBlock(
                 preview,
                 'events',
                 tableSection(
-                  'Upcoming events · Virtual Skilling',
-                  ['Event', 'Focus', 'Date and time'],
+                  T('Upcoming events · Virtual Skilling'),
+                  [T('Event'), T('Focus'), T('Date and time')],
                   virtual,
                   (r) => [r.title, r.col_a, r.col_b],
                 ),
@@ -145,8 +150,8 @@ export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): st
                 preview,
                 'events',
                 tableSection(
-                  'On-Demand Skilling',
-                  ['Learning journey', 'Focus', 'Link'],
+                  T('On-Demand Skilling'),
+                  [T('Learning journey'), T('Focus'), T('Link')],
                   onDemand,
                   (r) => [r.title, r.col_a, r.col_b],
                 ),
@@ -155,8 +160,8 @@ export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): st
           </tr>
           <tr${sec('signature')}>
             <td bgcolor="${GREEN}" style="background:${GREEN};padding:18px 24px;color:#ffffff;font-size:11px;line-height:1.5;">
-              <p style="margin:0 0 8px;">${escapeHtml(c.contents_intro || 'Let us know if you prefer that we send you these communications. To learn how to manage your contact preferences, see our privacy statement.')}</p>
-              <p style="margin:0;">© ${new Date().getFullYear()} Microsoft Corporation. All rights reserved.</p>
+              <p style="margin:0 0 8px;">${escapeHtml(c.contents_intro || T('Let us know if you prefer that we send you these communications. To learn how to manage your contact preferences, see our privacy statement.'))}</p>
+              <p style="margin:0;">${T('© {year} Microsoft Corporation. All rights reserved.', { year: new Date().getFullYear() })}</p>
             </td>
           </tr>
         </table>
@@ -164,5 +169,5 @@ export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): st
     </tr>
   </table>`
 
-  return emailDocument(c.subject || c.title, inner)
+  return emailDocument(c.subject || c.title, inner, langTag(emailLang(c)))
 }

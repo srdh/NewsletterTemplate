@@ -23,6 +23,11 @@ import { DownloadButton } from './DownloadButton'
 import { FieldForm } from './FieldForm'
 import { IconCheck, IconClose, IconCopy, IconSaved, IconWarning, MicrosoftMark } from './Icons'
 import { PreviewPane } from './PreviewPane'
+import { asLang, t, uiLang, type Lang } from '../lib/i18n'
+import { LanguageSwitch } from './LanguageSwitch'
+
+/** Remembers the language you last picked for new emails. */
+const NEW_LANG_KEY = 'oft-template-maker/new-email-language'
 
 type MobilePane = 'fields' | 'preview' | 'agent'
 type SaveState = 'saved' | 'saving' | 'error'
@@ -55,14 +60,14 @@ const PANES: [MobilePane, string][] = [
 /** Fields an email can't go out without. Checked before every download. */
 function unfinishedFields(next: CampaignBundle): string[] {
   const missing: string[] = []
-  if (!next.campaign.subject.trim()) missing.push('Subject')
+  if (!next.campaign.subject.trim()) missing.push(t("Subject"))
   if (usesDesign(next.campaign.master_type)) {
     // A full-image banner can carry the headline in the picture itself.
     const fullImage = readDesign(next.campaign).banner.layout === 'image' && next.campaign.banner_image
-    if (!fullImage && !next.campaign.title.trim()) missing.push('Headline')
+    if (!fullImage && !next.campaign.title.trim()) missing.push(t("Headline"))
     return missing
   }
-  if (!next.campaign.title.trim()) missing.push('Title')
+  if (!next.campaign.title.trim()) missing.push(t("Title"))
   return missing
 }
 
@@ -81,7 +86,7 @@ export function Studio() {
 
   /** "Fill with Copilot" on a form section: a starting prompt in the Copilot box. */
   function askCopilot(section: string) {
-    setPrefill({ text: `Fill in “${section}”: `, key: Date.now() })
+    setPrefill({ text: t('Fill in “{section}”: ', { section }), key: Date.now() })
     if (!isDesktop) setMobilePane('agent')
   }
 
@@ -107,21 +112,21 @@ export function Studio() {
     if (missing.length) {
       show({
         tone: 'warn',
-        text: `${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} empty. The email would go out without ${missing.length > 1 ? 'them' : 'it'}.`,
-        action: { label: 'Download anyway', run: () => void handleDownload(kind, next, true) },
+        text: t(missing.length > 1 ? '{fields} are empty. The email would go out without them.' : '{fields} is empty. The email would go out without it.', { fields: missing.join(t(' and ')) }),
+        action: { label: t("Download anyway"), run: () => void handleDownload(kind, next, true) },
       })
       return
     }
     try {
       if (kind === 'oft') {
         const name = await downloadOft(next)
-        show({ tone: 'success', text: `Downloaded ${name}. Double-click it to open the email in classic Outlook for Windows.` })
+        show({ tone: 'success', text: t('Downloaded {name}. Double-click it to open the email in classic Outlook for Windows.', { name }) })
       } else {
         const name = downloadEml(next)
-        show({ tone: 'success', text: `Downloaded ${name}. Open it in Outlook for Mac, new Outlook, or another mail app.` })
+        show({ tone: 'success', text: t('Downloaded {name}. Open it in Outlook for Mac, new Outlook, or another mail app.', { name }) })
       }
     } catch {
-      setError(`Could not build the .${kind} file. Try again, or use Copy for Outlook instead.`)
+      setError(t('Could not build the .{kind} file. Try again, or use Copy for Outlook instead.', { kind }))
     }
   }
 
@@ -130,9 +135,9 @@ export function Studio() {
       await copyForOutlook(next)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
-      show({ tone: 'success', text: 'Copied. Paste it into the body of a new Outlook email.' })
+      show({ tone: 'success', text: t("Copied. Paste it into the body of a new Outlook email.") })
     } catch {
-      setError('Could not copy the email. Your browser may not allow clipboard access here.')
+      setError(t("Could not copy the email. Your browser may not allow clipboard access here."))
     }
   }
 
@@ -150,7 +155,7 @@ export function Studio() {
           if (!cancelled) setBundle(next)
         }
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : 'Could not load campaigns')
+        setError(caught instanceof Error ? caught.message : t("Could not load campaigns"))
       }
     })()
     return () => {
@@ -173,7 +178,7 @@ export function Studio() {
         setSaveState('saved')
       } catch (caught) {
         setSaveState('error')
-        setError(caught instanceof Error ? caught.message : 'Could not save your changes.')
+        setError(caught instanceof Error ? caught.message : t("Could not save your changes."))
       }
     }, 450)
   }
@@ -184,25 +189,44 @@ export function Studio() {
     setBundle(next)
   }
 
+  // The language new emails start in: the studio language until you pick one.
+  const [pickedLang, setPickedLang] = useState<Lang | null>(() => {
+    try {
+      const saved = localStorage.getItem(NEW_LANG_KEY)
+      return saved ? asLang(saved) : null
+    } catch {
+      return null
+    }
+  })
+  const newLang = pickedLang ?? uiLang()
+  function pickNewLang(lang: Lang) {
+    setPickedLang(lang)
+    try {
+      localStorage.setItem(NEW_LANG_KEY, lang)
+    } catch {
+      // Not remembered; the choice still applies now.
+    }
+  }
+
   async function onCreate(master: MasterType) {
     try {
-      const created = await createCampaign(master)
+      const created = await createCampaign(master, newLang)
       setCampaigns((current) => [...current, created.campaign])
       setBundle(created)
       setMobilePane('fields')
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not create the campaign.')
+      setError(caught instanceof Error ? caught.message : t("Could not create the campaign."))
     }
   }
 
   async function onCreateStarter(starterId: string) {
     try {
-      const created = await createFromStarter(starterId)
+      const created = await createFromStarter(starterId, newLang)
       setCampaigns((current) => [...current, created.campaign])
       setBundle(created)
       setMobilePane('fields')
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not start from that template.')
+      setError(caught instanceof Error ? caught.message : t("Could not start from that template."))
     }
   }
 
@@ -222,9 +246,9 @@ export function Studio() {
     try {
       const saved = saveUserTemplate(bundle, name)
       setTemplates(listUserTemplates())
-      show({ tone: 'success', text: `Saved “${saved.name}” to Your templates. Start new emails from it on the left.` })
+      show({ tone: 'success', text: t('Saved “{name}” to Your templates. Start new emails from it on the left.', { name: saved.name }) })
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not save the template.')
+      setError(caught instanceof Error ? caught.message : t("Could not save the template."))
     }
   }
 
@@ -237,7 +261,7 @@ export function Studio() {
       setBundle(created)
       setMobilePane('fields')
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not start from that template.')
+      setError(caught instanceof Error ? caught.message : t("Could not start from that template."))
     }
   }
 
@@ -245,7 +269,7 @@ export function Studio() {
     try {
       setTemplates(deleteUserTemplate(templateId))
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not delete the template.')
+      setError(caught instanceof Error ? caught.message : t("Could not delete the template."))
     }
   }
 
@@ -261,9 +285,9 @@ export function Studio() {
       setCampaigns((current) => [...current, copy.campaign])
       setBundle(copy)
       setMobilePane('fields')
-      show({ tone: 'success', text: `Started a new email from “${source.campaign.name}”. You are editing the copy.` })
+      show({ tone: 'success', text: t('Started a new email from “{name}”. You are editing the copy.', { name: source.campaign.name }) })
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not copy that email.')
+      setError(caught instanceof Error ? caught.message : t("Could not copy that email."))
     }
   }
 
@@ -273,15 +297,15 @@ export function Studio() {
       const copy = await duplicateCampaign(bundle)
       setCampaigns((current) => [...current, copy.campaign])
       setBundle(copy)
-      show({ tone: 'success', text: `Duplicated. You are now editing “${copy.campaign.name}”.` })
+      show({ tone: 'success', text: t('Duplicated. You are now editing “{name}”.', { name: copy.campaign.name }) })
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not duplicate the campaign.')
+      setError(caught instanceof Error ? caught.message : t("Could not duplicate the campaign."))
     }
   }
 
   async function onDelete() {
     if (!bundle) return
-    const ok = window.confirm(`Delete “${bundle.campaign.name}”?`)
+    const ok = window.confirm(t('Delete “{name}”?', { name: bundle.campaign.name }))
     if (!ok) return
     await deleteCampaign(bundle.campaign.id)
     const remaining = campaigns.filter((row) => row.id !== bundle.campaign.id)
@@ -321,11 +345,10 @@ export function Studio() {
     >
       {copied ? <IconCheck /> : <IconCopy />}
       <span className="flex flex-col items-start">
-        <span>{copied ? 'Copied' : 'Copy for Outlook'}</span>
+        <span>{copied ? t("Copied") : t("Copy for Outlook")}</span>
         {/* Wide screens only: says where the copy goes. */}
         <span className="hidden text-[11px] font-normal leading-4 opacity-80 xl:block">
-          Paste into the Outlook email body
-        </span>
+          {t("Paste into the Outlook email body")}</span>
       </span>
     </button>
   ) : null
@@ -337,11 +360,9 @@ export function Studio() {
           <MicrosoftMark className="h-6 w-6 shrink-0" />
           <div className="hidden min-w-0 md:block">
             <h1 className="text-[18px] font-semibold leading-6 whitespace-nowrap text-ink">
-              Newsletter Studio
-            </h1>
+              {t("Newsletter Studio")}</h1>
             <p className="hidden text-[12px] leading-4 whitespace-nowrap text-muted xl:block">
-              Microsoft Partner Skilling Outlook emails: design, preview live, export .oft
-            </p>
+              {t("Microsoft Partner Skilling Outlook emails: design, preview live, export .oft")}</p>
           </div>
         </div>
         <span className="hidden h-6 w-px shrink-0 bg-line-strong md:block" aria-hidden="true" />
@@ -349,6 +370,7 @@ export function Studio() {
           {switcher}
           {bundle ? <SaveIndicator state={saveState} /> : null}
         </div>
+        <LanguageSwitch />
         <div className="hidden shrink-0 items-center gap-2 sm:flex">
           {bundle ? (
             <DownloadButton
@@ -378,7 +400,7 @@ export function Studio() {
             ) : null}
             <button
               type="button"
-              aria-label="Close message"
+              aria-label={t("Close message")}
               className="ui-icon-btn -mr-1 h-7 w-7 text-ink-2"
               onClick={() => show(null)}
             >
@@ -391,7 +413,7 @@ export function Studio() {
       {/* Below desktop width: one pane at a time. */}
       {bundle ? (
         <div className="shrink-0 border-b border-line bg-surface px-2 lg:hidden">
-          <div role="tablist" aria-label="Studio panes" className="flex gap-1" onKeyDown={onTabKey}>
+          <div role="tablist" aria-label={t("Studio panes")} className="flex gap-1" onKeyDown={onTabKey}>
             {PANES.map(([id, label]) => (
               <button
                 key={id}
@@ -409,7 +431,7 @@ export function Studio() {
                 }
                 onClick={() => setMobilePane(id)}
               >
-                {label}
+                {t(label)}
               </button>
             ))}
           </div>
@@ -422,7 +444,7 @@ export function Studio() {
             {/* Same order as the original studio: Copilot, Fields, Preview. */}
             <aside
               id="pane-agent"
-              aria-label="Copilot"
+              aria-label={t("Copilot")}
               className={
                 (mobilePane === 'agent' ? 'flex' : 'hidden') +
                 ' min-h-0 w-full flex-1 flex-col lg:flex lg:w-auto lg:flex-none lg:shrink-0'
@@ -440,14 +462,16 @@ export function Studio() {
                 templates={templates}
                 onUseTemplate={(id) => void onUseTemplate(id)}
                 onDeleteTemplate={onDeleteTemplate}
-              />
+              newLang={newLang}
+              onNewLang={pickNewLang}
+            />
             </aside>
 
-            <div className="resize-handle hidden lg:block" {...agentPanel.handleProps('Resize Copilot pane')} />
+            <div className="resize-handle hidden lg:block" {...agentPanel.handleProps(t("Resize Copilot pane"))} />
 
             <section
               id="pane-fields"
-              aria-label="Fields"
+              aria-label={t("Fields")}
               className={
                 (mobilePane === 'fields' ? 'flex' : 'hidden') +
                 ' min-h-0 w-full flex-1 flex-col overflow-hidden bg-surface lg:flex lg:w-auto lg:flex-none lg:shrink-0'
@@ -465,11 +489,11 @@ export function Studio() {
               </AskCopilotContext.Provider>
             </section>
 
-            <div className="resize-handle hidden lg:block" {...formPanel.handleProps('Resize fields pane')} />
+            <div className="resize-handle hidden lg:block" {...formPanel.handleProps(t("Resize fields pane"))} />
 
             <section
               id="pane-preview"
-              aria-label="Email preview"
+              aria-label={t("Email preview")}
               className={
                 (mobilePane === 'preview' ? 'flex' : 'hidden') +
                 ' min-h-0 w-full min-w-0 flex-1 flex-col bg-surface lg:flex'
@@ -481,17 +505,17 @@ export function Studio() {
         ) : (
           <div className="flex flex-1 items-center justify-center p-6">
             <div className="w-full max-w-sm text-center">
-              <h2 className="text-[18px] font-semibold leading-6 text-ink">What email are we building?</h2>
-              <p className="mt-1 text-muted">Start a new email from a template.</p>
+              <h2 className="text-[18px] font-semibold leading-6 text-ink">{t("What email are we building?")}</h2>
+              <p className="mt-1 text-muted">{t("Start a new email from a template.")}</p>
               <div className="mt-4 grid gap-2">
                 {(
                   [
-                    ['event_invite', 'Partner Templates: Regional Template'],
-                    ['monthly_update', 'Partner Templates: Partner Skilling Update Template'],
-                    ['weekly_snapshot', 'Partner Templates: Weekly Project Snapshot'],
-                    ['custom', 'Partner Templates: Custom'],
-                    ['hackathon-registration', 'Hackathons: Registration Confirmation'],
-                    ['custom2', 'Custom 2'],
+                    ['event_invite', t("Partner Templates: Regional Template")],
+                    ['monthly_update', t("Partner Templates: Partner Skilling Update Template")],
+                    ['weekly_snapshot', t("Partner Templates: Weekly Project Snapshot")],
+                    ['custom', t("Partner Templates: Custom")],
+                    ['hackathon-registration', t("Hackathons: Registration Confirmation")],
+                    ['custom2', t("Custom 2")],
                   ] as [NewEmailChoice, string][]
                 ).map(([choice, label]) => (
                   <button key={choice} type="button" className="ui-btn ui-btn-ghost w-full" onClick={() => onNew(choice)}>
@@ -535,14 +559,14 @@ export function Studio() {
 
 /** Autosave made visible, the way Office shows it beside the file name. */
 function SaveIndicator({ state }: { state: SaveState }) {
-  const label = state === 'saving' ? 'Saving…' : state === 'error' ? 'Not saved' : 'Saved'
+  const label = state === 'saving' ? t("Saving…") : state === 'error' ? t("Not saved") : t("Saved")
   return (
     <span
       className={
         'flex shrink-0 items-center gap-1.5 text-[12px] leading-4 ' +
         (state === 'error' ? 'text-danger' : 'text-muted')
       }
-      title={state === 'saved' ? 'All changes saved' : undefined}
+      title={state === 'saved' ? t("All changes saved") : undefined}
     >
       {state === 'error' ? <IconWarning /> : <IconSaved />}
       <span className="hidden sm:inline">{label}</span>

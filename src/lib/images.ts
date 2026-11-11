@@ -1,3 +1,5 @@
+
+import { t } from './i18n'
 /*
  * Prepares an uploaded picture for an email: resized to the width it is shown
  * at (twice over, for sharp screens), converted to PNG or JPEG (the formats
@@ -23,7 +25,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
     }
     image.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new ImageProblem('That file could not be opened as an image.'))
+      reject(new ImageProblem(t("That file could not be opened as an image.")))
     }
     image.src = url
   })
@@ -37,7 +39,7 @@ function dataUrlBytes(dataUrl: string): number {
 /** Returns a data URL ready to store in the campaign and place in the email. */
 export async function prepareImage(file: File, maxWidth: number): Promise<string> {
   if (!ACCEPTED.includes(file.type)) {
-    throw new ImageProblem('Use a PNG, JPG, GIF, or WebP image.')
+    throw new ImageProblem(t("Use a PNG, JPG, GIF, or WebP image."))
   }
   const image = await loadImage(file)
   const scale = Math.min(1, maxWidth / image.naturalWidth)
@@ -48,7 +50,7 @@ export async function prepareImage(file: File, maxWidth: number): Promise<string
   canvas.width = width
   canvas.height = height
   const context = canvas.getContext('2d')
-  if (!context) throw new ImageProblem('This browser could not process the image.')
+  if (!context) throw new ImageProblem(t("This browser could not process the image."))
 
   // PNG keeps transparency (logos, cut-out art). Photos go to JPEG.
   if (file.type === 'image/png' || file.type === 'image/gif') {

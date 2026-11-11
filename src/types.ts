@@ -1,3 +1,5 @@
+import { t } from './lib/i18n'
+
 export type MasterType =
   | 'newsletter'
   | 'custom2'
@@ -46,6 +48,12 @@ export interface Campaign {
    * rich text, and footer. Empty for the other masters. See lib/newsletter.ts.
    */
   newsletter?: string // also used by Custom 2 (custom2)
+  /**
+   * The language the email is written in: 'en' or 'fr' (see lib/emailText.ts).
+   * Sets the email's fixed wording, its html lang, and the language Copilot
+   * writes in. Empty or missing means English.
+   */
+  language?: string
   created_at: string
   updated_at: string
 }
@@ -94,21 +102,45 @@ export interface CampaignBundle {
 }
 
 export const MASTER_LABEL: Record<MasterType, string> = {
-  newsletter: 'Custom',
-  custom2: 'Custom 2',
-  hackathon: 'Hackathons',
-  event_invite: 'Regional Template',
-  monthly_update: 'Partner Skilling Update Template',
-  weekly_snapshot: 'Weekly Project Snapshot',
+  get newsletter() {
+    return t("Custom")
+  },
+  get custom2() {
+    return t("Custom 2")
+  },
+  get hackathon() {
+    return t("Hackathons")
+  },
+  get event_invite() {
+    return t("Regional Template")
+  },
+  get monthly_update() {
+    return t("Partner Skilling Update Template")
+  },
+  get weekly_snapshot() {
+    return t("Weekly Project Snapshot")
+  },
 }
 
 export const MASTER_HINT: Record<MasterType, string> = {
-  newsletter: 'Free-form newsletter in the ME7 + Copilot learning paths format',
-  custom2: 'Block-by-block email: banner, text, event card, table, spotlights, call to action, signature',
-  hackathon: 'Hackathon emails, block by block: registration confirmations and more',
-  event_invite: 'Banner, Body, Section-1, Footer (MS Signature)',
-  monthly_update: 'Newsletter with spotlight cards and skilling tables',
-  weekly_snapshot: 'Ops status email with request and delivery tables',
+  get newsletter() {
+    return t("Free-form newsletter in the ME7 + Copilot learning paths format")
+  },
+  get custom2() {
+    return t("Block-by-block email: banner, text, event card, table, spotlights, call to action, signature")
+  },
+  get hackathon() {
+    return t("Hackathon emails, block by block: registration confirmations and more")
+  },
+  get event_invite() {
+    return t("Banner, Body, Section-1, Footer (MS Signature)")
+  },
+  get monthly_update() {
+    return t("Newsletter with spotlight cards and skilling tables")
+  },
+  get weekly_snapshot() {
+    return t("Ops status email with request and delivery tables")
+  },
 }
 
 /** Email types edited with the newsletter engine (style, banner, blocks, footer). */

@@ -1,4 +1,5 @@
 import { agentPrompt, extractJsonValue, parseAgentFill, type AgentFill } from './schema'
+import { t } from '../i18n'
 
 const USER_ID = 'oft-studio'
 
@@ -15,7 +16,7 @@ export type FillSource = 'copilot' | 'claude' | 'sample'
 export class ProviderNotConnected extends Error {
   constructor() {
     super(
-      'No fill engine is connected. Paste ANTHROPIC_API_KEY into .env for the POC, or connect Copilot Studio later.',
+      t('No fill engine is connected. Paste ANTHROPIC_API_KEY into .env for the POC, or connect Copilot Studio later.'),
     )
     this.name = 'ProviderNotConnected'
   }
@@ -29,8 +30,8 @@ export function copilotConfigured(): boolean {
 }
 
 export function fillStatus(): { label: string; ready: boolean } {
-  if (copilotConfigured()) return { label: 'Connected', ready: true }
-  return { label: 'Connected', ready: true }
+  if (copilotConfigured()) return { label: t('Connected'), ready: true }
+  return { label: t('Connected'), ready: true }
 }
 
 /** What the agent needs to know besides the new message. */
@@ -39,6 +40,10 @@ export type FillContext = {
   history: { role: 'user' | 'assistant'; text: string }[]
   /** The email as it is right now in the form. */
   current: unknown
+  /** The email's language ('en' or 'fr'): Copilot writes the email's text in it. */
+  emailLanguage?: string
+  /** The studio language: Copilot's reply to the person is in it. */
+  uiLanguage?: string
 }
 
 export async function fillCampaign(
@@ -61,10 +66,12 @@ async function fillFromClaude(userText: string, context?: FillContext): Promise<
         prompt: userText,
         history: context?.history ?? [],
         current: context?.current,
+        emailLanguage: context?.emailLanguage,
+        uiLanguage: context?.uiLanguage,
       }),
     })
   } catch {
-    throw new Error('Could not reach the local Claude bridge. Is npm run dev still running?')
+    throw new Error(t('Could not reach the local Claude bridge. Is npm run dev still running?'))
   }
 
   const body = (await response.json()) as { text?: string; error?: string }
@@ -72,14 +79,14 @@ async function fillFromClaude(userText: string, context?: FillContext): Promise<
     throw new ProviderNotConnected()
   }
   if (!response.ok) {
-    throw new Error(body.error || `Claude fill failed (${response.status}).`)
+    throw new Error(body.error || t('Claude fill failed ({status}).', { status: response.status }))
   }
-  if (!body.text) throw new Error('Claude returned an empty reply.')
+  if (!body.text) throw new Error(t('Claude returned an empty reply.'))
 
   const parsed = extractJsonValue(body.text)
   if (!parsed) {
     throw new Error(
-      `Claude replied without field JSON: “${body.text.slice(0, 280)}”`,
+      t('Claude replied without field JSON: “{text}”', { text: body.text.slice(0, 280) }),
     )
   }
   return parseAgentFill(parsed)
@@ -144,11 +151,11 @@ async function fillFromCopilot(userText: string): Promise<AgentFill> {
 
   if (plainReply) {
     throw new Error(
-      `Copilot replied in plain text instead of field data: “${plainReply.slice(0, 280)}”`,
+      t('Copilot replied in plain text instead of field data: “{text}”', { text: plainReply.slice(0, 280) }),
     )
   }
   throw new Error(
-    'Copilot did not send field data in time. Publish the agent, then try again.',
+    t('Copilot did not send field data in time. Publish the agent, then try again.'),
   )
 }
 
@@ -282,14 +289,14 @@ async function requestToken(endpoint: string): Promise<string> {
     response = await fetch(endpoint)
   } catch {
     throw new Error(
-      'The browser could not reach Copilot Studio. Check that the agent is published and the Token Endpoint in the settings file is correct.',
+      t('The browser could not reach Copilot Studio. Check that the agent is published and the Token Endpoint in the settings file is correct.'),
     )
   }
   if (!response.ok) {
-    throw new Error(`Copilot Studio refused the connection (${response.status}).`)
+    throw new Error(t('Copilot Studio refused the connection ({status}).', { status: response.status }))
   }
   const body = (await response.json()) as { token?: string }
-  if (!body.token) throw new Error('Copilot Studio did not return a token.')
+  if (!body.token) throw new Error(t('Copilot Studio did not return a token.'))
   return body.token
 }
 
@@ -304,10 +311,10 @@ async function directLine<T>(url: string, token: string, init: RequestInit = {})
       },
     })
   } catch {
-    throw new Error('The browser lost the connection to Copilot Studio while waiting for a reply.')
+    throw new Error(t('The browser lost the connection to Copilot Studio while waiting for a reply.'))
   }
   if (!response.ok) {
-    throw new Error(`Copilot Studio returned an error (${response.status}).`)
+    throw new Error(t('Copilot Studio returned an error ({status}).', { status: response.status }))
   }
   return (await response.json()) as T
 }

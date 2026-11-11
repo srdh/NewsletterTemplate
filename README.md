@@ -46,6 +46,32 @@ Code: `src/lib/newsletter.ts` (design model), `src/lib/richText.ts` (sanitizer a
 
 This is **Track B**: a React studio plus tables. Inside a Microsoft tenant the same shape is Dataverse + Power Apps + Power Automate. Mapping: [docs/dataverse-map.md](docs/dataverse-map.md).
 
+## Languages (English and French)
+
+There are two language settings, and they are separate:
+
+- **Studio language**: the **En / Fr** switch in the header changes the studio's own menus, labels, buttons, and messages. It is remembered in this browser. Copilot also replies to you in this language.
+- **Email language**: each email has its own **Email language** (in **Email settings** for Custom 2 and Hackathons, under the subject for the other templates). It sets:
+  - the email's fixed wording, such as table headings, "Best regards,", the event card's Date / Time / Where, and the footer's copyright line
+  - the email's `html lang` (`en-US` or `fr-FR`)
+  - the language Copilot writes the email's text in
+  - the default text of blocks, rows, and cards you add
+
+  Text you already wrote stays as it is when you switch. To translate it, ask Copilot, for example "Traduis cet e-mail en français".
+- **New email in**: on the start panel, choose the language a new email starts in. Every template (Regional, Partner Skilling Update, Weekly Snapshot, Custom, Custom 2, and the Hackathons campaigns) has French starter text. Until you pick one, new emails follow the studio language.
+
+Where the words live:
+
+| What | File |
+|---|---|
+| Studio interface | `src/locales/fr.ts` (keys are the English text in `t('…')` calls, see `src/lib/i18n.ts`) |
+| Fixed email wording | `src/locales/emailFr.ts` (see `src/lib/emailText.ts`) |
+| Starter emails | `src/data/starters/fr.ts` (keys are the English text in `T('…')` calls in each starter) |
+
+A phrase with no French entry shows in English, so nothing breaks while a translation is missing. To add a language, add its dictionaries next to the French ones and add it to `LANGUAGES` in `src/lib/i18n.ts`.
+
+If you use Supabase, run `supabase/schema.sql` again. It adds the `language` column and is safe to re-run.
+
 ## Run locally
 
 ```bash

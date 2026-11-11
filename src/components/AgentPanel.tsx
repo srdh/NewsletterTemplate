@@ -10,8 +10,10 @@ import type { Campaign, CampaignBundle, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
 import { STARTERS } from '../data/starters'
 import type { UserTemplate } from '../data/userTemplates'
-import { edited } from './CampaignSwitcher'
+import { ago, edited } from './CampaignSwitcher'
 import { IconCalendar, IconChevron, IconDuplicate, IconNewsletter, IconSend, IconSpark, IconTable, IconTrash } from './Icons'
+import { LANGUAGES, t, uiLang, type Lang } from '../lib/i18n'
+import { emailLang } from '../lib/emailText'
 
 type ChatItem = {
   id: string
@@ -51,10 +53,26 @@ interface GroupCampaign {
 
 /** Campaigns under Partner Templates: the four classic Partner Skilling emails. */
 const PARTNER_CAMPAIGNS: GroupCampaign[] = [
-  { id: 'event_invite', label: 'Regional Template', hint: 'Event invite with banner, event details, agenda, and signature' },
-  { id: 'monthly_update', label: 'Partner Skilling Update Template', hint: 'Monthly newsletter with spotlight cards and skilling tables' },
-  { id: 'weekly_snapshot', label: 'Weekly Project Snapshot', hint: 'Status email with request, progress, and delivery tables' },
-  { id: 'custom', label: 'Custom', hint: 'Free-form newsletter like ME7 + Copilot learning paths: hero image, cards, rich text' },
+  { id: 'event_invite', get label() {
+    return t("Regional Template")
+  }, get hint() {
+    return t("Event invite with banner, event details, agenda, and signature")
+  } },
+  { id: 'monthly_update', get label() {
+    return t("Partner Skilling Update Template")
+  }, get hint() {
+    return t("Monthly newsletter with spotlight cards and skilling tables")
+  } },
+  { id: 'weekly_snapshot', get label() {
+    return t("Weekly Project Snapshot")
+  }, get hint() {
+    return t("Status email with request, progress, and delivery tables")
+  } },
+  { id: 'custom', get label() {
+    return t("Custom")
+  }, get hint() {
+    return t("Free-form newsletter like ME7 + Copilot learning paths: hero image, cards, rich text")
+  } },
 ]
 
 const RECENT_COUNT = 5
@@ -79,6 +97,8 @@ export function AgentPanel({
   templates,
   onUseTemplate,
   onDeleteTemplate,
+  newLang,
+  onNewLang,
 }: {
   bundle: CampaignBundle
   onApply: (bundle: CampaignBundle) => void
@@ -95,6 +115,9 @@ export function AgentPanel({
   templates: UserTemplate[]
   onUseTemplate: (id: string) => void
   onDeleteTemplate: (id: string) => void
+  /** The language new emails start in (their starter text and fixed wording). */
+  newLang: Lang
+  onNewLang: (lang: Lang) => void
 }) {
   const [items, setItems] = useState<ChatItem[]>([])
   const [openGroup, setOpenGroup] = useState<'partner' | 'hackathons' | null>(null)
@@ -140,7 +163,7 @@ export function AgentPanel({
       role: item.role,
       text:
         item.role === 'assistant'
-          ? [item.text, item.note ?? (item.state === 'open' ? '(Changes proposed, not applied yet.)' : '')]
+          ? [item.text, item.note ?? (item.state === 'open' ? t("(Changes proposed, not applied yet.)") : '')]
               .filter(Boolean)
               .join(' ')
           : item.text,
@@ -152,7 +175,12 @@ export function AgentPanel({
     setBusy(true)
     const mine = ++ticket.current
     try {
-      const { fill, source } = await fillCampaign(prompt, { history, current: currentEmail })
+      const { fill, source } = await fillCampaign(prompt, {
+        history,
+        current: currentEmail,
+        emailLanguage: emailLang(bundle.campaign),
+        uiLanguage: uiLang(),
+      })
       if (mine !== ticket.current) return
       const hasChanges = changesFor(bundle, fill).length > 0
       setItems((list) => [
@@ -163,8 +191,8 @@ export function AgentPanel({
           text:
             fill.reply ||
             (hasChanges
-              ? 'Here is what I would change. Nothing updates until you apply.'
-              : 'Nothing to change for that request.'),
+              ? t("Here is what I would change. Nothing updates until you apply.")
+              : t("Nothing to change for that request.")),
           fill: hasChanges ? fill : undefined,
           source,
           state: hasChanges ? 'open' : undefined,
@@ -176,11 +204,11 @@ export function AgentPanel({
       setError(
         caught instanceof ProviderNotConnected
           ? {
-              text: "Copilot isn't connected right now. You can still fill every field by hand.",
-              detail: 'For whoever set up this app: ANTHROPIC_API_KEY is missing. Add it to .env (or to Vercel), then restart.',
+              text: t("Copilot isn't connected right now. You can still fill every field by hand."),
+              detail: t("For whoever set up this app: ANTHROPIC_API_KEY is missing. Add it to .env (or to Vercel), then restart."),
               prompt,
             }
-          : { text: "Copilot couldn't finish that request. Try again in a moment.", detail, prompt },
+          : { text: t("Copilot couldn't finish that request. Try again in a moment."), detail, prompt },
       )
     } finally {
       if (mine === ticket.current) setBusy(false)
@@ -207,7 +235,7 @@ export function AgentPanel({
           ? {
               ...item,
               state: 'applied',
-              note: labels.length ? `Applied: ${labels.join(', ')}.` : 'Applied.',
+              note: labels.length ? t('Applied: {fields}.', { fields: labels.join(', ') }) : t("Applied."),
             }
           : item,
       ),
@@ -218,7 +246,7 @@ export function AgentPanel({
     setItems((current) =>
       current.map((item) =>
         item.id === itemId
-          ? { ...item, state: 'discarded', note: 'Discarded. The form is unchanged.' }
+          ? { ...item, state: 'discarded', note: t("Discarded. The form is unchanged.") }
           : item,
       ),
     )
@@ -238,12 +266,12 @@ export function AgentPanel({
         <span className="copilot-mark flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
           <IconSpark />
         </span>
-        <h2 className="min-w-0 flex-1 text-[15px] font-semibold leading-5 text-ink">Copilot</h2>
+        <h2 className="min-w-0 flex-1 text-[15px] font-semibold leading-5 text-ink">{t("Copilot")}</h2>
         {hasChat ? (
           <button
             type="button"
             className="ui-btn ui-btn-subtle min-h-7 px-2.5 py-0.5 text-[12px] font-semibold"
-            title="Clear this chat and show the templates and recent emails again"
+            title={t("Clear this chat and show the templates and recent emails again")}
             onClick={() => {
               ticket.current += 1
               setItems([])
@@ -251,8 +279,7 @@ export function AgentPanel({
               setBusy(false)
             }}
           >
-            Start over
-          </button>
+            {t("Start over")}</button>
         ) : null}
       </header>
 
@@ -264,16 +291,34 @@ export function AgentPanel({
           {items.length === 0 ? (
             <div className="pt-4">
               <h3 className="text-[22px] font-semibold leading-7 tracking-[-0.01em] text-ink">
-                What email are we <span className="copilot-text">building?</span>
+                {t("What email are we")}{' '}<span className="copilot-text">{t("building?")}</span>
               </h3>
               <p className="mt-2 max-w-[40ch] text-[14px] leading-5 text-ink-2">
-                Start from a template, or pick up a recent email. Ask Copilot below to fill in the fields.
-              </p>
-              <div className="mt-5 grid gap-2" role="group" aria-label="Start a new email">
+                {t("Start from a template, or pick up a recent email. Ask Copilot below to fill in the fields.")}</p>
+              <div role="radiogroup" aria-label={t('New email language')} className="mt-4 flex flex-wrap items-center gap-1.5">
+                <span className="mr-0.5 text-[12px] font-medium text-ink-2">{t('New email in')}</span>
+                {LANGUAGES.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={newLang === option.id}
+                    lang={option.id}
+                    onClick={() => onNewLang(option.id)}
+                    className={
+                      'min-h-7 rounded-full px-2.5 text-[12px] leading-4 ring-1 ring-inset transition-colors ' +
+                      (newLang === option.id ? 'bg-surface font-semibold text-ink ring-forest' : 'text-ink-2 ring-line hover:bg-surface/70')
+                    }
+                  >
+                    {option.name}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 grid gap-2" role="group" aria-label={t("Start a new email")}>
                 <TemplateGroup
                   id="partner-campaigns"
-                  title="Partner Templates"
-                  hint="Partner Skilling emails. Pick a campaign:"
+                  title={t("Partner Templates")}
+                  hint={t("Partner Skilling emails. Pick a campaign:")}
                   icon={<IconPartner />}
                   campaigns={PARTNER_CAMPAIGNS}
                   open={openGroup === 'partner'}
@@ -282,8 +327,8 @@ export function AgentPanel({
                 />
                 <TemplateGroup
                   id="hackathon-campaigns"
-                  title="Hackathons"
-                  hint="Hackathon emails, block by block. Pick a campaign:"
+                  title={t("Hackathons")}
+                  hint={t("Hackathon emails, block by block. Pick a campaign:")}
                   icon={<IconTrophy />}
                   campaigns={HACKATHON_CAMPAIGNS}
                   open={openGroup === 'hackathons'}
@@ -299,10 +344,9 @@ export function AgentPanel({
                     <IconBlocks />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-[13px] font-semibold leading-5 text-ink">Custom 2</span>
+                    <span className="block text-[13px] font-semibold leading-5 text-ink">{t("Custom 2")}</span>
                     <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">
-                      Edit block by block: banner, text, event card, table, spotlights, call to action, signature
-                    </span>
+                      {t("Edit block by block: banner, text, event card, table, spotlights, call to action, signature")}</span>
                   </span>
                 </button>
               </div>
@@ -310,15 +354,14 @@ export function AgentPanel({
               {templates.length ? (
                 <section className="mt-6" aria-labelledby="templates-heading">
                   <h4 id="templates-heading" className="mb-2 text-[13px] font-semibold leading-5 text-ink">
-                    Your templates
-                  </h4>
+                    {t("Your templates")}</h4>
                   <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
                     {templates.map((template) => (
                       <li key={template.id} className="group/tpl flex min-w-0 items-center gap-1">
                         <button
                           type="button"
                           onClick={() => onUseTemplate(template.id)}
-                          title="Start a new email from this template"
+                          title={t("Start a new email from this template")}
                           className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--r-md)] px-2 py-1.5 text-left transition-colors hover:bg-surface/70"
                         >
                           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface text-forest ring-1 ring-line [&_svg]:h-4 [&_svg]:w-4">
@@ -327,15 +370,15 @@ export function AgentPanel({
                           <span className="min-w-0 flex-1 overflow-hidden">
                             <span className="block truncate text-[13px] leading-[18px] text-ink">{template.name}</span>
                             <span className="block truncate text-[11px] leading-4 text-muted">
-                              {MASTER_LABEL[template.master_type]} · saved {edited(template.saved_at).replace(/^Edited /, '')}
+                              {MASTER_LABEL[template.master_type]} · {t('saved {when}', { when: ago(template.saved_at) })}
                             </span>
                           </span>
                         </button>
                         <button
                           type="button"
                           onClick={() => onDeleteTemplate(template.id)}
-                          aria-label={`Delete template “${template.name}”`}
-                          title="Delete template"
+                          aria-label={t('Delete template “{name}”', { name: template.name })}
+                          title={t("Delete template")}
                           className="ui-icon-btn ui-icon-btn-danger h-7 w-7 shrink-0 opacity-60 group-hover/tpl:opacity-100 focus-visible:opacity-100"
                         >
                           <IconTrash />
@@ -349,8 +392,7 @@ export function AgentPanel({
               {recent.length ? (
                 <section className="mt-6" aria-labelledby="recent-heading">
                   <h4 id="recent-heading" className="mb-2 text-[13px] font-semibold leading-5 text-ink">
-                    Recent
-                  </h4>
+                    {t("Recent")}</h4>
                   <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
                     {recent.map((campaign) => {
                       const current = campaign.id === bundle.campaign.id
@@ -380,8 +422,8 @@ export function AgentPanel({
                           <button
                             type="button"
                             onClick={() => onCopy(campaign.id)}
-                            aria-label={`Use “${campaign.name}” as a sample for a new email`}
-                            title="Use as a sample: start a new email from a copy"
+                            aria-label={t('Use “{name}” as a sample for a new email', { name: campaign.name })}
+                            title={t("Use as a sample: start a new email from a copy")}
                             className="ui-icon-btn h-7 w-7 shrink-0 opacity-60 group-hover/recent:opacity-100 focus-visible:opacity-100"
                           >
                             <IconDuplicate />
@@ -434,8 +476,7 @@ export function AgentPanel({
           {busy ? (
             <p className="flex items-center gap-2 text-[12px] font-semibold text-forest">
               <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-forest" />
-              Working on the fields…
-            </p>
+              {t("Working on the fields…")}</p>
           ) : null}
           {error ? (
             <div role="alert" className="rounded-[var(--r-md)] border border-danger-line bg-danger-bg px-3 py-2.5 text-[14px] leading-5 text-ink">
@@ -446,10 +487,9 @@ export function AgentPanel({
                   className="rounded-[var(--r-sm)] font-semibold text-danger underline underline-offset-2"
                   onClick={retry}
                 >
-                  Try again
-                </button>
+                  {t("Try again")}</button>
                 <details className="min-w-0 text-[12px] text-muted">
-                  <summary className="cursor-pointer select-none">Details</summary>
+                  <summary className="cursor-pointer select-none">{t("Details")}</summary>
                   <p className="mt-1 break-words">{error.detail}</p>
                 </details>
               </div>
@@ -469,7 +509,7 @@ export function AgentPanel({
         >
           <div className="copilot-composer flex min-h-[88px] flex-col gap-2 rounded-[16px] p-3 pb-2">
             <label className="min-w-0 flex-1">
-              <span className="sr-only">Prompt</span>
+              <span className="sr-only">{t("Prompt")}</span>
               <textarea
                 ref={input}
                 value={draft}
@@ -481,15 +521,15 @@ export function AgentPanel({
                   }
                 }}
                 rows={1}
-                placeholder="Ask Copilot to fill this email, or paste a brief…"
+                placeholder={t("Ask Copilot to fill this email, or paste a brief…")}
                 className="app-scroll block max-h-[7.5rem] min-h-5 w-full resize-none overflow-y-auto border-0 bg-transparent p-0 text-[14px] leading-5 text-ink outline-none placeholder:text-subtle"
               />
             </label>
             <button
               type="submit"
               disabled={busy || !canSend}
-              aria-label="Send"
-              title="Send"
+              aria-label={t("Send")}
+              title={t("Send")}
               className="copilot-send ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white"
             >
               <IconSend />
@@ -518,7 +558,7 @@ function Proposal({
   return (
     <div className="proposal-in mt-3 overflow-hidden rounded-[var(--r-lg)] border border-line bg-surface shadow-[var(--elev-sm)]">
       {changes.length === 0 ? (
-        <p className="px-3.5 pt-3 text-[12px] text-muted">These values are already in the form.</p>
+        <p className="px-3.5 pt-3 text-[12px] text-muted">{t("These values are already in the form.")}</p>
       ) : (
         <>
           <button
@@ -528,8 +568,7 @@ function Proposal({
             onClick={() => setOpen((value) => !value)}
           >
             <span className="text-[12px] font-semibold text-ink">
-              {open ? 'Hide' : 'Show'} {changes.length} field change
-              {changes.length === 1 ? '' : 's'}
+              {t(open ? (changes.length === 1 ? 'Hide {n} field change' : 'Hide {n} field changes') : changes.length === 1 ? 'Show {n} field change' : 'Show {n} field changes', { n: changes.length })}
             </span>
             <IconChevron
               className={
@@ -554,11 +593,9 @@ function Proposal({
           className="ui-btn ui-btn-primary"
           onClick={onApply}
         >
-          Apply
-        </button>
+          {t("Apply")}</button>
         <button type="button" className="ui-btn ui-btn-ghost" onClick={onDiscard}>
-          Discard
-        </button>
+          {t("Discard")}</button>
       </div>
     </div>
   )
@@ -574,10 +611,10 @@ function ChangeLine({ change }: { change: FieldChange }) {
           (change.before ? ' line-through decoration-muted/60' : '')
         }
       >
-        {change.before || '(empty)'}
+        {change.before || t("(empty)")}
       </p>
       <p className="mt-1 line-clamp-3 rounded-[var(--r-sm)] bg-forest-soft px-2 py-1 text-[12px] leading-4 text-ink">
-        {change.after || '(empty)'}
+        {change.after || t("(empty)")}
       </p>
     </li>
   )

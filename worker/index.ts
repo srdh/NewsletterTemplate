@@ -35,6 +35,8 @@ async function readRequest(request: Request): Promise<FillRequest> {
     prompt: typeof record.prompt === 'string' ? record.prompt : '',
     history: Array.isArray(record.history) ? (record.history as ChatTurn[]) : [],
     current: record.current,
+    emailLanguage: typeof record.emailLanguage === 'string' ? record.emailLanguage : undefined,
+    uiLanguage: typeof record.uiLanguage === 'string' ? record.uiLanguage : undefined,
   }
 }
 

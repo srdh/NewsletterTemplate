@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { DEFAULT_FONT, DEFAULT_SIZE, FONTS, FONT_SIZES, fontFromCss, fontStack } from '../lib/fonts'
 import { isRichEmpty, sanitizeRichHtml, textToRichHtml } from '../lib/richText'
+import { t } from '../lib/i18n'
 
 /** The newsletter's default font and size, so the editing box matches the email. */
 export const EditorLookContext = createContext<{ font: string; size: number }>({ font: DEFAULT_FONT, size: DEFAULT_SIZE })
@@ -113,7 +114,7 @@ export function RichTextEditor({
   value,
   onChange,
   label,
-  placeholder = 'Start typing…',
+  placeholder = t("Start typing…"),
   compact = false,
   minHeight = 112,
 }: {
@@ -377,27 +378,27 @@ export function RichTextEditor({
     >
       <div
         role="toolbar"
-        aria-label={`${label} formatting`}
+        aria-label={t('{label} formatting', { label })}
         className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 rounded-t-[var(--r-sm)] border-b border-line bg-panel px-1 py-1"
       >
         {!compact ? (
           <select
-            aria-label="Text style"
-            title="Text style"
+            aria-label={t("Text style")}
+            title={t("Text style")}
             value={tools.block}
             onChange={(event) => setBlock(event.target.value as BlockFormat)}
             className="rte-select w-[118px]"
           >
             {BLOCKS.map(([key, name]) => (
               <option key={key} value={key}>
-                {name}
+                {t(name)}
               </option>
             ))}
           </select>
         ) : null}
         <select
-          aria-label="Font"
-          title="Font"
+          aria-label={t("Font")}
+          title={t("Font")}
           value={tools.font}
           onChange={(event) => setFont(event.target.value)}
           className="rte-select w-[128px]"
@@ -409,8 +410,8 @@ export function RichTextEditor({
           ))}
         </select>
         <select
-          aria-label="Font size"
-          title="Font size"
+          aria-label={t("Font size")}
+          title={t("Font size")}
           value={String(tools.size)}
           onChange={(event) => setSize(Number(event.target.value))}
           className="rte-select w-[64px]"
@@ -422,20 +423,20 @@ export function RichTextEditor({
           ))}
         </select>
         <Divider />
-        <Tool label="Bold (Ctrl+B)" active={tools.bold} onMouseDown={keep} onClick={() => run('bold')}>
-          <span className="text-[15px] font-bold">B</span>
+        <Tool label={t("Bold (Ctrl+B)")} active={tools.bold} onMouseDown={keep} onClick={() => run('bold')}>
+          <span className="text-[15px] font-bold">{t("B")}</span>
         </Tool>
-        <Tool label="Italic (Ctrl+I)" active={tools.italic} onMouseDown={keep} onClick={() => run('italic')}>
-          <span className="font-serif text-[16px] italic">I</span>
+        <Tool label={t("Italic (Ctrl+I)")} active={tools.italic} onMouseDown={keep} onClick={() => run('italic')}>
+          <span className="font-serif text-[16px] italic">{t("I")}</span>
         </Tool>
-        <Tool label="Underline (Ctrl+U)" active={tools.underline} onMouseDown={keep} onClick={() => run('underline')}>
-          <span className="text-[15px] underline underline-offset-2">U</span>
+        <Tool label={t("Underline (Ctrl+U)")} active={tools.underline} onMouseDown={keep} onClick={() => run('underline')}>
+          <span className="text-[15px] underline underline-offset-2">{t("U")}</span>
         </Tool>
-        <Tool label="Strikethrough" active={tools.strike} onMouseDown={keep} onClick={() => run('strikeThrough')}>
-          <span className="text-[15px] line-through">S</span>
+        <Tool label={t("Strikethrough")} active={tools.strike} onMouseDown={keep} onClick={() => run('strikeThrough')}>
+          <span className="text-[15px] line-through">{t("S")}</span>
         </Tool>
         <Tool
-          label="Text colour"
+          label={t("Text colour")}
           expanded={panel === 'color'}
           controls={panelId}
           onMouseDown={keep}
@@ -447,7 +448,7 @@ export function RichTextEditor({
           <IconTextColor />
         </Tool>
         <Tool
-          label="Highlight"
+          label={t("Highlight")}
           expanded={panel === 'highlight'}
           controls={panelId}
           onMouseDown={keep}
@@ -459,35 +460,35 @@ export function RichTextEditor({
           <IconHighlight />
         </Tool>
         <Divider />
-        <Tool label="Bulleted list" active={tools.ul} onMouseDown={keep} onClick={() => run('insertUnorderedList')}>
+        <Tool label={t("Bulleted list")} active={tools.ul} onMouseDown={keep} onClick={() => run('insertUnorderedList')}>
           <IconBullets />
         </Tool>
-        <Tool label="Numbered list" active={tools.ol} onMouseDown={keep} onClick={() => run('insertOrderedList')}>
+        <Tool label={t("Numbered list")} active={tools.ol} onMouseDown={keep} onClick={() => run('insertOrderedList')}>
           <IconNumbers />
         </Tool>
         {!compact ? (
           <>
-            <Tool label="Decrease indent" onMouseDown={keep} onClick={() => run('outdent', undefined, true)}>
+            <Tool label={t("Decrease indent")} onMouseDown={keep} onClick={() => run('outdent', undefined, true)}>
               <IconOutdent />
             </Tool>
-            <Tool label="Increase indent" onMouseDown={keep} onClick={() => run('indent', undefined, true)}>
+            <Tool label={t("Increase indent")} onMouseDown={keep} onClick={() => run('indent', undefined, true)}>
               <IconIndent />
             </Tool>
           </>
         ) : null}
         <Divider />
-        <Tool label="Align left" active={tools.align === 'left'} onMouseDown={keep} onClick={() => run('justifyLeft', undefined, true)}>
+        <Tool label={t("Align left")} active={tools.align === 'left'} onMouseDown={keep} onClick={() => run('justifyLeft', undefined, true)}>
           <IconAlign kind="left" />
         </Tool>
-        <Tool label="Center" active={tools.align === 'center'} onMouseDown={keep} onClick={() => run('justifyCenter', undefined, true)}>
+        <Tool label={t("Center")} active={tools.align === 'center'} onMouseDown={keep} onClick={() => run('justifyCenter', undefined, true)}>
           <IconAlign kind="center" />
         </Tool>
-        <Tool label="Align right" active={tools.align === 'right'} onMouseDown={keep} onClick={() => run('justifyRight', undefined, true)}>
+        <Tool label={t("Align right")} active={tools.align === 'right'} onMouseDown={keep} onClick={() => run('justifyRight', undefined, true)}>
           <IconAlign kind="right" />
         </Tool>
         <Divider />
         <Tool
-          label={tools.link ? 'Edit link (Ctrl+K)' : 'Insert link (Ctrl+K)'}
+          label={tools.link ? t("Edit link (Ctrl+K)") : t("Insert link (Ctrl+K)")}
           active={Boolean(tools.link)}
           expanded={panel === 'link'}
           controls={panelId}
@@ -496,14 +497,14 @@ export function RichTextEditor({
         >
           <IconLink />
         </Tool>
-        <Tool label="Clear formatting" onMouseDown={keep} onClick={clearFormatting}>
+        <Tool label={t("Clear formatting")} onMouseDown={keep} onClick={clearFormatting}>
           <IconClear />
         </Tool>
         <span className="ml-auto flex items-center">
-          <Tool label="Undo (Ctrl+Z)" onMouseDown={keep} onClick={() => run('undo')}>
+          <Tool label={t("Undo (Ctrl+Z)")} onMouseDown={keep} onClick={() => run('undo')}>
             <IconUndo />
           </Tool>
-          <Tool label="Redo (Ctrl+Y)" onMouseDown={keep} onClick={() => run('redo')}>
+          <Tool label={t("Redo (Ctrl+Y)")} onMouseDown={keep} onClick={() => run('redo')}>
             <IconUndo flip />
           </Tool>
         </span>
@@ -527,23 +528,22 @@ export function RichTextEditor({
                     restoreSelection()
                   }
                 }}
-                placeholder="https://aka.ms/… or name@microsoft.com"
-                aria-label="Link address"
+                placeholder={t("https://aka.ms/… or name@microsoft.com")}
+                aria-label={t("Link address")}
                 className="ui-field ui-field-sm min-w-0 flex-1 basis-48"
               />
               <button type="button" className="ui-btn ui-btn-primary min-h-7 px-3 py-0.5 text-[12px]" onClick={applyLink}>
-                {tools.link ? 'Update' : 'Add link'}
+                {tools.link ? t("Update") : t("Add link")}
               </button>
               {tools.link ? (
                 <button type="button" className="ui-btn ui-btn-ghost min-h-7 px-3 py-0.5 text-[12px]" onClick={removeLink}>
-                  Remove link
-                </button>
+                  {t("Remove link")}</button>
               ) : null}
             </div>
           ) : (
             <Swatches
               colors={panel === 'color' ? TEXT_COLORS : HIGHLIGHTS}
-              noneLabel={panel === 'highlight' ? 'No highlight' : 'Automatic'}
+              noneLabel={panel === 'highlight' ? t("No highlight") : t("Automatic")}
               suffix={panel === 'highlight' ? 'highlight' : 'text'}
               onPick={(color) => {
                 if (panel === 'color') run('foreColor', color ?? '#242424', true)
@@ -662,8 +662,8 @@ function Swatches({
         <button
           key={color}
           type="button"
-          title={name}
-          aria-label={`${name} ${suffix}`}
+          title={t(name)}
+          aria-label={t(suffix === 'highlight' ? '{name} highlight' : '{name} text', { name: t(name) })}
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => onPick(color)}
           className="h-6 w-6 rounded-full ring-1 ring-line-strong ring-inset transition-transform hover:scale-110"
@@ -672,11 +672,10 @@ function Swatches({
       ))}
       <label className="relative ml-1 flex h-6 cursor-pointer items-center gap-1 rounded-full px-2 text-[12px] text-ink-2 ring-1 ring-line-strong hover:bg-fill">
         <span aria-hidden="true" className="h-3 w-3 rounded-full" style={{ background: 'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)' }} />
-        Custom
-        <input
+        {t("Custom")}<input
           type="color"
           className="absolute inset-0 cursor-pointer opacity-0"
-          aria-label="Custom colour"
+          aria-label={t("Custom colour")}
           onChange={(event) => onCustom(event.target.value.toUpperCase())}
         />
       </label>
@@ -686,8 +685,7 @@ function Swatches({
         onClick={onDone}
         className="ml-auto text-[12px] font-semibold text-forest hover:underline"
       >
-        Done
-      </button>
+        {t("Done")}</button>
     </div>
   )
 }

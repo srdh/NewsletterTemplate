@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { emptyCampaign, newsletterSeed, seedBundles } from '../data/seed'
-import { STARTERS, loadStarter } from '../data/starters'
+import { loadStarter, starterName } from '../data/starters'
+import type { Lang } from './i18n'
 import { bundleFromTemplate, type UserTemplate } from '../data/userTemplates'
 import type {
   AgendaItem,
@@ -367,8 +368,8 @@ async function replaceChildren(
   if (error) throw error
 }
 
-export async function createCampaign(master: MasterType): Promise<CampaignBundle> {
-  const campaign = emptyCampaign(master)
+export async function createCampaign(master: MasterType, lang: Lang = 'en'): Promise<CampaignBundle> {
+  const campaign = emptyCampaign(master, lang)
   const bundle: CampaignBundle = {
     campaign,
     agenda: [],
@@ -380,9 +381,9 @@ export async function createCampaign(master: MasterType): Promise<CampaignBundle
 }
 
 /** A new campaign from a ready-made template (see data/starters). */
-export async function createFromStarter(starterId: string): Promise<CampaignBundle> {
-  const bundle = await loadStarter(starterId)
-  bundle.campaign.name = STARTERS.find((starter) => starter.id === starterId)?.newName ?? bundle.campaign.name
+export async function createFromStarter(starterId: string, lang: Lang = 'en'): Promise<CampaignBundle> {
+  const bundle = await loadStarter(starterId, lang)
+  bundle.campaign.name = (await starterName(starterId, lang)) ?? bundle.campaign.name
   await saveBundle(bundle)
   return bundle
 }

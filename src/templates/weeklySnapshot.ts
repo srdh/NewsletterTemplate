@@ -1,5 +1,9 @@
 import type { CampaignBundle, EventRow } from '../types'
 import { emailDocument, escapeHtml, markedBlock, msSquares, richHtml, sectionAttr } from '../lib/html'
+import { emailLang, emailT, langTag, type EmailT } from '../lib/emailText'
+
+/** Fixed email wording in this email's language, set per render. */
+let T: EmailT = emailT('en')
 
 const HEADERS: Record<string, { title: string; color: string; cols: string[] }> = {
   new_requests: {
@@ -74,7 +78,7 @@ function renderTable(section: string, rows: EventRow[]): string {
   const th = meta.cols
     .map(
       (h) =>
-        `<th align="left" style="padding:8px 8px;font-size:11px;font-weight:700;color:#ffffff;background:${meta.color};">${escapeHtml(h)}</th>`,
+        `<th align="left" style="padding:8px 8px;font-size:11px;font-weight:700;color:#ffffff;background:${meta.color};">${escapeHtml(T(h))}</th>`,
     )
     .join('')
   const body = [...rows]
@@ -89,7 +93,7 @@ function renderTable(section: string, rows: EventRow[]): string {
         .join('')}</tr>`
     })
     .join('')
-  return `<h2 style="margin:22px 0 6px;font-size:20px;color:#1b1b1b;">${escapeHtml(meta.title)}</h2>
+  return `<h2 style="margin:22px 0 6px;font-size:20px;color:#1b1b1b;">${escapeHtml(T(meta.title))}</h2>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
       <tr>${th}</tr>
       ${body}
@@ -98,6 +102,7 @@ function renderTable(section: string, rows: EventRow[]): string {
 
 export function renderWeeklySnapshot(bundle: CampaignBundle, preview = false): string {
   const c = bundle.campaign
+  T = emailT(emailLang(c))
   const table = (section: string) =>
     markedBlock(preview, 'tables', renderTable(section, bundle.rows.filter((r) => r.section === section)))
   const inner = `
@@ -113,10 +118,10 @@ export function renderWeeklySnapshot(bundle: CampaignBundle, preview = false): s
               ${markedBlock(
                 preview,
                 'header',
-                `<h1 style="margin:0 0 12px;font-size:28px;line-height:1.2;color:#1b1b1b;">Weekly project snapshot | ${escapeHtml(c.snapshot_date)}</h1>
+                `<h1 style="margin:0 0 12px;font-size:28px;line-height:1.2;color:#1b1b1b;">${escapeHtml(T('Weekly project snapshot | {date}', { date: c.snapshot_date }))}</h1>
               <p style="margin:0 0 12px;font-size:15px;color:#242424;">${escapeHtml(c.greeting)}</p>
               ${richHtml(c.intro)}
-              <h2 style="margin:18px 0 8px;font-size:20px;color:#1b1b1b;">Weekly call outs</h2>
+              <h2 style="margin:18px 0 8px;font-size:20px;color:#1b1b1b;">${T('Weekly call outs')}</h2>
               ${richHtml(c.callouts)}`,
               )}
               ${table('new_requests')}
@@ -126,25 +131,25 @@ export function renderWeeklySnapshot(bundle: CampaignBundle, preview = false): s
               ${markedBlock(
                 preview,
                 'footer',
-                `<h2 style="margin:28px 0 8px;font-size:20px;color:#1b1b1b;">Working with Delightful</h2>
+                `<h2 style="margin:28px 0 8px;font-size:20px;color:#1b1b1b;">${T('Working with Delightful')}</h2>
               ${richHtml(c.action_body)}
               <p style="margin:16px 0 20px;">
-                <a href="${escapeHtml(c.register_url)}" style="display:inline-block;background:#0B4F38;color:#ffffff;text-decoration:none;padding:10px 16px;font-size:13px;font-weight:700;margin-right:8px;">${escapeHtml(c.register_label || 'Marketing request form')}</a>
-                <a href="${escapeHtml(c.secondary_cta_url)}" style="display:inline-block;background:#0B4F38;color:#ffffff;text-decoration:none;padding:10px 16px;font-size:13px;font-weight:700;">${escapeHtml(c.secondary_cta_label || 'Working with Delightful')}</a>
+                <a href="${escapeHtml(c.register_url)}" style="display:inline-block;background:#0B4F38;color:#ffffff;text-decoration:none;padding:10px 16px;font-size:13px;font-weight:700;margin-right:8px;">${escapeHtml(c.register_label || T('Marketing request form'))}</a>
+                <a href="${escapeHtml(c.secondary_cta_url)}" style="display:inline-block;background:#0B4F38;color:#ffffff;text-decoration:none;padding:10px 16px;font-size:13px;font-weight:700;">${escapeHtml(c.secondary_cta_label || T('Working with Delightful'))}</a>
               </p>`,
               )}
             </td>
           </tr>
           <tr>
             <td${sectionAttr(preview, 'footer')} style="padding:18px 0;border-top:1px solid #d0d0d0;font-size:11px;color:#5a5a5a;line-height:1.5;">
-              <p style="margin:0 0 8px;">Microsoft Corporation · One Microsoft Way · Redmond, WA 98052</p>
+              <p style="margin:0 0 8px;">${T('Microsoft Corporation · One Microsoft Way · Redmond, WA 98052')}</p>
               ${msSquares(10, 2)}
-              <p style="margin:10px 0 0;">© ${new Date().getFullYear()} Microsoft Corporation. All rights reserved.</p>
+              <p style="margin:10px 0 0;">${T('© {year} Microsoft Corporation. All rights reserved.', { year: new Date().getFullYear() })}</p>
             </td>
           </tr>
         </table>
       </td>
     </tr>
   </table>`
-  return emailDocument(c.subject || c.title, inner)
+  return emailDocument(c.subject || c.title, inner, langTag(emailLang(c)))
 }

@@ -87,9 +87,9 @@ export function msSquares(size = 11, gap = 2): string {
   </table>`
 }
 
-export function emailDocument(title: string, inner: string): string {
+export function emailDocument(title: string, inner: string, lang = 'en-US'): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

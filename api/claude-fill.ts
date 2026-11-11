@@ -13,6 +13,17 @@ export type FillRequest = {
   prompt: string
   history?: ChatTurn[]
   current?: unknown
+  /** The email's language: 'en' (default) or 'fr'. The email's text is written in it. */
+  emailLanguage?: string
+  /** The studio's language: 'en' (default) or 'fr'. The reply to the person is written in it. */
+  uiLanguage?: string
+}
+
+const LANGUAGE_NAME: Record<string, string> = { en: 'English (US)', fr: 'French (France)' }
+
+/** A supported language code, English otherwise. */
+function languageOf(value: unknown): 'en' | 'fr' {
+  return value === 'fr' ? 'fr' : 'en'
 }
 
 export type FillResult =
@@ -109,7 +120,13 @@ export const AGENT_INSTRUCTIONS = `You are the Copilot agent inside Newsletter S
 - Links: only use a URL the person gave you or one already in the email. In body text, write a link as [visible text](https://...).
 
 # Voice
-Microsoft Partner Skilling voice: clear, warm, professional, US English, concise, no hype, no emoji. Match the example email's tone and length. Plain text only, never HTML.
+Microsoft Partner Skilling voice: clear, warm, professional, concise, no hype, no emoji. Match the example email's tone and length. Plain text only, never HTML.
+
+# Languages
+Each request names two languages:
+- The email language: write every value you put in the email (subject, headings, body text, buttons, sign-off) in it. English means US English. French means natural, professional French as Microsoft France writes to partners: "vous", French punctuation and spacing (a space before : ; ? !), « » quotation marks, French date and time formats (for example "mardi 22 septembre 2026, 9 h 00 – 10 h 15 (heure de Paris)"). Keep product and program names as they are (Microsoft 365 Copilot, Partner Skilling, Copilot Studio).
+- The studio language: write your reply to the person in it, whatever the email language.
+If the person asks to translate the email, rewrite its text in the email language and keep its meaning, names, links, and dates.
 
 # Your reply (the "reply" field)
 - One to three short sentences, written to the person in plain language.
@@ -281,7 +298,9 @@ function buildMessages(request: FillRequest): ApiMessage[] {
 
   const current =
     request.current === undefined ? '(not provided)' : JSON.stringify(request.current)
-  const finalTurn = `Current email:\n${current}\n\nRequest:\n${request.prompt}`
+  const emailLanguage = LANGUAGE_NAME[languageOf(request.emailLanguage)]
+  const uiLanguage = LANGUAGE_NAME[languageOf(request.uiLanguage)]
+  const finalTurn = `Email language: ${emailLanguage}\nStudio language (for your reply): ${uiLanguage}\n\nCurrent email:\n${current}\n\nRequest:\n${request.prompt}`
 
   const last = messages[messages.length - 1]
   if (last && last.role === 'user') last.content += `\n\n${finalTurn}`
@@ -428,7 +447,11 @@ export function removeUnknownLinks(
 
   if (removed > 0) {
     const reply = typeof input.reply === 'string' ? input.reply.trim() : ''
-    output.reply = `${reply}${reply ? ' ' : ''}I left out a link I don't have. Paste the correct link and I'll add it.`
+    const note =
+      languageOf(request.uiLanguage) === 'fr'
+        ? 'J’ai laissé de côté un lien que je n’ai pas. Collez le bon lien et je l’ajouterai.'
+        : "I left out a link I don't have. Paste the correct link and I'll add it."
+    output.reply = `${reply}${reply ? ' ' : ''}${note}`
   }
   return output
 }
@@ -447,6 +470,8 @@ function readRequest(body: unknown): FillRequest {
     prompt: typeof record.prompt === 'string' ? record.prompt : '',
     history: Array.isArray(record.history) ? (record.history as ChatTurn[]) : [],
     current: record.current,
+    emailLanguage: typeof record.emailLanguage === 'string' ? record.emailLanguage : undefined,
+    uiLanguage: typeof record.uiLanguage === 'string' ? record.uiLanguage : undefined,
   }
 }
 

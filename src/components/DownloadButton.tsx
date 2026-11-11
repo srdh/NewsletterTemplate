@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { moveMenuFocus, usePopover } from '../hooks/usePopover'
 import { IconChevron, IconDownload } from './Icons'
+import { t } from '../lib/i18n'
 
 /**
  * Fluent split button. "Download .oft" is the main action; the arrow opens
@@ -30,25 +31,24 @@ export function DownloadButton({
     <div ref={root} className="relative flex shrink-0 items-stretch">
       <button
         type="button"
-        title="Outlook template file. Double-click it to open in classic Outlook for Windows."
+        title={t("Outlook template file. Double-click it to open in classic Outlook for Windows.")}
         className="ui-btn ui-btn-ghost rounded-r-none"
         onClick={onOft}
       >
         <IconDownload />
         <span className="flex flex-col items-start">
-          <span>{compact ? '.oft' : 'Download .oft'}</span>
+          <span>{compact ? '.oft' : t("Download .oft")}</span>
           {/* Wide screens only; the phone dock uses the compact label. */}
           {compact ? null : (
             <span className="hidden text-[11px] font-normal leading-4 text-muted xl:block">
-              Outlook template file
-            </span>
+              {t("Outlook template file")}</span>
           )}
         </span>
       </button>
       <button
         ref={trigger}
         type="button"
-        aria-label="More download options"
+        aria-label={t("More download options")}
         aria-haspopup="menu"
         aria-expanded={open}
         className="ui-btn ui-btn-ghost rounded-l-none border-l-0 px-1.5"
@@ -61,7 +61,7 @@ export function DownloadButton({
       {open ? (
         <div
           role="menu"
-          aria-label="Download options"
+          aria-label={t("Download options")}
           onKeyDown={moveMenuFocus}
           className={
             'ui-popover popover-in absolute right-0 z-40 w-80 p-1 ' +
@@ -82,8 +82,8 @@ export function DownloadButton({
               <IconDownload />
             </span>
             <span>
-              <span className="block">Outlook template (.oft)</span>
-              <span className="block text-[12px] leading-4 text-muted">Classic Outlook for Windows</span>
+              <span className="block">{t("Outlook template (.oft)")}</span>
+              <span className="block text-[12px] leading-4 text-muted">{t("Classic Outlook for Windows")}</span>
             </span>
           </button>
           <button
@@ -99,8 +99,8 @@ export function DownloadButton({
               <IconDownload />
             </span>
             <span>
-              <span className="block">Email draft (.eml)</span>
-              <span className="block text-[12px] leading-4 text-muted">Outlook for Mac, new Outlook, other mail apps</span>
+              <span className="block">{t("Email draft (.eml)")}</span>
+              <span className="block text-[12px] leading-4 text-muted">{t("Outlook for Mac, new Outlook, other mail apps")}</span>
             </span>
           </button>
         </div>
