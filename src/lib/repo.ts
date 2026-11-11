@@ -389,8 +389,10 @@ export async function createFromStarter(starterId: string, lang: Lang = 'en'): P
 }
 
 /** A new campaign from a template you saved ("Save as template"). */
-export async function createFromUserTemplate(template: UserTemplate): Promise<CampaignBundle> {
-  const bundle = bundleFromTemplate(template)
+export async function createFromUserTemplate(template: UserTemplate, lang?: Lang): Promise<CampaignBundle> {
+  let bundle = bundleFromTemplate(template)
+  // A new email starts in the chosen language: its starter text is switched.
+  if (lang) bundle = (await (await import('./convertLanguage')).convertBundleLanguage(bundle, lang)).bundle
   await saveBundle(bundle)
   return bundle
 }

@@ -11,7 +11,7 @@ import { MASTER_LABEL } from '../types'
 import { STARTERS } from '../data/starters'
 import type { UserTemplate } from '../data/userTemplates'
 import { ago, edited } from './CampaignSwitcher'
-import { IconCalendar, IconChevron, IconDuplicate, IconNewsletter, IconSend, IconSpark, IconTable, IconTrash } from './Icons'
+import { IconCalendar, IconCheck, IconChevron, IconDuplicate, IconNewsletter, IconSend, IconSpark, IconTable, IconTrash } from './Icons'
 import { LANGUAGES, t, uiLang, type Lang } from '../lib/i18n'
 import { emailLang } from '../lib/emailText'
 
@@ -300,23 +300,36 @@ export function AgentPanel({
                 {t("Start from a template, or pick up a recent email. Ask Copilot below to fill in the fields.")}</p>
               <div role="radiogroup" aria-label={t('New email language')} className="mt-4 flex flex-wrap items-center gap-1.5">
                 <span className="mr-0.5 text-[12px] font-medium text-ink-2">{t('New email in')}</span>
-                {LANGUAGES.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={newLang === option.id}
-                    lang={option.id}
-                    onClick={() => onNewLang(option.id)}
-                    className={
-                      'min-h-7 rounded-full px-2.5 text-[12px] leading-4 ring-1 ring-inset transition-colors ' +
-                      (newLang === option.id ? 'bg-surface font-semibold text-ink ring-forest' : 'text-ink-2 ring-line hover:bg-surface/70')
-                    }
-                  >
-                    {option.name}
-                  </button>
-                ))}
+                {LANGUAGES.map((option) => {
+                  const on = newLang === option.id
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      lang={option.id}
+                      onClick={() => onNewLang(option.id)}
+                      className={
+                        'flex min-h-7 items-center gap-1 rounded-full px-2.5 text-[12px] leading-4 ring-1 ring-inset transition-colors ' +
+                        (on ? 'bg-forest font-semibold text-white ring-forest' : 'bg-surface/60 text-ink-2 ring-line hover:bg-surface hover:text-ink')
+                      }
+                    >
+                      {on ? (
+                        <span className="-ml-0.5 [&_svg]:h-3.5 [&_svg]:w-3.5">
+                          <IconCheck />
+                        </span>
+                      ) : null}
+                      {option.name}
+                    </button>
+                  )
+                })}
               </div>
+              <p role="status" className="mt-1.5 text-[12px] leading-4 text-ink-2">
+                {t('Your next new email will be in {language}. Pick a template below.', {
+                  language: LANGUAGES.find((option) => option.id === newLang)?.name ?? newLang,
+                })}
+              </p>
               <div className="mt-3 grid gap-2" role="group" aria-label={t("Start a new email")}>
                 <TemplateGroup
                   id="partner-campaigns"
@@ -327,6 +340,7 @@ export function AgentPanel({
                   open={openGroup === 'partner'}
                   onToggle={() => toggleGroup('partner')}
                   onPick={onNew}
+                  badge={newLang === 'en' ? '' : newLang.toUpperCase()}
                 />
                 <TemplateGroup
                   id="hackathon-campaigns"
@@ -337,6 +351,7 @@ export function AgentPanel({
                   open={openGroup === 'hackathons'}
                   onToggle={() => toggleGroup('hackathons')}
                   onPick={onNew}
+                  badge={newLang === 'en' ? '' : newLang.toUpperCase()}
                 />
                 <button
                   type="button"
@@ -347,7 +362,10 @@ export function AgentPanel({
                     <IconBlocks />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-[13px] font-semibold leading-5 text-ink">{t("Custom 2")}</span>
+                    <span className="flex items-center gap-1.5 text-[13px] font-semibold leading-5 text-ink">
+                      {t("Custom 2")}
+                      <LangBadge code={newLang === 'en' ? '' : newLang.toUpperCase()} />
+                    </span>
                     <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">
                       {t("Edit block by block: banner, text, event card, table, spotlights, call to action, signature")}</span>
                   </span>
@@ -646,6 +664,16 @@ function IconBlocks() {
 }
 
 /** Hackathons: a trophy. */
+/** The language a new email will start in, shown beside a template's name. */
+function LangBadge({ code }: { code: string }) {
+  if (!code) return null
+  return (
+    <span className="rounded-[4px] bg-forest-soft px-1 font-mono text-[10px] font-semibold leading-4 text-forest" title={t('Starts in this language')}>
+      {code}
+    </span>
+  )
+}
+
 /** A template with campaigns under it: opens in place to list them. */
 function TemplateGroup({
   id,
@@ -656,6 +684,7 @@ function TemplateGroup({
   open,
   onToggle,
   onPick,
+  badge,
 }: {
   id: string
   title: string
@@ -665,6 +694,8 @@ function TemplateGroup({
   open: boolean
   onToggle: () => void
   onPick: (choice: NewEmailChoice) => void
+  /** The new-email language code to show on each campaign, e.g. FR; empty for English. */
+  badge: string
 }) {
   return (
     <div className="copilot-glass overflow-hidden rounded-[var(--r-lg)]">
@@ -691,7 +722,10 @@ function TemplateGroup({
                 onClick={() => onPick(campaign.id)}
                 className="w-full rounded-[var(--r-md)] bg-surface/70 px-2.5 py-1.5 text-left ring-1 ring-line transition-colors hover:bg-surface hover:ring-forest-line"
               >
-                <span className="block text-[13px] font-semibold leading-[18px] text-ink">{campaign.label}</span>
+                <span className="flex items-center gap-1.5 text-[13px] font-semibold leading-[18px] text-ink">
+                  {campaign.label}
+                  <LangBadge code={badge} />
+                </span>
                 {campaign.hint ? <span className="block text-[11px] leading-4 text-muted">{campaign.hint}</span> : null}
               </button>
             </li>

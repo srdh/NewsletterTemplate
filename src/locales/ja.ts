@@ -3,6 +3,8 @@
  * (see lib/i18n.ts); phrases missing here show in English.
  */
 export const JA: Record<string, string> = {
+  "Your next new email will be in {language}. Pick a template below.": "次に作成するメールは{language}になります。下のテンプレートを選んでください。",
+  "Starts in this language": "この言語で作成されます",
   "Partner Skilling forest": "Partner Skilling フォレスト",
   "Microsoft blue": "Microsoft ブルー",
   "Light": "ライト",

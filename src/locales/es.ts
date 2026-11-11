@@ -3,6 +3,8 @@
  * (see lib/i18n.ts); phrases missing here show in English.
  */
 export const ES: Record<string, string> = {
+  "Your next new email will be in {language}. Pick a template below.": "Su próximo correo nuevo estará en {language}. Elija una plantilla abajo.",
+  "Starts in this language": "Empieza en este idioma",
   "Partner Skilling forest": "Bosque Partner Skilling",
   "Microsoft blue": "Azul Microsoft",
   "Light": "Claro",

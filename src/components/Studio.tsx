@@ -25,6 +25,7 @@ import { IconCheck, IconClose, IconCopy, IconSaved, IconWarning, MicrosoftMark }
 import { PreviewPane } from './PreviewPane'
 import { asLang, t, type Lang } from '../lib/i18n'
 import { LanguageSwitch } from './LanguageSwitch'
+import { convertBundleLanguage } from '../lib/convertLanguage'
 
 /** Remembers the language you last picked for new emails. */
 const NEW_LANG_KEY = 'oft-template-maker/new-email-language'
@@ -256,7 +257,7 @@ export function Studio() {
     const template = templates.find((item) => item.id === templateId)
     if (!template) return
     try {
-      const created = await createFromUserTemplate(template)
+      const created = await createFromUserTemplate(template, newLang)
       setCampaigns((current) => [...current, created.campaign])
       setBundle(created)
       setMobilePane('fields')
@@ -281,7 +282,9 @@ export function Studio() {
     try {
       const source = bundle && bundle.campaign.id === id ? bundle : await getBundle(id)
       if (!source) return
-      const copy = await duplicateCampaign(source)
+      // The copy is a new email: it starts in the "New email in" language.
+      const { bundle: inLanguage } = await convertBundleLanguage(source, newLang)
+      const copy = await duplicateCampaign(inLanguage)
       setCampaigns((current) => [...current, copy.campaign])
       setBundle(copy)
       setMobilePane('fields')

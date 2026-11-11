@@ -61,7 +61,7 @@ English is the default everywhere. There are two language settings, and they are
   - **switching the text that is still starter wording**: headings, table cells, buttons, placeholders, and whole starter paragraphs move to the new language (`src/lib/convertLanguage.ts`). Text you changed yourself stays as you wrote it; to translate it, ask Copilot, for example "Translate this email into Spanish". Switching back restores the starter wording.
 
   The font menus also offer Japanese fonts (Yu Gothic, Meiryo).
-- **New email in**: on the start panel, choose the language a new email starts in. Every template (Regional, Partner Skilling Update, Weekly Snapshot, Custom, Custom 2, and the Hackathons campaigns) has starter text in all four languages. New emails start in English until you pick another; the choice is remembered in this browser.
+- **New email in**: on the start panel, choose the language a new email starts in. The chosen language is filled in with a check mark, a line under it confirms it, and each template shows its code (FR, JA, ES). It applies to every way of starting an email: templates, Your templates, and "Use as a sample" copies of a recent email. Every template (Regional, Partner Skilling Update, Weekly Snapshot, Custom, Custom 2, and the Hackathons campaigns) has starter text in all four languages. New emails start in English until you pick another; the choice is remembered in this browser.
 
 Where the words live:
 
