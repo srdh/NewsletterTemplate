@@ -245,7 +245,7 @@ export function StyleSection({
                   <span className="h-5 w-2 bg-white" />
                   <span className="h-5 w-3" style={{ background: theme.footer }} />
                 </span>
-                <span className="min-w-0 truncate">{theme.name}</span>
+                <span className="min-w-0 truncate">{t(theme.name)}</span>
               </button>
             )
           })}

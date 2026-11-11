@@ -3,6 +3,12 @@
  * (see lib/i18n.ts); phrases missing here show in English.
  */
 export const JA: Record<string, string> = {
+  "Partner Skilling forest": "Partner Skilling フォレスト",
+  "Microsoft blue": "Microsoft ブルー",
+  "Light": "ライト",
+  "Switched {n} starter texts to {language}. Text you wrote yourself stays as it is: ask Copilot to translate it.": "{n} 件のスターター テキストを{language}に切り替えました。ご自身で入力したテキストはそのまま残ります。翻訳は Copilot に依頼してください。",
+  "No starter text to switch. Text you wrote yourself stays as it is: ask Copilot to translate it.": "切り替えるスターター テキストはありません。ご自身で入力したテキストはそのまま残ります。翻訳は Copilot に依頼してください。",
+  "Sets the email’s fixed wording (headings, buttons, footer), the language you type and Copilot writes in, and switches starter text.": "メールの定型文（見出し、ボタン、フッター）、入力と Copilot の記述に使う言語を設定し、スターター テキストを切り替えます。",
   " and ": "と",
   "(Changes proposed, not applied yet.)": "（変更の提案です。まだ適用されていません。）",
   "(empty)": "（空）",

@@ -3,6 +3,12 @@
  * (see lib/i18n.ts); phrases missing here show in English.
  */
 export const ES: Record<string, string> = {
+  "Partner Skilling forest": "Bosque Partner Skilling",
+  "Microsoft blue": "Azul Microsoft",
+  "Light": "Claro",
+  "Switched {n} starter texts to {language}. Text you wrote yourself stays as it is: ask Copilot to translate it.": "Se cambiaron {n} textos iniciales a {language}. El texto que escribió usted se queda como está: pida a Copilot que lo traduzca.",
+  "No starter text to switch. Text you wrote yourself stays as it is: ask Copilot to translate it.": "No hay texto inicial que cambiar. El texto que escribió usted se queda como está: pida a Copilot que lo traduzca.",
+  "Sets the email’s fixed wording (headings, buttons, footer), the language you type and Copilot writes in, and switches starter text.": "Define los textos fijos del correo (títulos, botones, pie de página), el idioma en que escribe usted y Copilot, y cambia el texto inicial.",
   " and ": " y ",
   "(Changes proposed, not applied yet.)": "(Cambios propuestos, aún no aplicados).",
   "(empty)": "(vacío)",

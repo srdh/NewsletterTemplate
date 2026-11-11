@@ -15,6 +15,9 @@ export const FONTS: { name: string; stack: string }[] = [
   { name: 'Georgia', stack: "Georgia,'Times New Roman',serif" },
   { name: 'Times New Roman', stack: "'Times New Roman',Times,serif" },
   { name: 'Courier New', stack: "'Courier New',Courier,monospace" },
+  // Japanese: Windows and Mac fonts, then a broad fallback.
+  { name: 'Yu Gothic', stack: "'Yu Gothic UI','Yu Gothic','Hiragino Sans',Meiryo,sans-serif" },
+  { name: 'Meiryo', stack: "Meiryo,'Yu Gothic','Hiragino Sans',sans-serif" },
 ]
 
 export const DEFAULT_FONT = 'Segoe UI'

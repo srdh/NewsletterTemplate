@@ -57,7 +57,10 @@ English is the default everywhere. There are two language settings, and they are
   - the language Copilot writes the email's text in (French: "vous" and French punctuation; Japanese: です・ます調; Spanish: neutral Spanish with "usted")
   - the default text of blocks, rows, and cards you add
 
-  Text you already wrote stays as it is when you switch. To translate it, ask Copilot, for example "Translate this email into Spanish".
+  - the language you type in: every field and text box in the form is tagged with it (spelling check, input methods such as Japanese IME, and fonts follow the email); the rich text editor waits for IME input to finish before saving
+  - **switching the text that is still starter wording**: headings, table cells, buttons, placeholders, and whole starter paragraphs move to the new language (`src/lib/convertLanguage.ts`). Text you changed yourself stays as you wrote it; to translate it, ask Copilot, for example "Translate this email into Spanish". Switching back restores the starter wording.
+
+  The font menus also offer Japanese fonts (Yu Gothic, Meiryo).
 - **New email in**: on the start panel, choose the language a new email starts in. Every template (Regional, Partner Skilling Update, Weekly Snapshot, Custom, Custom 2, and the Hackathons campaigns) has starter text in all four languages. New emails start in English until you pick another; the choice is remembered in this browser.
 
 Where the words live:

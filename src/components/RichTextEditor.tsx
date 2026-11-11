@@ -573,7 +573,12 @@ export function RichTextEditor({
           contentEditable
           suppressContentEditableWarning
           spellCheck
-          onInput={after}
+          onInput={(event) => {
+            // Japanese, Chinese, and Korean input: save once the IME has finished composing.
+            if ((event.nativeEvent as InputEvent).isComposing) return
+            after()
+          }}
+          onCompositionEnd={after}
           onPaste={onPaste}
           onKeyDown={onKeyDown}
           onKeyUp={saveSelection}

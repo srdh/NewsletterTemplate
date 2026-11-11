@@ -210,7 +210,7 @@ export function OutlineFields({
             {view.kind === 'settings' ? (
               <div className="grid grid-cols-[minmax(0,1fr)] gap-3.5">
                 <Field label={t("Email subject")} value={c.subject} onChange={(subject) => set({ subject })} />
-                <EmailLanguageField value={c.language} onChange={(language) => set({ language })} />
+                <EmailLanguageField bundle={bundle} onChange={(next) => set(next.campaign)} />
                 <StyleSection design={design} save={save} patch={patch} />
               </div>
             ) : null}

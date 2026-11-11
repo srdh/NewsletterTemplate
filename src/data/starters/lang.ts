@@ -19,3 +19,8 @@ export function starterT(lang: Lang): StarterT {
     return params ? text.replace(/\{(\w+)\}/g, (whole, key: string) => (key in params ? String(params[key]) : whole)) : text
   }
 }
+
+/** Every starter dictionary, by language (used to switch an email's language). */
+export function starterDictionaries(): Record<Lang, Record<string, string>> {
+  return DICTIONARIES
+}

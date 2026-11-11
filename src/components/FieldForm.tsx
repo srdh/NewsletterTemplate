@@ -15,7 +15,7 @@ import { NewsletterFields } from './NewsletterFields'
 import { OutlineFields } from './OutlineFields'
 import { t } from '../lib/i18n'
 import { emailLang, emailT, setEditingEmailLang } from '../lib/emailText'
-import { EmailLanguageField } from './EmailLanguageField'
+import { EmailLanguageField, useEmailInputLanguage } from './EmailLanguageField'
 
 /** Shown under text boxes that accept links. */
 const LINK_HINT = 'To add a link, write [link text](https://…)'
@@ -201,8 +201,9 @@ export function FieldForm({
   onSaveTemplate?: (name: string) => void
 }) {
   const campaign = bundle.campaign
-  // New blocks, rows, and cards start in this email's language.
+  // New blocks, rows, and cards start in this email's language, and fields take input in it.
   setEditingEmailLang(emailLang(campaign))
+  useEmailInputLanguage(campaign.language)
   const set = (patch: Partial<Campaign>) =>
     onChange({ ...bundle, campaign: { ...campaign, ...patch } })
 
@@ -336,7 +337,7 @@ export function FieldForm({
           onChange={(name) => set({ name })}
         />
         <Field label={t("Email subject")} value={campaign.subject} onChange={(subject) => set({ subject })} />
-        <EmailLanguageField value={campaign.language} onChange={(language) => set({ language })} />
+        <EmailLanguageField bundle={bundle} onChange={onChange} />
       </Section>
 
       {campaign.master_type === 'newsletter' ? <NewsletterFields key={campaign.id} bundle={bundle} set={set} /> : null}
