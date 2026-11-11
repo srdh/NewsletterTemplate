@@ -8,7 +8,7 @@ import {
   richHtml,
   sectionAttr,
 } from '../lib/html'
-import { emailLang, emailT, langTag, type EmailT } from '../lib/emailText'
+import { emailLang, emailT, japaneseFonts, langTag, type EmailT } from '../lib/emailText'
 
 const GREEN = '#0B4F38'
 const LINK = '#0067C0'
@@ -169,5 +169,5 @@ export function renderMonthlyUpdate(bundle: CampaignBundle, preview = false): st
     </tr>
   </table>`
 
-  return emailDocument(c.subject || c.title, inner, langTag(emailLang(c)))
+  return emailDocument(c.subject || c.title, japaneseFonts(inner, emailLang(c)), langTag(emailLang(c)))
 }

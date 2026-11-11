@@ -1,6 +1,6 @@
 import type { CampaignBundle, EventRow } from '../types'
 import { emailDocument, escapeHtml, markedBlock, msSquares, richHtml, sectionAttr } from '../lib/html'
-import { emailLang, emailT, langTag, type EmailT } from '../lib/emailText'
+import { emailLang, emailT, japaneseFonts, langTag, type EmailT } from '../lib/emailText'
 
 /** Fixed email wording in this email's language, set per render. */
 let T: EmailT = emailT('en')
@@ -151,5 +151,5 @@ export function renderWeeklySnapshot(bundle: CampaignBundle, preview = false): s
       </td>
     </tr>
   </table>`
-  return emailDocument(c.subject || c.title, inner, langTag(emailLang(c)))
+  return emailDocument(c.subject || c.title, japaneseFonts(inner, emailLang(c)), langTag(emailLang(c)))
 }

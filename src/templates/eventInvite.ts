@@ -8,7 +8,7 @@ import {
   richHtml,
   sectionAttr,
 } from '../lib/html'
-import { emailLang, emailT, langTag, type EmailT } from '../lib/emailText'
+import { emailLang, emailT, japaneseFonts, langTag, type EmailT } from '../lib/emailText'
 
 const GREEN = '#0B4F38'
 const OVERVIEW = '#E7F0C8'
@@ -133,5 +133,5 @@ export function renderEventInvite(bundle: CampaignBundle, preview = false): stri
     </tr>
   </table>`
 
-  return emailDocument(c.subject || c.title, inner, langTag(emailLang(c)))
+  return emailDocument(c.subject || c.title, japaneseFonts(inner, emailLang(c)), langTag(emailLang(c)))
 }

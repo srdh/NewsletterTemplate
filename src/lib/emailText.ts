@@ -1,5 +1,7 @@
+import { EMAIL_ES } from '../locales/emailEs'
 import { EMAIL_FR } from '../locales/emailFr'
-import { asLang, type Lang } from './i18n'
+import { EMAIL_JA } from '../locales/emailJa'
+import { asLang, langTag as tagFor, type Lang } from './i18n'
 
 /*
  * The fixed wording inside the emails themselves (table headings, "Best
@@ -10,7 +12,7 @@ import { asLang, type Lang } from './i18n'
 
 export type EmailT = (english: string, params?: Record<string, string | number>) => string
 
-const DICTIONARIES: Record<Lang, Record<string, string>> = { en: {}, fr: EMAIL_FR }
+const DICTIONARIES: Record<Lang, Record<string, string>> = { en: {}, fr: EMAIL_FR, ja: EMAIL_JA, es: EMAIL_ES }
 
 /** The language an email is written in (English unless set). */
 export function emailLang(campaign: { language?: string }): Lang {
@@ -27,7 +29,17 @@ export function emailT(lang: Lang): EmailT {
 
 /** BCP 47 tag for the email's html lang attribute and date formatting. */
 export function langTag(lang: Lang): string {
-  return lang === 'fr' ? 'fr-FR' : 'en-US'
+  return tagFor(lang)
+}
+
+/**
+ * A font stack for the email's language. Japanese adds Japanese fonts before
+ * the generic family, so mail apps without font fallback still show the text well.
+ */
+export function fontsFor(stack: string, lang: Lang): string {
+  if (lang !== 'ja') return stack
+  const japanese = "'Yu Gothic UI','Yu Gothic',Meiryo,'Hiragino Sans','MS PGothic'"
+  return /,\s*sans-serif\s*$/.test(stack) ? stack.replace(/,\s*sans-serif\s*$/, `,${japanese},sans-serif`) : `${stack},${japanese}`
 }
 
 let editing: Lang = 'en'
@@ -42,4 +54,10 @@ export function editingEmailLang(): Lang {
 
 export function setEditingEmailLang(lang: Lang): void {
   editing = lang
+}
+
+/** Adds Japanese fonts to every Segoe UI font stack in an email's HTML (Japanese emails only). */
+export function japaneseFonts(html: string, lang: Lang): string {
+  if (lang !== 'ja') return html
+  return html.replace(/font-family:\s*'Segoe UI',Tahoma,Arial,sans-serif/g, (stack) => `font-family:${fontsFor(stack.replace(/^font-family:\s*/, ''), 'ja')}`)
 }

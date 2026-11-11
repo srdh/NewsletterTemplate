@@ -1,10 +1,12 @@
 import { useSyncExternalStore } from 'react'
+import { ES } from '../locales/es'
 import { FR } from '../locales/fr'
+import { JA } from '../locales/ja'
 
 /*
  * Localization.
  *
- * Two languages, used in two separate places:
+ * English (the default), French, Japanese, and Spanish, used in two separate places:
  *  - the studio interface (menus, labels, buttons): the switch in the header,
  *    remembered in this browser. Read with t().
  *  - each email's own language (Campaign.language): fixed email wording,
@@ -16,20 +18,27 @@ import { FR } from '../locales/fr'
  * Add a language by adding its dictionary under locales/ and to LANGUAGES.
  */
 
-export type Lang = 'en' | 'fr'
+export type Lang = 'en' | 'fr' | 'ja' | 'es'
 
 export const LANGUAGES: { id: Lang; short: string; name: string }[] = [
   { id: 'en', short: 'En', name: 'English' },
   { id: 'fr', short: 'Fr', name: 'Français' },
+  { id: 'ja', short: 'Ja', name: '日本語' },
+  { id: 'es', short: 'Es', name: 'Español' },
 ]
 
-const DICTIONARIES: Record<Lang, Record<string, string>> = { en: {}, fr: FR }
+const DICTIONARIES: Record<Lang, Record<string, string>> = { en: {}, fr: FR, ja: JA, es: ES }
 
 const STORAGE_KEY = 'oft-template-maker/ui-language'
 
 /** Reads a language code, falling back to English. */
 export function asLang(value: unknown): Lang {
-  return value === 'fr' ? 'fr' : 'en'
+  return value === 'fr' || value === 'ja' || value === 'es' ? value : 'en'
+}
+
+/** BCP 47 tag for a language: dates, numbers, and the email's html lang. */
+export function langTag(lang: Lang): string {
+  return { en: 'en-US', fr: 'fr-FR', ja: 'ja-JP', es: 'es-ES' }[lang]
 }
 
 function stored(): Lang {

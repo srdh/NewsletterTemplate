@@ -291,7 +291,10 @@ export function AgentPanel({
           {items.length === 0 ? (
             <div className="pt-4">
               <h3 className="text-[22px] font-semibold leading-7 tracking-[-0.01em] text-ink">
-                {t("What email are we")}{' '}<span className="copilot-text">{t("building?")}</span>
+                {t("What email are we")}
+                {/* Japanese runs the two parts together with no space. */}
+                {uiLang() === 'ja' ? '' : ' '}
+                <span className="copilot-text">{t("building?")}</span>
               </h3>
               <p className="mt-2 max-w-[40ch] text-[14px] leading-5 text-ink-2">
                 {t("Start from a template, or pick up a recent email. Ask Copilot below to fill in the fields.")}</p>

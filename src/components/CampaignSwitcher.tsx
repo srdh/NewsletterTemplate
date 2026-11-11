@@ -4,7 +4,7 @@ import type { Campaign, MasterType } from '../types'
 import { MASTER_LABEL } from '../types'
 import { IconCheck, IconChevron, IconDuplicate, IconMore, IconSearch, IconTrash } from './Icons'
 import { t } from '../lib/i18n'
-import { uiLang } from '../lib/i18n'
+import { langTag, uiLang } from '../lib/i18n'
 
 const MASTERS: MasterType[] = ['event_invite', 'monthly_update', 'weekly_snapshot', 'newsletter', 'custom2', 'hackathon']
 
@@ -252,7 +252,7 @@ export function ago(iso: string): string {
   if (hours < 24) return t('{n} hr ago', { n: hours })
   const days = Math.round(hours / 24)
   if (days < 7) return t(days === 1 ? '{n} day ago' : '{n} days ago', { n: days })
-  const date = new Date(iso).toLocaleDateString(uiLang() === 'fr' ? 'fr-FR' : undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  const date = new Date(iso).toLocaleDateString(langTag(uiLang()), { month: 'short', day: 'numeric', year: 'numeric' })
   return t('on {date}', { date })
 }
 

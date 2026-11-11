@@ -13,17 +13,32 @@ export type FillRequest = {
   prompt: string
   history?: ChatTurn[]
   current?: unknown
-  /** The email's language: 'en' (default) or 'fr'. The email's text is written in it. */
+  /** The email's language: 'en' (default), 'fr', 'ja', or 'es'. The email's text is written in it. */
   emailLanguage?: string
-  /** The studio's language: 'en' (default) or 'fr'. The reply to the person is written in it. */
+  /** The studio's language: 'en' (default), 'fr', 'ja', or 'es'. The reply to the person is written in it. */
   uiLanguage?: string
 }
 
-const LANGUAGE_NAME: Record<string, string> = { en: 'English (US)', fr: 'French (France)' }
+type Language = 'en' | 'fr' | 'ja' | 'es'
+
+const LANGUAGE_NAME: Record<Language, string> = {
+  en: 'English (US)',
+  fr: 'French (France)',
+  ja: 'Japanese (Japan)',
+  es: 'Spanish (international)',
+}
 
 /** A supported language code, English otherwise. */
-function languageOf(value: unknown): 'en' | 'fr' {
-  return value === 'fr' ? 'fr' : 'en'
+function languageOf(value: unknown): Language {
+  return value === 'fr' || value === 'ja' || value === 'es' ? value : 'en'
+}
+
+/** The note added to the reply when a link was left out, in the studio language. */
+const LINK_NOTE: Record<Language, string> = {
+  en: "I left out a link I don't have. Paste the correct link and I'll add it.",
+  fr: 'J’ai laissé de côté un lien que je n’ai pas. Collez le bon lien et je l’ajouterai.',
+  ja: '手元にないリンクは入れていません。正しいリンクを貼り付けていただければ追加します。',
+  es: 'Dejé fuera un enlace que no tengo. Pega el enlace correcto y lo añadiré.',
 }
 
 export type FillResult =
@@ -124,7 +139,11 @@ Microsoft Partner Skilling voice: clear, warm, professional, concise, no hype, n
 
 # Languages
 Each request names two languages:
-- The email language: write every value you put in the email (subject, headings, body text, buttons, sign-off) in it. English means US English. French means natural, professional French as Microsoft France writes to partners: "vous", French punctuation and spacing (a space before : ; ? !), « » quotation marks, French date and time formats (for example "mardi 22 septembre 2026, 9 h 00 – 10 h 15 (heure de Paris)"). Keep product and program names as they are (Microsoft 365 Copilot, Partner Skilling, Copilot Studio).
+- The email language: write every value you put in the email (subject, headings, body text, buttons, sign-off) in it. Keep product and program names as they are (Microsoft 365 Copilot, Partner Skilling, Copilot Studio).
+  - English: US English.
+  - French: natural, professional French as Microsoft France writes to partners: "vous", French punctuation and spacing (a space before : ; ? !), « » quotation marks, French dates and times (for example "mardi 22 septembre 2026, 9 h 00 – 10 h 15 (heure de Paris)").
+  - Japanese: polite business Japanese (です・ます調) as Microsoft Japan writes to partners, full-width Japanese punctuation (、。「」), Japanese dates and times (for example "2026年9月22日（火）9:00～10:15（日本時間）").
+  - Spanish: neutral, professional Spanish for partners across regions, "usted", opening ¿ and ¡, Spanish dates and times (for example "martes, 22 de septiembre de 2026, 9:00–10:15 (hora de Ciudad de México)").
 - The studio language: write your reply to the person in it, whatever the email language.
 If the person asks to translate the email, rewrite its text in the email language and keep its meaning, names, links, and dates.
 
@@ -447,10 +466,7 @@ export function removeUnknownLinks(
 
   if (removed > 0) {
     const reply = typeof input.reply === 'string' ? input.reply.trim() : ''
-    const note =
-      languageOf(request.uiLanguage) === 'fr'
-        ? 'J’ai laissé de côté un lien que je n’ai pas. Collez le bon lien et je l’ajouterai.'
-        : "I left out a link I don't have. Paste the correct link and I'll add it."
+    const note = LINK_NOTE[languageOf(request.uiLanguage)]
     output.reply = `${reply}${reply ? ' ' : ''}${note}`
   }
   return output

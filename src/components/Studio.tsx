@@ -23,7 +23,7 @@ import { DownloadButton } from './DownloadButton'
 import { FieldForm } from './FieldForm'
 import { IconCheck, IconClose, IconCopy, IconSaved, IconWarning, MicrosoftMark } from './Icons'
 import { PreviewPane } from './PreviewPane'
-import { asLang, t, uiLang, type Lang } from '../lib/i18n'
+import { asLang, t, type Lang } from '../lib/i18n'
 import { LanguageSwitch } from './LanguageSwitch'
 
 /** Remembers the language you last picked for new emails. */
@@ -189,7 +189,7 @@ export function Studio() {
     setBundle(next)
   }
 
-  // The language new emails start in: the studio language until you pick one.
+  // The language new emails start in: English until you pick another.
   const [pickedLang, setPickedLang] = useState<Lang | null>(() => {
     try {
       const saved = localStorage.getItem(NEW_LANG_KEY)
@@ -198,7 +198,7 @@ export function Studio() {
       return null
     }
   })
-  const newLang = pickedLang ?? uiLang()
+  const newLang = pickedLang ?? 'en'
   function pickNewLang(lang: Lang) {
     setPickedLang(lang)
     try {
@@ -356,13 +356,17 @@ export function Studio() {
   return (
     <div className="flex h-dvh flex-col bg-paper text-ink">
       <header className="flex h-15 shrink-0 xl:h-[72px] items-center gap-2 border-b border-line bg-surface px-3 sm:gap-3 sm:px-5">
-        <div className="flex shrink-0 items-center gap-3 sm:pr-1">
+        <div className="flex min-w-0 shrink items-center gap-3 sm:pr-1">
           <MicrosoftMark className="h-6 w-6 shrink-0" />
           <div className="hidden min-w-0 md:block">
             <h1 className="text-[18px] font-semibold leading-6 whitespace-nowrap text-ink">
               {t("Newsletter Studio")}</h1>
-            <p className="hidden text-[12px] leading-4 whitespace-nowrap text-muted xl:block">
-              {t("Microsoft Partner Skilling Outlook emails: design, preview live, export .oft")}</p>
+            <p
+              className="hidden max-w-[26rem] truncate text-[12px] leading-4 text-muted xl:block"
+              title={t("Microsoft Partner Skilling Outlook emails: design, preview live, export .oft")}
+            >
+              {t("Microsoft Partner Skilling Outlook emails: design, preview live, export .oft")}
+            </p>
           </div>
         </div>
         <span className="hidden h-6 w-px shrink-0 bg-line-strong md:block" aria-hidden="true" />

@@ -46,29 +46,29 @@ Code: `src/lib/newsletter.ts` (design model), `src/lib/richText.ts` (sanitizer a
 
 This is **Track B**: a React studio plus tables. Inside a Microsoft tenant the same shape is Dataverse + Power Apps + Power Automate. Mapping: [docs/dataverse-map.md](docs/dataverse-map.md).
 
-## Languages (English and French)
+## Languages (English, French, Japanese, Spanish)
 
-There are two language settings, and they are separate:
+English is the default everywhere. There are two language settings, and they are separate:
 
-- **Studio language**: the **En / Fr** switch in the header changes the studio's own menus, labels, buttons, and messages. It is remembered in this browser. Copilot also replies to you in this language.
+- **Studio language**: the **En / Fr / Ja / Es** switch in the header changes the studio's own menus, labels, buttons, and messages. It is remembered in this browser. Copilot also replies to you in this language.
 - **Email language**: each email has its own **Email language** (in **Email settings** for Custom 2 and Hackathons, under the subject for the other templates). It sets:
   - the email's fixed wording, such as table headings, "Best regards,", the event card's Date / Time / Where, and the footer's copyright line
-  - the email's `html lang` (`en-US` or `fr-FR`)
-  - the language Copilot writes the email's text in
+  - the email's `html lang` (`en-US`, `fr-FR`, `ja-JP`, `es-ES`); Japanese emails also add Japanese fonts (Yu Gothic, Meiryo) to the font list
+  - the language Copilot writes the email's text in (French: "vous" and French punctuation; Japanese: です・ます調; Spanish: neutral Spanish with "usted")
   - the default text of blocks, rows, and cards you add
 
-  Text you already wrote stays as it is when you switch. To translate it, ask Copilot, for example "Traduis cet e-mail en français".
-- **New email in**: on the start panel, choose the language a new email starts in. Every template (Regional, Partner Skilling Update, Weekly Snapshot, Custom, Custom 2, and the Hackathons campaigns) has French starter text. Until you pick one, new emails follow the studio language.
+  Text you already wrote stays as it is when you switch. To translate it, ask Copilot, for example "Translate this email into Spanish".
+- **New email in**: on the start panel, choose the language a new email starts in. Every template (Regional, Partner Skilling Update, Weekly Snapshot, Custom, Custom 2, and the Hackathons campaigns) has starter text in all four languages. New emails start in English until you pick another; the choice is remembered in this browser.
 
 Where the words live:
 
-| What | File |
+| What | Files |
 |---|---|
-| Studio interface | `src/locales/fr.ts` (keys are the English text in `t('…')` calls, see `src/lib/i18n.ts`) |
-| Fixed email wording | `src/locales/emailFr.ts` (see `src/lib/emailText.ts`) |
-| Starter emails | `src/data/starters/fr.ts` (keys are the English text in `T('…')` calls in each starter) |
+| Studio interface | `src/locales/fr.ts`, `ja.ts`, `es.ts` (keys are the English text in `t('…')` calls, see `src/lib/i18n.ts`) |
+| Fixed email wording | `src/locales/emailFr.ts`, `emailJa.ts`, `emailEs.ts` (see `src/lib/emailText.ts`) |
+| Starter emails | `src/data/starters/fr.ts`, `ja.ts`, `es.ts` (keys are the English text in `T('…')` calls in each starter) |
 
-A phrase with no French entry shows in English, so nothing breaks while a translation is missing. To add a language, add its dictionaries next to the French ones and add it to `LANGUAGES` in `src/lib/i18n.ts`.
+A phrase with no translation shows in English, so nothing breaks while a translation is missing. To add a language, add its three dictionaries next to these, add it to `LANGUAGES` and `langTag` in `src/lib/i18n.ts`, to the dictionary maps in `src/lib/emailText.ts` and `src/data/starters/lang.ts`, and to `LANGUAGE_NAME` and `LINK_NOTE` in `api/claude-fill.ts`.
 
 If you use Supabase, run `supabase/schema.sql` again. It adds the `language` column and is safe to re-run.
 
