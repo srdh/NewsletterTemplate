@@ -43,37 +43,18 @@ const HACKATHON_CAMPAIGNS = STARTERS.filter((starter) => starter.master === 'hac
   hint?: string
 }[]
 
-const TEMPLATE_CHOICES: { key: NewEmailChoice; title: string; hint: string; icon: React.ReactNode }[] = [
-  {
-    key: 'event_invite',
-    title: 'Regional Template',
-    hint: 'Event invite with banner, event details, agenda, and signature',
-    icon: <IconCalendar />,
-  },
-  {
-    key: 'monthly_update',
-    title: 'Partner Skilling Update Template',
-    hint: 'Monthly newsletter with spotlight cards and skilling tables',
-    icon: <IconNewsletter />,
-  },
-  {
-    key: 'weekly_snapshot',
-    title: 'Weekly Project Snapshot',
-    hint: 'Status email with request, progress, and delivery tables',
-    icon: <IconTable />,
-  },
-  {
-    key: 'custom',
-    title: 'Custom',
-    hint: 'Free-form newsletter like ME7 + Copilot learning paths: hero image, cards, rich text',
-    icon: <IconCustom />,
-  },
-  {
-    key: 'custom2',
-    title: 'Custom 2',
-    hint: 'Edit block by block: banner, text, event card, table, spotlights, call to action, signature',
-    icon: <IconBlocks />,
-  },
+interface GroupCampaign {
+  id: NewEmailChoice
+  label: string
+  hint?: string
+}
+
+/** Campaigns under Partner Template: the four classic Partner Skilling emails. */
+const PARTNER_CAMPAIGNS: GroupCampaign[] = [
+  { id: 'event_invite', label: 'Regional Template', hint: 'Event invite with banner, event details, agenda, and signature' },
+  { id: 'monthly_update', label: 'Partner Skilling Update Template', hint: 'Monthly newsletter with spotlight cards and skilling tables' },
+  { id: 'weekly_snapshot', label: 'Weekly Project Snapshot', hint: 'Status email with request, progress, and delivery tables' },
+  { id: 'custom', label: 'Custom', hint: 'Free-form newsletter like ME7 + Copilot learning paths: hero image, cards, rich text' },
 ]
 
 const RECENT_COUNT = 5
@@ -116,7 +97,8 @@ export function AgentPanel({
   onDeleteTemplate: (id: string) => void
 }) {
   const [items, setItems] = useState<ChatItem[]>([])
-  const [hackathonsOpen, setHackathonsOpen] = useState(false)
+  const [openGroup, setOpenGroup] = useState<'partner' | 'hackathons' | null>(null)
+  const toggleGroup = (group: 'partner' | 'hackathons') => setOpenGroup((open) => (open === group ? null : group))
   const [draft, setDraft] = useState('')
   const input = useRef<HTMLTextAreaElement>(null)
 
@@ -288,58 +270,41 @@ export function AgentPanel({
                 Start from a template, or pick up a recent email. Ask Copilot below to fill in the fields.
               </p>
               <div className="mt-5 grid gap-2" role="group" aria-label="Start a new email">
-                {TEMPLATE_CHOICES.map((choice) => (
-                  <button
-                    key={choice.key}
-                    type="button"
-                    onClick={() => onNew(choice.key)}
-                    className="copilot-glass group flex items-start gap-3 rounded-[var(--r-lg)] p-3 text-left"
-                  >
-                    <span className="copilot-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-forest">
-                      {choice.icon}
+                <TemplateGroup
+                  id="partner-campaigns"
+                  title="Partner Template"
+                  hint="Partner Skilling emails. Pick a campaign:"
+                  icon={<IconPartner />}
+                  campaigns={PARTNER_CAMPAIGNS}
+                  open={openGroup === 'partner'}
+                  onToggle={() => toggleGroup('partner')}
+                  onPick={onNew}
+                />
+                <button
+                  type="button"
+                  onClick={() => onNew('custom2')}
+                  className="copilot-glass group flex items-start gap-3 rounded-[var(--r-lg)] p-3 text-left"
+                >
+                  <span className="copilot-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-forest">
+                    <IconBlocks />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-semibold leading-5 text-ink">Custom 2</span>
+                    <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">
+                      Edit block by block: banner, text, event card, table, spotlights, call to action, signature
                     </span>
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold leading-5 text-ink">{choice.title}</span>
-                      <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">{choice.hint}</span>
-                    </span>
-                  </button>
-                ))}
-                <div className="copilot-glass overflow-hidden rounded-[var(--r-lg)]">
-                  <button
-                    type="button"
-                    aria-expanded={hackathonsOpen}
-                    aria-controls="hackathon-campaigns"
-                    onClick={() => setHackathonsOpen((open) => !open)}
-                    className="group flex w-full items-start gap-3 p-3 text-left"
-                  >
-                    <span className="copilot-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-forest">
-                      <IconTrophy />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[13px] font-semibold leading-5 text-ink">Hackathons</span>
-                      <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">
-                        Hackathon emails, block by block. Pick a campaign:
-                      </span>
-                    </span>
-                    <IconChevron className={'mt-2 shrink-0 text-ink-2 transition-transform ' + (hackathonsOpen ? 'rotate-180' : '')} />
-                  </button>
-                  {hackathonsOpen ? (
-                    <ul id="hackathon-campaigns" className="grid gap-1 px-3 pb-3 pl-[60px]">
-                      {HACKATHON_CAMPAIGNS.map((campaign) => (
-                        <li key={campaign.id}>
-                          <button
-                            type="button"
-                            onClick={() => onNew(campaign.id)}
-                            className="w-full rounded-[var(--r-md)] bg-surface/70 px-2.5 py-1.5 text-left ring-1 ring-line transition-colors hover:bg-surface hover:ring-forest-line"
-                          >
-                            <span className="block text-[13px] font-semibold leading-[18px] text-ink">{campaign.label}</span>
-                            {campaign.hint ? <span className="block text-[11px] leading-4 text-muted">{campaign.hint}</span> : null}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
+                  </span>
+                </button>
+                <TemplateGroup
+                  id="hackathon-campaigns"
+                  title="Hackathons"
+                  hint="Hackathon emails, block by block. Pick a campaign:"
+                  icon={<IconTrophy />}
+                  campaigns={HACKATHON_CAMPAIGNS}
+                  open={openGroup === 'hackathons'}
+                  onToggle={() => toggleGroup('hackathons')}
+                  onPick={onNew}
+                />
               </div>
 
               {templates.length ? (
@@ -641,6 +606,73 @@ function IconBlocks() {
 }
 
 /** Hackathons: a trophy. */
+/** A template with campaigns under it: opens in place to list them. */
+function TemplateGroup({
+  id,
+  title,
+  hint,
+  icon,
+  campaigns,
+  open,
+  onToggle,
+  onPick,
+}: {
+  id: string
+  title: string
+  hint: string
+  icon: React.ReactNode
+  campaigns: GroupCampaign[]
+  open: boolean
+  onToggle: () => void
+  onPick: (choice: NewEmailChoice) => void
+}) {
+  return (
+    <div className="copilot-glass overflow-hidden rounded-[var(--r-lg)]">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={onToggle}
+        className="group flex w-full items-start gap-3 p-3 text-left"
+      >
+        <span className="copilot-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-forest">{icon}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] font-semibold leading-5 text-ink">{title}</span>
+          <span className="block text-[12px] leading-4 text-muted group-hover:text-ink-2">{hint}</span>
+        </span>
+        <IconChevron className={'mt-2 shrink-0 text-ink-2 transition-transform ' + (open ? 'rotate-180' : '')} />
+      </button>
+      {open ? (
+        <ul id={id} className="grid gap-1 px-3 pb-3 pl-[60px]">
+          {campaigns.map((campaign) => (
+            <li key={campaign.id}>
+              <button
+                type="button"
+                onClick={() => onPick(campaign.id)}
+                className="w-full rounded-[var(--r-md)] bg-surface/70 px-2.5 py-1.5 text-left ring-1 ring-line transition-colors hover:bg-surface hover:ring-forest-line"
+              >
+                <span className="block text-[13px] font-semibold leading-[18px] text-ink">{campaign.label}</span>
+                {campaign.hint ? <span className="block text-[11px] leading-4 text-muted">{campaign.hint}</span> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  )
+}
+
+/** Two overlapping cards: the Partner Template group. */
+function IconPartner() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="2.75" y="5.75" width="10.5" height="10.5" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.75 3.75h7.5a2 2 0 0 1 2 2v7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5.5 9.5h5M5.5 12.5h3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 function IconTrophy() {
   return (
     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">

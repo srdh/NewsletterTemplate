@@ -4,12 +4,13 @@ Template studio for Microsoft Partner Skilling Outlook emails. Pick a master, fi
 
 ## Starting an email
 
-The left panel opens on **What email are we building?** with four templates:
+The left panel opens on **What email are we building?** with three choices: **Partner Template**, **Custom 2**, and **Hackathons**. Partner Template and Hackathons expand to list their campaigns (one group open at a time).
 
-- **Regional Template**: regional event invite (banner, event details, agenda, signature).
-- **Partner Skilling Update Template**: monthly newsletter with spotlight cards and skilling tables.
-- **Weekly Project Snapshot**: status email with request, progress, and delivery tables.
-- **Custom**: a free-form newsletter in the ME7 + Copilot learning paths format, fully editable (below).
+- **Partner Template**: the Partner Skilling emails. Expand it to pick a campaign:
+  - **Regional Template**: regional event invite (banner, event details, agenda, signature).
+  - **Partner Skilling Update Template**: monthly newsletter with spotlight cards and skilling tables.
+  - **Weekly Project Snapshot**: status email with request, progress, and delivery tables.
+  - **Custom**: a free-form newsletter in the ME7 + Copilot learning paths format, fully editable (below).
 - **Custom 2**: the same engine and formatting, edited **block by block**. The Fields pane lists the email's blocks (Email settings, Banner, Text, Event card, Table, Spotlight cards, Call to action, Signature, Footer), each with a thumbnail and summary. Open a block to edit it, then **All blocks** to go back. **Add block** adds any block type, right below the block you have open (or at the end from the list); **Save as template** keeps the email under **Your templates** on the left (stored in this browser) to start new emails from. Click a block in the preview to open it.
 
 - **Hackathons**: hackathon emails in the Custom 2 block editor. Expand it to pick a campaign: **Register Today** (an invitation generalized from the Microsoft Insight Forge Hackathon invite: logo strip with a partner logo, banner, event dates box, Register buttons, a Light Teal Hack Prep Workshops band with workshop and self-paced course tables, and a Warm White hackathon stages band, all in the Microsoft colour palette, with the partner, event, dates, themes, and course links as `[placeholders]`), **Registration Confirmation** (rebuilt from the SoftwareOne Agentic AI Hackathon confirmation, with a Key dates table under the greeting, and the participant's name, email, temporary password, team, and role as `[placeholders]`), **FY Summary** (a year-end report generalized from the FY26 Global Partner Hackathons summary: program overview, hackathon models, number tiles, event tables, photo gallery, highlights in columns, and sponsors and leads, with year-specific content as `[placeholders]`), or **Blank hackathon email** in the same branding.

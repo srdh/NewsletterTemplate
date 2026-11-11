@@ -486,10 +486,10 @@ export function Studio() {
               <div className="mt-4 grid gap-2">
                 {(
                   [
-                    ['event_invite', 'Regional Template'],
-                    ['monthly_update', 'Partner Skilling Update Template'],
-                    ['weekly_snapshot', 'Weekly Project Snapshot'],
-                    ['custom', 'Custom'],
+                    ['event_invite', 'Partner Template: Regional Template'],
+                    ['monthly_update', 'Partner Template: Partner Skilling Update Template'],
+                    ['weekly_snapshot', 'Partner Template: Weekly Project Snapshot'],
+                    ['custom', 'Partner Template: Custom'],
                     ['custom2', 'Custom 2'],
                     ['hackathon-registration', 'Hackathons: Registration Confirmation'],
                   ] as [NewEmailChoice, string][]
